@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [更优世界线逐包策略记录](strategy/strategy-optimization-20260923.md)：五份玩家备注包的同根基线、实验和结论。
+
 - [常驻策略迭代会话](strategy/development-session.md)：跨包复用无头游戏、C# 策略脚本与参数热更新。
 
 - [可选 ServerGC 启动配置](performance/server-gc-launch-profile-20260924.md)：仅本次进程生效的启动方式、保存设置边界与原生宿主验收。
