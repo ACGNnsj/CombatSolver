@@ -131,6 +131,29 @@ internal static partial class CombatSearchCoordinator
         HashSet<string> seen = prefixes
             .Select(PowerPrefixKey)
             .ToHashSet(StringComparer.Ordinal);
+        HashSet<string> powerUpgradePrefixes = [];
+        if (!generatedAfterOpeningPotionsOnly)
+        {
+            foreach (PlanAction upgrade in prefixBuilder.BuildOpeningPowerUpgradeActions())
+            {
+                foreach (PlanAction power in prefixBuilder.BuildPowerActionsAfterPrefix([upgrade]))
+                {
+                    if (!PowerCardValuationModels.Registry.ContainsCardId(power.CardId!))
+                        continue;
+                    PlanAction[] prefix = [upgrade, power];
+                    string key = PowerPrefixKey(prefix);
+                    if (seen.Add(key))
+                    {
+                        prefixes.Add(prefix);
+                        powerUpgradePrefixes.Add(key);
+                    }
+                    if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                        break;
+                }
+                if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                    break;
+            }
+        }
         if (root.PlayerCardIds.Contains("WHITE_NOISE"))
         {
             PlanAction[] openingPotions = baseline.BestNode.Actions
@@ -214,8 +237,17 @@ internal static partial class CombatSearchCoordinator
         int memberIndex = 0;
         foreach (PlanAction[] prefix in prefixes)
         {
-            foreach (BeamWidthPortfolioMemberSpec variant in variants)
+            bool upgradedPower = powerUpgradePrefixes.Contains(PowerPrefixKey(prefix));
+            foreach (BeamWidthPortfolioMemberSpec configuredVariant in variants)
             {
+                BeamWidthPortfolioMemberSpec variant = upgradedPower && configuredVariant.BaseScoreOnly
+                    ? configuredVariant with
+                    {
+                        BeamWidth = BeamWidthPortfolio.ScaledWidth(
+                            profile.BeamWidth,
+                            BeamWidthPortfolio.WideRefinementRatio),
+                    }
+                    : configuredVariant;
                 cancellationToken.ThrowIfCancellationRequested();
                 if (CanFinishTargetPortfolio(root, policy, profile, selected))
                 {
@@ -312,5 +344,7 @@ internal static partial class CombatSearchCoordinator
             prefix.Select(action =>
                 $"{action.Kind}:{action.CardId}:{action.PotionId}:{action.PotionSlot}:" +
                 $"{action.CardStateKey}:{action.CardStateOccurrence}:" +
-                $"{action.TargetCombatId?.ToString() ?? "-"}"));
+                $"{action.TargetCombatId?.ToString() ?? "-"}:" +
+                $"{action.Choice?.Effect}:" +
+                string.Join(',', action.Choice?.Cards.Select(card => card.StateKey) ?? [])));
 }

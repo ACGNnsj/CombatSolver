@@ -22,6 +22,52 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPowerActions()
         => BuildPowerActionsAfterPrefix([]);
 
+    internal IReadOnlyList<PlanAction> BuildOpeningPowerUpgradeActions()
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
+            PredictedCard[] powers = simulator.State.GetPlayerCombatState(_player).Hand.Cards
+                .Where(card => card.Preview.Type == CardType.Power
+                    && PowerCardValuationModels.Registry.ContainsCardId(card.Preview.Id.Entry))
+                .ToArray();
+            if (powers.Length == 0)
+                return [];
+
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
+                    && node.Snapshot.Turn == seed.Snapshot.Turn)
+                .Select(node => (Node: node, UpgradeGain: ((CombatPredictionSimulator)node.Snapshot.Simulator)
+                    .State.GetPlayerCombatState(_player).Hand.Cards
+                    .Where(card => card.Preview.Type == CardType.Power)
+                    .Sum(card => powers
+                        .Where(original => ReferenceEquals(original.Original, card.Original))
+                        .Sum(original => Math.Max(0,
+                            card.Preview.CurrentUpgradeLevel - original.Preview.CurrentUpgradeLevel)))))
+                .Where(item => item.UpgradeGain > 0)
+                .OrderByDescending(item => item.UpgradeGain)
+                .ThenByDescending(item => item.Node.Score)
+                .DistinctBy(item => (item.Node.Action!.CardId,
+                    item.Node.Action.CardStateKey,
+                    item.Node.Action.CardStateOccurrence,
+                    item.Node.Action.TargetCombatId,
+                    Choice: string.Join('|', item.Node.Action.Choice?.Cards.Select(card => card.StateKey)
+                        ?? [])))
+                .Take(3)
+                .Select(item => item.Node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
     internal IReadOnlyList<PlanAction> BuildPowerActionsAfterPrefix(
         IReadOnlyList<PlanAction> prefix, bool includeWhiteNoise = false)
     {
