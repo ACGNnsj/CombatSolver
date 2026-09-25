@@ -19,7 +19,8 @@ internal static partial class CombatSearchCoordinator
         Action<SolverProgress>? progressCallback,
         SolverSearchProfile profile,
         SolverPotionPolicy? potionPolicyOverride,
-        SolverResult baseline)
+        SolverResult baseline,
+        bool generatedAfterOpeningPotionsOnly = false)
     {
         if (!root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
             return baseline;
@@ -37,18 +38,48 @@ internal static partial class CombatSearchCoordinator
             progressCallback,
             profile,
             potionPolicyOverride: potionPolicyOverride);
-        PlanAction[] openingPowers = prefixBuilder.BuildOpeningPowerActions()
-            .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
-            .ToArray();
-        if (openingPowers.Length == 0)
-            return baseline;
-
+        PlanAction[] openingPowers = generatedAfterOpeningPotionsOnly
+            ? []
+            : prefixBuilder.BuildOpeningPowerActions()
+                .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                .ToArray();
         List<PlanAction[]> prefixes = openingPowers
             .Select(action => new[] { action })
             .ToList();
         HashSet<string> seen = prefixes
             .Select(PowerPrefixKey)
             .ToHashSet(StringComparer.Ordinal);
+        if (root.PlayerCardIds.Contains("WHITE_NOISE"))
+        {
+            PlanAction[] openingPotions = baseline.BestNode.Actions
+                .TakeWhile(action => action.Kind == PlanActionKind.UsePotion
+                    && action.Turn == baseline.StartTurnNumber)
+                .ToArray();
+            if (generatedAfterOpeningPotionsOnly && openingPotions.Length == 0)
+                return baseline;
+            foreach (PlanAction generator in prefixBuilder.BuildPowerActionsAfterPrefix(
+                         openingPotions, includeWhiteNoise: true)
+                         .Where(action => action.CardId == "WHITE_NOISE"))
+            {
+                PlanAction[] generatorPrefix = [.. openingPotions, generator];
+                foreach (PlanAction generatedPower in prefixBuilder.BuildPowerActionsAfterPrefix(generatorPrefix))
+                {
+                    if (!PowerCardValuationModels.Registry.ContainsCardId(generatedPower.CardId!))
+                        continue;
+                    PlanAction[] prefix = [.. generatorPrefix, generatedPower];
+                    if (seen.Add(PowerPrefixKey(prefix)))
+                        prefixes.Add(prefix);
+                    if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                        break;
+                }
+                if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                    break;
+            }
+        }
+        else if (generatedAfterOpeningPotionsOnly)
+            return baseline;
+        if (prefixes.Count == 0)
+            return baseline;
         foreach (PlanAction openingPower in openingPowers)
         {
             if (prefixes.Count >= Math.Max(openingPowers.Length, MaximumOpeningPowerPrefixes))
@@ -156,7 +187,10 @@ internal static partial class CombatSearchCoordinator
                 long allocated = Math.Max(
                     0,
                     GC.GetTotalAllocatedBytes(precise: false) - allocatedBefore);
-                string prefixText = string.Join('+', prefix.Select(action => action.CardId));
+                string prefixText = string.Join('+', prefix.Select(action =>
+                    action.Kind == PlanActionKind.UsePotion
+                        ? $"POTION:{action.PotionId}@{action.PotionSlot}"
+                        : action.CardId));
                 policy.PortfolioTelemetry?.RecordPowerRouteMember(new PowerRoutePortfolioMemberReport(
                     prefixText,
                     variant.BeamWidth,
@@ -191,9 +225,10 @@ internal static partial class CombatSearchCoordinator
         return selected;
     }
 
-    private static string PowerPrefixKey(IEnumerable<PlanAction> prefix)        => string.Join(
+    private static string PowerPrefixKey(IEnumerable<PlanAction> prefix) => string.Join(
             '>',
             prefix.Select(action =>
-                $"{action.CardId}:{action.CardStateKey}:{action.CardStateOccurrence}:" +
+                $"{action.Kind}:{action.CardId}:{action.PotionId}:{action.PotionSlot}:" +
+                $"{action.CardStateKey}:{action.CardStateOccurrence}:" +
                 $"{action.TargetCombatId?.ToString() ?? "-"}"));
 }

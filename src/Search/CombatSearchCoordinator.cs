@@ -831,6 +831,22 @@ internal static partial class CombatSearchCoordinator
                 selected,
                 memoryForecast,
                 interimResultCallback);
+            if (selected.BestNode.Actions.FirstOrDefault() is
+                    { Kind: PlanActionKind.UsePotion }
+                && root.PlayerCardIds.Contains("WHITE_NOISE"))
+            {
+                selected = RunOpeningPowerRoutePortfolio(
+                    root,
+                    displayNames,
+                    battleDamage,
+                    policy,
+                    deadline.Token,
+                    progressCallback,
+                    profile,
+                    potionPolicyOverride: null,
+                    selected,
+                    generatedAfterOpeningPotionsOnly: true);
+            }
             if (HasReachedAcceptableBattleHpLoss(policy, selected))
                 return selected;
             if (policy.PotionPolicy != SolverPotionPolicy.Smart)

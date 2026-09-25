@@ -22,7 +22,8 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPowerActions()
         => BuildPowerActionsAfterPrefix([]);
 
-    internal IReadOnlyList<PlanAction> BuildPowerActionsAfterPrefix(IReadOnlyList<PlanAction> prefix)
+    internal IReadOnlyList<PlanAction> BuildPowerActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix, bool includeWhiteNoise = false)
     {
         SimulationSnapshot prefixSnapshot = Replay(prefix);
         try
@@ -53,7 +54,9 @@ internal sealed partial class CombatBeamSolver
             for (int handIndex = 0; handIndex < hand.Count; handIndex++)
             {
                 PredictedCard card = hand[handIndex];
-                if (card.Preview.Type != CardType.Power || !combat.CanPlayCard(simulator, card))
+                if ((card.Preview.Type != CardType.Power
+                     && !(includeWhiteNoise && card.Preview.Id.Entry == "WHITE_NOISE"))
+                    || !combat.CanPlayCard(simulator, card))
                     continue;
 
                 string cardStateKey = CardChoiceSupport.ChoiceCardKey(card);
