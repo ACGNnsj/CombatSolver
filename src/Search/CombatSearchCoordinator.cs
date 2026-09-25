@@ -174,13 +174,17 @@ internal static partial class CombatSearchCoordinator
                         MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
                         SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
                     };
-                    SolverResult rescue = new CombatBeamSolver(root, displayNames, battleDamage,
-                        policy, cancellationToken, enrichedProgressCallback, rescueProfile,
-                        potionPolicyOverride: rescueAfterDeath
-                            ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
-                        maximumPotionUses: rescueAfterDeath ? 2 : 0,
-                        fixedPrefixActions: firstTurn,
-                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                    SolverResult? rescue = SolveOptionalPotionPosterior(
+                        new CombatBeamSolver(root, displayNames, battleDamage,
+                            policy, cancellationToken, enrichedProgressCallback, rescueProfile,
+                            potionPolicyOverride: rescueAfterDeath
+                                ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
+                            maximumPotionUses: rescueAfterDeath ? 2 : 0,
+                            fixedPrefixActions: firstTurn,
+                            resetFixedPrefixSchedulingBaseline: true),
+                        policy, "TURN_BOUNDARY_RESCUE");
+                    if (rescue == null)
+                        continue;
                     policy.Diagnostics.Info($"[CombatSolver/Test] TURN_BOUNDARY_RESCUE " +
                         $"won={IsCompleteVictory(rescue)} hp_lost={rescue.ProjectedBattleHpLost} " +
                         $"potions={rescue.PotionCount} first_turn={string.Join('+', firstTurn.Select(action => action.CardId))}");
@@ -1554,6 +1558,16 @@ internal static partial class CombatSearchCoordinator
                     PlanAction[] defendedPrefix = [.. powerPrefix, defense];
                     foreach (PlanAction setup in builder.BuildOpeningHandSetupActions(defendedPrefix).Take(2))
                         prefixes.Add([.. defendedPrefix, setup]);
+                }
+                if (openingPotion[0].Choice == null
+                    && PotionUsePolicy.RequiresOpeningUse(openingPotion[0].PotionId))
+                {
+                    foreach (PlanAction draw in builder.BuildOpeningHandSetupActions(openingPotion).Take(1))
+                    {
+                        PlanAction[] drawnPrefix = [.. openingPotion, draw];
+                        foreach (PlanAction attack in builder.BuildOpeningOffensiveCardVariantsAfterPrefix(drawnPrefix))
+                            prefixes.Add([.. drawnPrefix, attack]);
+                    }
                 }
             }
             foreach (PlanAction[] synergy in builder.BuildOpeningPowerPotionSynergyPrefixes())
