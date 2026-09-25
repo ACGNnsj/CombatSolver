@@ -134,6 +134,21 @@ internal static partial class CombatSearchCoordinator
         HashSet<string> powerUpgradePrefixes = [];
         if (!generatedAfterOpeningPotionsOnly)
         {
+            foreach (PlanAction fetch in prefixBuilder.BuildOpeningFetchedPowerActions())
+            {
+                foreach (PlanAction power in prefixBuilder.BuildPowerActionsAfterPrefix([fetch]))
+                {
+                    if (!PowerCardValuationModels.Registry.ContainsCardId(power.CardId!))
+                        continue;
+                    PlanAction[] prefix = [fetch, power];
+                    if (seen.Add(PowerPrefixKey(prefix)))
+                        prefixes.Add(prefix);
+                    if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                        break;
+                }
+                if (prefixes.Count >= MaximumOpeningPowerPrefixes)
+                    break;
+            }
             foreach (PlanAction upgrade in prefixBuilder.BuildOpeningPowerUpgradeActions())
             {
                 foreach (PlanAction power in prefixBuilder.BuildPowerActionsAfterPrefix([upgrade]))

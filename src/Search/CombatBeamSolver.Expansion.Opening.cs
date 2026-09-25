@@ -22,6 +22,33 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPowerActions()
         => BuildPowerActionsAfterPrefix([]);
 
+    internal IReadOnlyList<PlanAction> BuildOpeningFetchedPowerActions()
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Snapshot.Turn == seed.Snapshot.Turn
+                    && HasPlayableFetchedPower(node)
+                    && node.Action!.Choice!.Cards.Any(card =>
+                        PowerCardValuationModels.Registry.ContainsCardId(card.CardId)))
+                .OrderByDescending(node => node.Score)
+                .DistinctBy(node => (node.Action!.CardStateKey,
+                    Choice: string.Join('|', node.Action.Choice!.Cards.Select(card => card.StateKey))))
+                .Take(3)
+                .Select(node => node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
     internal IReadOnlyList<PlanAction> BuildOpeningPowerUpgradeActions()
     {
         SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
