@@ -2221,8 +2221,7 @@ internal sealed partial class CombatBeamSolver
         SearchNode node = seed;
         foreach (PlanAction action in prefix)
         {
-            if (action.Kind == PlanActionKind.EndTurn
-                || action.EndsPlayerTurn
+            if (action.EndsPlayerTurn
                 || action.Turn != node.Turn)
             {
                 throw new InvalidOperationException(
@@ -2254,7 +2253,7 @@ internal sealed partial class CombatBeamSolver
                 node.ActionCount + 1,
                 snapshot.PotionUseCount,
                 snapshot.PotionStrategicCost,
-                node.Turn,
+                snapshot.Turn,
                 traits,
                 node.FutureSoldHp,
                 ApplySoldHpPenalty(snapshot.Score, node.FutureSoldHp),
@@ -2293,6 +2292,8 @@ internal sealed partial class CombatBeamSolver
     {
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)node.Snapshot.Simulator;
         SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
+        if (action.Kind == PlanActionKind.EndTurn)
+            return true;
         if (action.Kind == PlanActionKind.UsePotion)
         {
             PotionModel? potion = combat.GetPotionAtSlot(_player, action.PotionSlot);

@@ -13,6 +13,8 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback)
     {
+        Stopwatch requestClock = Stopwatch.StartNew();
+        List<PlanAction[]> firstTurnAnchors = [];
         SearchRequestWorkTotals requestWorkTotals = new();
         BeamWidthPortfolioTelemetry portfolioTelemetry = new();
         policy = policy with
@@ -141,8 +143,46 @@ internal static partial class CombatSearchCoordinator
                 policy,
                 cancellationToken,
                 enrichedProgressCallback,
-                interaction == null ? null : PublishAdoptableResult);
+                interaction == null ? null : PublishAdoptableResult,
+                firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && selected.OnlyDeathRoutesFound
+                && policy.PotionPolicy == SolverPotionPolicy.Smart
+                && !policy.PotionStrategy.HasForcedDirectives
+                && root.SearchablePotionCount > 0)
+            {
+                // Revisit distinct first-turn states while the shared request still has time and nodes.
+                int requestLimit = policy.BudgetOverrideMilliseconds
+                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
+                foreach (PlanAction[] firstTurn in firstTurnAnchors
+                             .DistinctBy(PowerPrefixKey).Take(8))
+                {
+                    if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
+                        continue;
+                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                    long remainingNodes = policy.Profile.MaxExpandedNodes
+                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                        break;
+                    SolverSearchProfile rescueProfile = policy.Profile with
+                    {
+                        MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
+                        SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
+                    };
+                    SolverResult rescue = new CombatBeamSolver(root, displayNames, battleDamage,
+                        policy, cancellationToken, enrichedProgressCallback, rescueProfile,
+                        potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                        maximumPotionUses: 2, fixedPrefixActions: firstTurn,
+                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                    policy.Diagnostics.Info($"[CombatSolver/Test] TURN_BOUNDARY_RESCUE " +
+                        $"won={IsCompleteVictory(rescue)} hp_lost={rescue.ProjectedBattleHpLost} " +
+                        $"potions={rescue.PotionCount} first_turn={string.Join('+', firstTurn.Select(action => action.CardId))}");
+                    if (rescue.ResultScope == SolverResultScope.SearchCompletion
+                        && IsBetterPotionPolicyResult(root, policy, rescue, selected))
+                        selected = rescue;
+                }
+            }
             if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
                 && selected.ResultScope == SolverResultScope.SearchCompletion
                 && currentCompleteAdoptableResult != null)
@@ -200,7 +240,8 @@ internal static partial class CombatSearchCoordinator
         SearchPolicySnapshot policy,
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback,
-        Action<SolverResult>? interimResultCallback)
+        Action<SolverResult>? interimResultCallback,
+        Action<PlanAction[]> firstTurnAnchorObserver)
     {
         Stopwatch requestClock = Stopwatch.StartNew();
         bool forcedSmartGradient = policy.PotionPolicy == SolverPotionPolicy.Smart
@@ -267,7 +308,7 @@ internal static partial class CombatSearchCoordinator
                 Action<SolverProgress>? memberProgressCallback = refinement && progressCallback != null
                     ? progress => progressCallback(progress with { Phase = "正在精炼路线" })
                     : progressCallback;
-                return new CombatBeamSolver(
+                SolverResult memberResult = new CombatBeamSolver(
                     root,
                     displayNames,
                     battleDamage,
@@ -276,6 +317,12 @@ internal static partial class CombatSearchCoordinator
                     memberProgressCallback,
                     memberProfile,
                     potionPolicyOverride: initialPotionPolicyOverride).Solve();
+                PlanAction[] firstTurn = memberResult.BestNode.Actions
+                    .TakeWhile(action => action.Turn == root.StartTurnNumber)
+                    .ToArray();
+                if (firstTurn.LastOrDefault()?.Kind == PlanActionKind.EndTurn)
+                    firstTurnAnchorObserver(firstTurn);
+                return memberResult;
             }
             // 基线成员一跑完就按今天的方式把完整结果发布给覆盖层（覆盖层的中途路线走
             // SolverProgress，见 RunBeamWidthPortfolioPass 的注释）；精炼成员只有更优时才会
