@@ -115,21 +115,80 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPotionActions()
         => BuildPotionActionsAfterPrefix([]);
 
-    internal IReadOnlyList<PlanAction> BuildOpeningCardActionsAfterPrefix(
-        IReadOnlyList<PlanAction> prefix, string cardId, string? selectedCardId = null)
+    internal IReadOnlyList<PlanAction> BuildOpeningNightmareActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
         List<SearchNode> children = [];
         try
         {
             children.AddRange(Expand(seed));
+            CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
+            SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
+            int nextTurnEnergy = Math.Max(0,
+                PersistentPowerSupport.GetModifiedMaxEnergy(
+                    (SimulatedCombatState)simulator.State.CombatState, _player));
+            var candidates = children
+                .Where(node => node.Action is
+                {
+                    Kind: PlanActionKind.PlayCard,
+                    CardId: "NIGHTMARE",
+                    Choice: { Cards.Count: 1 },
+                })
+                .Select(node => (Node: node, Token: node.Action!.Choice!.Cards[0]))
+                .Select(item => (item.Node, item.Token,
+                    Card: player.Hand.Cards.First(card => CardChoiceSupport.MatchesToken(card, item.Token))))
+                .Where(item => item.Card.Preview.Type is CardType.Attack or CardType.Skill or CardType.Power
+                    && !item.Card.HasKeyword(simulator.State, CardKeyword.Unplayable))
+                .Select(item => (item.Node, item.Token,
+                    Type: item.Card.Preview.Type,
+                    Value: NightmareCopyTargetValue(item.Card, nextTurnEnergy)))
+                .Where(item => item.Value > 0)
+                .DistinctBy(item => item.Token.StateKey)
+                .OrderByDescending(item => item.Value)
+                .ThenByDescending(item => item.Node.Score)
+                .ToArray();
+            return candidates.Take(2)
+                .Concat(candidates.GroupBy(item => item.Type).Select(group => group.First()))
+                .DistinctBy(item => item.Token.StateKey)
+                .Take(4)
+                .Select(item => item.Node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
+    internal IReadOnlyList<PlanAction> BuildOpeningHandSetupActions()
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            children.AddRange(Expand(seed));
+            CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
+            SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
             return children
-                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard } action
-                    && action.CardId == cardId
-                    && (selectedCardId == null
-                        || action.Choice?.Cards.Any(card => card.CardId == selectedCardId) == true))
-                .OrderByDescending(node => node.Score)
-                .Take(2)
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
+                    && (node.Action.Choice?.Effect is PlanChoiceEffect.Discard
+                        or PlanChoiceEffect.DiscardAndDraw
+                        || node.Snapshot.HandCount > seed.Snapshot.HandCount
+                        || node.Snapshot.ReachableHandValue > seed.Snapshot.ReachableHandValue))
+                .OrderByDescending(node => node.Snapshot.Energy)
+                .ThenBy(node => node.Action!.Choice is
+                    { Effect: PlanChoiceEffect.Discard or PlanChoiceEffect.DiscardAndDraw, Cards.Count: 1 } choice
+                    ? CardChoiceSupport.CardValue(player.Hand.Cards.First(card =>
+                        CardChoiceSupport.MatchesToken(card, choice.Cards[0])).Preview)
+                    : double.MaxValue)
+                .ThenByDescending(node => node.Snapshot.ReachableHandValue)
+                .ThenByDescending(node => node.Score)
+                .DistinctBy(node => (node.Action!.CardId,
+                    node.Action.Choice?.Cards.FirstOrDefault()?.StateKey))
+                .Take(3)
                 .Select(node => node.Action!)
                 .ToArray();
         }
@@ -139,6 +198,31 @@ internal sealed partial class CombatBeamSolver
                 child.Snapshot.ReleaseSimulator();
             seed.Snapshot.ReleaseSimulator();
         }
+    }
+
+    private static int NightmareCopyTargetValue(PredictedCard card, int nextTurnEnergy)
+    {
+        int cost = Math.Max(0, card.Preview.EnergyCost.GetWithModifiers(CostModifiers.Local));
+        int playableCopies = cost == 0
+            ? CardChoiceSupport.NightmareCopyCount
+            : Math.Min(CardChoiceSupport.NightmareCopyCount, nextTurnEnergy / cost);
+        if (playableCopies == 0)
+            return 0;
+        int value = Math.Clamp((int)Math.Ceiling(CardChoiceSupport.CardValue(card.Preview)), 1, 24);
+        if (card.Preview.Type == CardType.Power
+            && PowerCardValuationModels.Registry.TryGetCommitmentDescriptor(
+                card.Preview.Id.Entry, out PowerCommitmentDescriptor descriptor))
+        {
+            value += descriptor.Priority switch
+            {
+                PowerRoutePriority.Dedicated => 16,
+                PowerRoutePriority.Core => 12,
+                PowerRoutePriority.Strong => 8,
+                PowerRoutePriority.Normal => 4,
+                _ => 0,
+            };
+        }
+        return value * playableCopies;
     }
 
     internal IReadOnlyList<PlanAction> BuildPotionActionsAfterPrefix(IReadOnlyList<PlanAction> prefix)

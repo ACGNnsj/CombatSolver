@@ -6,7 +6,7 @@ internal static partial class CombatSearchCoordinator
     private const int MinimumPowerRouteNodes = 25_000;
     private const int MinimumPowerRouteMilliseconds = 10_000;
 
-    private static SolverResult AuditPreparedGlowwaterNightmareUse(
+    private static SolverResult RunOpeningNightmarePortfolio(
         CombatRootSnapshot root,
         SolverDisplayNames displayNames,
         BattleDamageSnapshot battleDamage,
@@ -20,34 +20,72 @@ internal static partial class CombatSearchCoordinator
             cancellationToken, progressCallback, profile,
             potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
             maximumPotionUses: 1);
-        foreach (PlanAction prepared in builder.BuildOpeningCardActionsAfterPrefix([], "PREPARED", "CLUMSY").Take(1))
-        foreach (PlanAction attack in builder.BuildOpeningCardActionsAfterPrefix([prepared], "PRECISE_CUT").Take(1))
-        foreach (PlanAction potion in builder.BuildPotionActionsAfterPrefix([prepared, attack])
-                     .Where(action => action.PotionId == "GLOWWATER_POTION").Take(1))
-        foreach (PlanAction nightmare in builder.BuildOpeningCardActionsAfterPrefix(
-                     [prepared, attack, potion], "NIGHTMARE", "FOOTWORK").Take(1))
+        IReadOnlyList<PlanAction> resources = builder.BuildOpeningHandSetupActions();
+        List<PlanAction[]> setups = [];
+        foreach (PlanAction resource in resources)
         {
-            SolverResult? candidate = SolveOptionalPotionPosterior(
-                new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                    cancellationToken, progressCallback, profile,
-                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                    maximumPotionUses: 1,
-                    fixedPrefixActions: [prepared, attack, potion, nightmare]),
-                policy,
-                "PREPARED_GLOWWATER_NIGHTMARE_POSTERIOR");
-            if (candidate == null)
-                continue;
-            if (candidate.ResultScope != SolverResultScope.SearchCompletion)
-                return candidate;
-            PopulateSingleSessionTotals(candidate);
-            bool improved = IsBetterPotionPolicyResult(root, policy, candidate, baseline);
-            policy.Diagnostics.Info(
-                $"[CombatSolver/Test] PREPARED_GLOWWATER_NIGHTMARE_POSTERIOR " +
-                $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} selected={improved}");
-            if (improved)
-                return candidate;
+            foreach (PlanAction attack in builder.BuildOpeningOffensiveFollowUps([resource]).Take(1))
+                setups.Add([resource, attack]);
+            setups.Add([resource]);
         }
-        return baseline;
+        setups.Add([]);
+        SolverResult selected = baseline;
+        int attempts = 0;
+        foreach (PlanAction[] setup in setups)
+        {
+            List<PlanAction[]> openings = builder.BuildPotionActionsAfterPrefix(setup)
+                .GroupBy(action => action.PotionSlot)
+                .Select(group => setup.Append(group.First()).ToArray())
+                .ToList();
+            openings.Add(setup);
+            foreach (PlanAction[] opening in openings)
+            {
+                IReadOnlyList<PlanAction> nightmareActions = builder.BuildOpeningNightmareActionsAfterPrefix(opening);
+                foreach (PlanAction nightmare in nightmareActions)
+                {
+                    long remainingNodes = profile.MaxExpandedNodes
+                        - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                    if (remainingNodes <= 0)
+                        return selected;
+                    SolverSearchProfile routeProfile = profile with
+                    {
+                        MaxExpandedNodes = (int)Math.Min(30_000L, remainingNodes),
+                        SoftTimeBudgetMilliseconds = Math.Min(profile.SoftTimeBudgetMilliseconds, 15_000),
+                        AggressivePowerCommitment = false,
+                    };
+                    PlanAction[] prefix = [.. opening, nightmare];
+                    bool usesPotion = opening.Any(action => action.Kind == PlanActionKind.UsePotion);
+                    SolverResult? candidate = SolveOptionalPotionPosterior(
+                        new CombatBeamSolver(root, displayNames, battleDamage, policy,
+                            cancellationToken, progressCallback, routeProfile,
+                            potionPolicyOverride: usesPotion
+                                ? SolverPotionPolicy.RequireAtLeastOne
+                                : SolverPotionPolicy.Disabled,
+                            maximumPotionUses: usesPotion ? 1 : 0,
+                            fixedPrefixActions: prefix,
+                            resetFixedPrefixSchedulingBaseline: true),
+                        policy, "NIGHTMARE_COPY_POSTERIOR");
+                    if (candidate != null)
+                    {
+                        if (candidate.ResultScope != SolverResultScope.SearchCompletion)
+                            return candidate;
+                        PopulateSingleSessionTotals(candidate);
+                        bool improved = IsBetterPotionPolicyResult(root, policy, candidate, selected);
+                        if (improved)
+                            selected = candidate;
+                        policy.Diagnostics.Info(
+                            $"[CombatSolver/Test] NIGHTMARE_COPY_POSTERIOR " +
+                            $"setup={string.Join('+', setup.Select(action => action.CardId))} " +
+                            $"potion={opening.FirstOrDefault(action => action.Kind == PlanActionKind.UsePotion)?.PotionId ?? "-"} " +
+                            $"target={nightmare.Choice!.Cards[0].CardId} " +
+                            $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} selected={improved}");
+                    }
+                    if (++attempts >= 8 || IsProvenZeroDamageRoute(root, policy, selected))
+                        return selected;
+                }
+            }
+        }
+        return selected;
     }
 
     /// <summary>
