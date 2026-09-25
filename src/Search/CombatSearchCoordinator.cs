@@ -146,11 +146,15 @@ internal static partial class CombatSearchCoordinator
                 interaction == null ? null : PublishAdoptableResult,
                 firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            bool rescueAfterDeath = selected.OnlyDeathRoutesFound
+                && root.SearchablePotionCount > 0;
+            bool refineNearZeroLoss = IsCompleteVictory(selected)
+                && selected.ExplicitPotionCount == 0
+                && selected.ProjectedBattleHpLost is > 0 and <= SolverWeights.PotionMinimumHpSaved;
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
-                && root.SearchablePotionCount > 0)
+                && (rescueAfterDeath || refineNearZeroLoss))
             {
                 // Revisit distinct first-turn states while the shared request still has time and nodes.
                 int requestLimit = policy.BudgetOverrideMilliseconds
@@ -172,8 +176,10 @@ internal static partial class CombatSearchCoordinator
                     };
                     SolverResult rescue = new CombatBeamSolver(root, displayNames, battleDamage,
                         policy, cancellationToken, enrichedProgressCallback, rescueProfile,
-                        potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                        maximumPotionUses: 2, fixedPrefixActions: firstTurn,
+                        potionPolicyOverride: rescueAfterDeath
+                            ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
+                        maximumPotionUses: rescueAfterDeath ? 2 : 0,
+                        fixedPrefixActions: firstTurn,
                         resetFixedPrefixSchedulingBaseline: true).Solve();
                     policy.Diagnostics.Info($"[CombatSolver/Test] TURN_BOUNDARY_RESCUE " +
                         $"won={IsCompleteVictory(rescue)} hp_lost={rescue.ProjectedBattleHpLost} " +
