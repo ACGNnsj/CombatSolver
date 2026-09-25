@@ -42,7 +42,7 @@ internal static class StrategySessionRunner
         }
         string[] allowed = command switch
         {
-            "start" => ["--game-root", "--ritsu-root", "--no-monitor"],
+            "start" => ["--game-root", "--ritsu-root", "--no-monitor", "--host-memory-mib"],
             "run" => ["--script", "--params", "--policy", "--selector"],
             _ => [],
         };
@@ -69,6 +69,11 @@ internal static class StrategySessionRunner
                 throw new ArgumentException("Windows session start requires --game-root.");
             if (existing != null && IsRunning(project, instance, out _))
                 throw new InvalidOperationException("Session process still runs; stop it first.");
+            int hostMemoryMiB = options.TryGetValue("--host-memory-mib", out string? requestedMemory)
+                ? int.Parse(requestedMemory)
+                : existing?["hostMemoryMiB"]?.GetValue<int>() ?? 4096;
+            if (hostMemoryMiB < 1024)
+                throw new ArgumentOutOfRangeException(nameof(hostMemoryMiB), "Host reservation must be at least 1024 MiB.");
             Directory.CreateDirectory(session);
             JsonObject state = new()
             {
@@ -78,6 +83,7 @@ internal static class StrategySessionRunner
                 ["createdUtc"] = DateTimeOffset.UtcNow,
                 ["active"] = false,
                 ["monitorEnabled"] = !options.ContainsKey("--no-monitor"),
+                ["hostMemoryMiB"] = hostMemoryMiB,
             };
             Save(Path.Combine(session, "session.json"), state);
             string evidence = NewEvidence(session, "start");
@@ -338,6 +344,8 @@ internal static class StrategySessionRunner
         Dictionary<string, string> options = new() { ["--instance"] = state["instance"]!.ToString() };
         if (state["gameRoot"] != null) options["--game-root"] = state["gameRoot"]!.ToString();
         if (state["ritsuRoot"] != null) options["--ritsu-root"] = state["ritsuRoot"]!.ToString();
+        if (state["hostMemoryMiB"] != null)
+            options["--headless-memory-reservation-mib"] = state["hostMemoryMiB"]!.ToString();
         return options;
     }
 

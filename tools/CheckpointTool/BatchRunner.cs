@@ -225,6 +225,8 @@ internal static class BatchRunner
         if (options.TryGetValue("--game-root", out string? game)) Arg("Sts2GameRoot", "sts2-game-root", Path.GetFullPath(game));
         if (options.TryGetValue("--ritsu-root", out string? ritsu)) Arg("RitsuWorkshopRoot", "ritsu-workshop-root", Path.GetFullPath(ritsu));
         if (options.TryGetValue("--instance", out string? instance)) Arg("HeadlessInstance", "headless-instance", instance);
+        if (options.TryGetValue("--headless-memory-reservation-mib", out string? hostMemory))
+            Arg("HeadlessMemoryReservationMiB", "headless-memory-reservation-mib", hostMemory);
         if (stop)
         {
             Arg("StopInstance", "stop-instance");

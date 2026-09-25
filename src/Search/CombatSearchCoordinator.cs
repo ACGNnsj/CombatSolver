@@ -1480,18 +1480,48 @@ internal static partial class CombatSearchCoordinator
                 maximumPotionUses: 1);
             IReadOnlyList<PlanAction> generatedPotions = builder.SelectGeneratedCardPotionActions(
                 builder.BuildOpeningPotionActions());
-            SolverResult selected = gradient;
-            foreach (PlanAction openingPotion in generatedPotions)
+            List<PlanAction[]> prefixes = generatedPotions
+                .Select(potion => new[] { potion })
+                .ToList();
+            foreach (PlanAction[] synergy in builder.BuildOpeningPowerPotionSynergyPrefixes())
             {
+                PlanAction? setup = builder.BuildOpeningSetupFollowUp(synergy);
+                if (setup == null)
+                {
+                    prefixes.Add(synergy);
+                    continue;
+                }
+                prefixes.Add([.. synergy, setup]);
+            }
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] SMART_OPENING_POTION_PREFIXES " +
+                $"generated={generatedPotions.Count} total={prefixes.Count}");
+            SolverResult selected = gradient;
+            foreach (PlanAction[] prefix in prefixes
+                         .DistinctBy(PowerPrefixKey)
+                         .Take(8))
+            {
+                string prefixText = string.Join('+', prefix.Select(action =>
+                    action.Kind == PlanActionKind.UsePotion
+                        ? $"POTION:{action.PotionId}@{action.PotionSlot}" : action.CardId));
+                SolverSearchProfile routeProfile = prefix.Length > 1
+                    ? profile with
+                    {
+                        MaxExpandedNodes = Math.Min(profile.MaxExpandedNodes, 120_000),
+                        SoftTimeBudgetMilliseconds = Math.Min(profile.SoftTimeBudgetMilliseconds, 60_000),
+                        BaseScoreOnly = true,
+                        BeamWidth = BeamWidthPortfolio.ScaledWidth(
+                            profile.BeamWidth, BeamWidthPortfolio.WideRefinementRatio),
+                    }
+                    : profile;
                 SolverResult? candidate = SolveOptionalPotionPosterior(
                     new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                        searchCancellationToken, progressCallback, profile,
+                        searchCancellationToken, progressCallback, routeProfile,
                         potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                         maximumPotionUses: 1,
-                        fixedPrefixActions: [openingPotion]),
+                        fixedPrefixActions: prefix),
                     policy,
-                    $"SMART_GENERATED_POTION_POSTERIOR potion={openingPotion.PotionId} " +
-                    $"card={openingPotion.Choice!.Cards[0].CardId}");
+                    $"SMART_OPENING_POTION_POSTERIOR prefix={prefixText}");
                 if (candidate == null)
                     continue;
                 if (candidate.ResultScope != SolverResultScope.SearchCompletion)
@@ -1515,8 +1545,8 @@ internal static partial class CombatSearchCoordinator
                     selected = candidate;
                 }
                 policy.Diagnostics.Info(
-                    $"[CombatSolver/Test] SMART_GENERATED_POTION_POSTERIOR " +
-                    $"potion={openingPotion.PotionId} card={openingPotion.Choice!.Cards[0].CardId} " +
+                    $"[CombatSolver/Test] SMART_OPENING_POTION_POSTERIOR " +
+                    $"prefix={prefixText} " +
                     $"won={won} hp_deficit={StrategicHpDeficit(root, policy, candidate)} " +
                     $"saved={saved} required={required} selected={improved}");
                 if (HasReachedProvablePrimaryQualityLowerBound(root, policy, selected))

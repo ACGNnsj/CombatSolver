@@ -22,6 +22,45 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPowerActions()
         => BuildPowerActionsAfterPrefix([]);
 
+    internal IReadOnlyList<PlanAction[]> BuildOpeningPowerPotionSynergyPrefixes()
+    {
+        List<(PlanAction[] Prefix, int ExtraCards)> candidates = [];
+        foreach (PlanAction power in BuildOpeningPowerActions()
+                     .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                     .Take(3))
+        {
+            SimulationSnapshot powered = Replay([power]);
+            try
+            {
+                foreach (PlanAction potion in BuildPotionActionsAfterPrefix([power])
+                             .Where(action => action.Choice == null)
+                             .GroupBy(action => action.PotionSlot)
+                             .Select(group => group.First()))
+                {
+                    SimulationSnapshot after = Replay([power, potion]);
+                    try
+                    {
+                        int extraCards = after.HandCount - powered.HandCount;
+                        if (extraCards > 0)
+                            candidates.Add(([power, potion], extraCards));
+                    }
+                    finally
+                    {
+                        after.ReleaseSimulator();
+                    }
+                }
+            }
+            finally
+            {
+                powered.ReleaseSimulator();
+            }
+        }
+        return candidates.OrderByDescending(candidate => candidate.ExtraCards)
+            .Take(3)
+            .Select(candidate => candidate.Prefix)
+            .ToArray();
+    }
+
     internal IReadOnlyList<PlanAction> BuildOpeningFetchedPowerActions()
     {
         SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
@@ -536,6 +575,8 @@ internal sealed partial class CombatBeamSolver
             followUps.AddRange(Expand(seed).Where(node =>
                 node.Action is { Kind: PlanActionKind.PlayCard, Turn: var turn }
                 && turn == prefixSnapshot.Turn));
+            IReadOnlyList<PredictedCard> hand = ((CombatPredictionSimulator)prefixSnapshot.Simulator)
+                .State.GetPlayerCombatState(_player).Hand.Cards;
             SearchNode? best = followUps
                 .Where(node => node.Snapshot.PersistentBuffValue > prefixSnapshot.PersistentBuffValue
                     || node.Snapshot.DelayedDamageValue > prefixSnapshot.DelayedDamageValue
@@ -544,7 +585,17 @@ internal sealed partial class CombatBeamSolver
                     || node.Snapshot.StrategicEffects.RetentionValue
                         > prefixSnapshot.StrategicEffects.RetentionValue
                     || node.Snapshot.LongTermResourceValue > prefixSnapshot.LongTermResourceValue)
-                .OrderByDescending(node => node.Score)
+                .GroupBy(node => (node.Action!.CardStateKey, node.Action.TargetCombatId))
+                .Select(group => group
+                    .OrderByDescending(node => node.Snapshot.ZeroCostPlayableCount)
+                    .ThenByDescending(node => node.Action?.Choice is
+                        { Effect: PlanChoiceEffect.Exhaust, Cards.Count: 1 } choice
+                        && hand.Count(card => card.Preview.Id.Entry == choice.Cards[0].CardId) > 1)
+                    .ThenByDescending(node => node.Score)
+                    .First())
+                .OrderByDescending(node => node.Snapshot.PersistentBuffValue
+                    - prefixSnapshot.PersistentBuffValue)
+                .ThenByDescending(node => node.Score)
                 .FirstOrDefault();
             return best?.Action;
         }
