@@ -6,6 +6,50 @@ internal static partial class CombatSearchCoordinator
     private const int MinimumPowerRouteNodes = 25_000;
     private const int MinimumPowerRouteMilliseconds = 10_000;
 
+    private static SolverResult AuditPreparedGlowwaterNightmareUse(
+        CombatRootSnapshot root,
+        SolverDisplayNames displayNames,
+        BattleDamageSnapshot battleDamage,
+        SearchPolicySnapshot policy,
+        CancellationToken cancellationToken,
+        Action<SolverProgress>? progressCallback,
+        SolverSearchProfile profile,
+        SolverResult baseline)
+    {
+        CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
+            cancellationToken, progressCallback, profile,
+            potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+            maximumPotionUses: 1);
+        foreach (PlanAction prepared in builder.BuildOpeningCardActionsAfterPrefix([], "PREPARED", "CLUMSY").Take(1))
+        foreach (PlanAction attack in builder.BuildOpeningCardActionsAfterPrefix([prepared], "PRECISE_CUT").Take(1))
+        foreach (PlanAction potion in builder.BuildPotionActionsAfterPrefix([prepared, attack])
+                     .Where(action => action.PotionId == "GLOWWATER_POTION").Take(1))
+        foreach (PlanAction nightmare in builder.BuildOpeningCardActionsAfterPrefix(
+                     [prepared, attack, potion], "NIGHTMARE", "FOOTWORK").Take(1))
+        {
+            SolverResult? candidate = SolveOptionalPotionPosterior(
+                new CombatBeamSolver(root, displayNames, battleDamage, policy,
+                    cancellationToken, progressCallback, profile,
+                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                    maximumPotionUses: 1,
+                    fixedPrefixActions: [prepared, attack, potion, nightmare]),
+                policy,
+                "PREPARED_GLOWWATER_NIGHTMARE_POSTERIOR");
+            if (candidate == null)
+                continue;
+            if (candidate.ResultScope != SolverResultScope.SearchCompletion)
+                return candidate;
+            PopulateSingleSessionTotals(candidate);
+            bool improved = IsBetterPotionPolicyResult(root, policy, candidate, baseline);
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] PREPARED_GLOWWATER_NIGHTMARE_POSTERIOR " +
+                $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} selected={improved}");
+            if (improved)
+                return candidate;
+        }
+        return baseline;
+    }
+
     /// <summary>
     /// 从同一根为每张当前可打能力建立固定开牌前缀，并继续搜索到完整战斗结果。未满足组合早停时运行单能力路线；
     /// 其后再补有限的双能力前缀。这里直接比较最终真实战损，不把能力估值带进终局排序。

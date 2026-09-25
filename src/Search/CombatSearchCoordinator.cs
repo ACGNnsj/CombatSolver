@@ -831,6 +831,16 @@ internal static partial class CombatSearchCoordinator
                 selected,
                 memoryForecast,
                 interimResultCallback);
+            if (root.PlayerCardIds.Contains("PREPARED")
+                && root.PlayerCardIds.Contains("PRECISE_CUT")
+                && root.PlayerCardIds.Contains("NIGHTMARE")
+                && root.PlayerCardIds.Contains("FOOTWORK")
+                && !HasReachedAcceptableBattleHpLoss(policy, selected))
+            {
+                selected = AuditPreparedGlowwaterNightmareUse(
+                    root, displayNames, battleDamage, policy, deadline.Token,
+                    progressCallback, profile, selected);
+            }
             if (selected.BestNode.Actions.FirstOrDefault() is
                     { Kind: PlanActionKind.UsePotion }
                 && root.PlayerCardIds.Contains("WHITE_NOISE"))

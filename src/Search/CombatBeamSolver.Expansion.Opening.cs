@@ -115,6 +115,32 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPotionActions()
         => BuildPotionActionsAfterPrefix([]);
 
+    internal IReadOnlyList<PlanAction> BuildOpeningCardActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix, string cardId, string? selectedCardId = null)
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard } action
+                    && action.CardId == cardId
+                    && (selectedCardId == null
+                        || action.Choice?.Cards.Any(card => card.CardId == selectedCardId) == true))
+                .OrderByDescending(node => node.Score)
+                .Take(2)
+                .Select(node => node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
     internal IReadOnlyList<PlanAction> BuildPotionActionsAfterPrefix(IReadOnlyList<PlanAction> prefix)
     {
         SimulationSnapshot rootSnapshot = Replay(prefix);
