@@ -30,6 +30,17 @@ $forbiddenSearchReferences = @(
 $violations = [System.Collections.Generic.List[string]]::new()
 $strategySearch = Join-Path $searchRoot 'DevelopmentSearchStrategy.cs'
 $strategyLoader = Join-Path $repositoryRoot 'src/Testing/DevelopmentStrategyLoader.cs'
+$monitorPublisher = Join-Path $repositoryRoot 'src/Testing/DevelopmentMonitorPublisher.cs'
+foreach ($required in @('PeriodicTimer', 'CurrentBestResult', 'File.Move(temp, path, true)')) {
+    if (-not (Select-String -LiteralPath $monitorPublisher -SimpleMatch $required -Quiet)) {
+        $violations.Add("Development monitor publisher missing: $required")
+    }
+}
+foreach ($relative in @('tools/strategy-monitor.ps1', 'tools/strategy-monitor.sh', 'tools/strategy-monitor-view.sh')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
+        $violations.Add("Development monitor entry missing: $relative")
+    }
+}
 foreach ($required in @('IDevelopmentSearchStrategy', 'StrategyNodeFeatures', 'OrganizeMembers(')) {
     if (-not (Select-String -LiteralPath $strategySearch -SimpleMatch $required -Quiet)) {
         $violations.Add("Strategy search contract missing: $required")

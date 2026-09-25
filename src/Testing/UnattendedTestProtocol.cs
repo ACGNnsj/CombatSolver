@@ -46,6 +46,7 @@ internal sealed class UnattendedTestRequest
     public string? DevelopmentStrategyParametersPath { get; init; }
     public string? DevelopmentStrategyScriptHash { get; init; }
     public string? DevelopmentStrategyParametersHash { get; init; }
+    public string? DevelopmentMonitorStatePath { get; init; }
     public string? EvidenceDirectory { get; init; }
     public bool PreserveNativeCombatStateForTest { get; init; }
     public int Ascension { get; init; }

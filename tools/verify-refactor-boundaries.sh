@@ -69,6 +69,13 @@ require_fixed() {
 
 strategy_search="$search_root/DevelopmentSearchStrategy.cs"
 strategy_loader="$repository_root/src/Testing/DevelopmentStrategyLoader.cs"
+monitor_publisher="$repository_root/src/Testing/DevelopmentMonitorPublisher.cs"
+require_fixed "$monitor_publisher" "PeriodicTimer" "Monitor update cadence missing"
+require_fixed "$monitor_publisher" "CurrentBestResult" "Monitor scalar result projection missing"
+require_fixed "$monitor_publisher" "File.Move(temp, path, true)" "Monitor atomic publication missing"
+for monitor_entry in strategy-monitor.ps1 strategy-monitor.sh strategy-monitor-view.sh; do
+    [[ -f "$repository_root/tools/$monitor_entry" ]] || add_violation "Development monitor entry missing: $monitor_entry"
+done
 require_fixed "$strategy_search" "IDevelopmentSearchStrategy" "Strategy search contract missing"
 require_fixed "$strategy_search" "StrategyNodeFeatures" "Strategy node view missing"
 require_fixed "$strategy_search" "OrganizeMembers(" "Strategy member hook missing"

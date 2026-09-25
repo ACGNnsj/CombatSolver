@@ -2380,6 +2380,12 @@ internal static partial class SolverController
             search.Interaction.PublishProgress(progress);
     }
 
+    internal static SolverProgress? CaptureDevelopmentMonitorProgress()
+    {
+        SolverSearchSession? search = Volatile.Read(ref _search);
+        return search == null ? null : Volatile.Read(ref search.Interaction.Progress);
+    }
+
     private static string DescribeReplanAudit()
     {
         string differences = _combat.LastContinuationDifferences.Count == 0

@@ -43,6 +43,7 @@ param(
     [string]$DevelopmentStrategyParametersPath = "",
     [string]$DevelopmentStrategyScriptHash = "",
     [string]$DevelopmentStrategyParametersHash = "",
+    [string]$DevelopmentMonitorStatePath = "",
     [string]$EvidenceDirectory = "",
     [switch]$PreserveNativeCombatStateForTest,
     [string]$ProgressSnapshotPath = "",
@@ -789,6 +790,7 @@ $request = [ordered]@{
     developmentStrategyParametersPath = if ($DevelopmentStrategyParametersPath) { (Resolve-Path -LiteralPath $DevelopmentStrategyParametersPath).Path } else { $null }
     developmentStrategyScriptHash = if ($DevelopmentStrategyScriptHash) { $DevelopmentStrategyScriptHash } else { $null }
     developmentStrategyParametersHash = if ($DevelopmentStrategyParametersHash) { $DevelopmentStrategyParametersHash } else { $null }
+    developmentMonitorStatePath = if ($DevelopmentMonitorStatePath) { [IO.Path]::GetFullPath($DevelopmentMonitorStatePath) } else { $null }
     preserveNativeCombatStateForTest = $PreserveNativeCombatStateForTest.IsPresent
     ascension = $Ascension
     actIndexForTest = $ActIndexForTest

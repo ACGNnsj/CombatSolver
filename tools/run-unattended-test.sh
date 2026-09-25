@@ -75,6 +75,7 @@ add_option development-strategy-assembly-path "" string optional_string
 add_option development-strategy-parameters-path "" string optional_string
 add_option development-strategy-script-hash "" string optional_string
 add_option development-strategy-parameters-hash "" string optional_string
+add_option development-monitor-state-path "" string optional_string
 add_option evidence-directory "" string raw_string
 add_option preserve-native-combat-state-for-test 0 switch bool
 add_option progress-snapshot-path "" string none

@@ -138,6 +138,7 @@ internal sealed partial class UnattendedTestRunner
     {
         CombatState? combatState = null;
         int startedTurn = 0;
+        DevelopmentMonitorPublisher? monitor = DevelopmentMonitorPublisher.Start(_request);
         try
         {
             SetStage("strategy_load");
@@ -268,6 +269,8 @@ internal sealed partial class UnattendedTestRunner
         }
         finally
         {
+            if (monitor != null)
+                await monitor.DisposeAsync();
             _releaseAdaptedOnPlayIntegration?.Invoke();
             ReleaseTurnSetupControlCheck();
             _executor.RestoreSettings();

@@ -28,13 +28,19 @@ internal static class StrategySessionRunner
         Dictionary<string, string> options = new(StringComparer.Ordinal);
         for (; index < args.Length; index += 2)
         {
+            if (args[index] == "--no-monitor")
+            {
+                options.Add("--no-monitor", "true");
+                index--;
+                continue;
+            }
             if (index + 1 == args.Length || !args[index].StartsWith("--", StringComparison.Ordinal))
                 throw new ArgumentException("Session options require --name VALUE pairs.");
             options.Add(args[index], args[index + 1]);
         }
         string[] allowed = command switch
         {
-            "start" => ["--game-root", "--ritsu-root"],
+            "start" => ["--game-root", "--ritsu-root", "--no-monitor"],
             "run" => ["--script", "--params", "--policy", "--selector"],
             _ => [],
         };
@@ -46,6 +52,8 @@ internal static class StrategySessionRunner
             JsonObject? existing = Read(Path.Combine(session, "session.json"));
             if (existing?["active"]?.GetValue<bool>() == true && IsRunning(project, instance, out int priorPid))
             {
+                if (existing["monitorEnabled"]?.GetValue<bool>() == true)
+                    await StartMonitor(project, session);
                 Console.WriteLine($"SESSION_START name={name} status=already_running pid={priorPid}");
                 return 0;
             }
@@ -62,6 +70,7 @@ internal static class StrategySessionRunner
                 ["ritsuRoot"] = options.TryGetValue("--ritsu-root", out string? ritsu) ? Path.GetFullPath(ritsu) : existing?["ritsuRoot"]?.ToString(),
                 ["createdUtc"] = DateTimeOffset.UtcNow,
                 ["active"] = false,
+                ["monitorEnabled"] = !options.ContainsKey("--no-monitor"),
             };
             Save(Path.Combine(session, "session.json"), state);
             string evidence = NewEvidence(session, "start");
@@ -89,6 +98,15 @@ internal static class StrategySessionRunner
             }
             state["active"] = true;
             Save(Path.Combine(session, "session.json"), state);
+            if (state["monitorEnabled"]?.GetValue<bool>() == true)
+            {
+                SaveMonitorState(session, new JsonObject
+                {
+                    ["state"] = "idle", ["processId"] = pid,
+                    ["phase"] = "等待问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
+                });
+                await StartMonitor(project, session);
+            }
             return 0;
         }
         JsonObject saved = Read(Path.Combine(session, "session.json"))
@@ -101,12 +119,14 @@ internal static class StrategySessionRunner
             string status = saved["active"]?.GetValue<bool>() == true
                 ? running ? "running" : "needs_restart" : "stopped";
             Console.WriteLine($"SESSION_STATUS name={name} state={status} pid={pid}");
+            Console.WriteLine($"SESSION_MONITOR state={(IsMonitorRunning(session, out _) ? "open" : "closed")}");
             return running ? 0 : 1;
         }
         if (command == "stop")
         {
             if (saved["active"]?.GetValue<bool>() == false
                 && !IsRunning(project, instance, out _)
+                && !IsMonitorRunning(session, out _)
                 && !Directory.Exists(Path.Combine(project, ".local", "headless-instances", instance)))
             {
                 Console.WriteLine($"SESSION_STOP name={name} status=stopped pid=0");
@@ -119,6 +139,7 @@ internal static class StrategySessionRunner
             bool running = IsRunning(project, instance, out int pid);
             if (!running && (exit == 0 || !wasRunning))
             {
+                await StopMonitor(session);
                 await CleanupInstance(project, instance, saved["gameRoot"]?.ToString());
                 saved["active"] = false;
                 Save(Path.Combine(session, "session.json"), saved);
@@ -140,6 +161,14 @@ internal static class StrategySessionRunner
         string selector = options.GetValueOrDefault("--selector", CheckpointArchive.DefaultFixtureSelector);
         const string mode = "SearchOnly";
         Stopwatch watch = Stopwatch.StartNew();
+        bool monitorEnabled = state["monitorEnabled"]?.GetValue<bool>() == true;
+        string? monitorPath = monitorEnabled ? Path.Combine(session, "monitor-state.json") : null;
+        if (monitorEnabled)
+            SaveMonitorState(session, new JsonObject
+            {
+                ["state"] = "preflight", ["reportId"] = Path.GetFileNameWithoutExtension(archive),
+                ["phase"] = "检查问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
+            });
         JsonObject row = new()
         {
             ["archivePath"] = archive, ["selector"] = selector, ["mode"] = mode,
@@ -176,6 +205,15 @@ internal static class StrategySessionRunner
                 throw new ArgumentException("--params requires --script.");
             row["scriptHash"] = scriptHash;
             row["parametersHash"] = parametersHash;
+            if (monitorEnabled)
+                SaveMonitorState(session, new JsonObject
+                {
+                    ["state"] = "launching", ["reportId"] = Path.GetFileNameWithoutExtension(archive),
+                    ["scriptHash"] = scriptHash, ["parametersHash"] = parametersHash,
+                    ["performancePreset"] = "VeryHigh", ["parallelism"] = 8,
+                    ["requestTimeoutSeconds"] = DefaultTimeoutSeconds,
+                    ["phase"] = "提交搜索请求", ["updatedUtc"] = DateTimeOffset.UtcNow,
+                });
             string? policy = null;
             if (options.TryGetValue("--policy", out string? policySource))
             {
@@ -184,7 +222,7 @@ internal static class StrategySessionRunner
             }
             exit = await BatchRunner.Launch(project, LauncherOptions(state), evidence,
                 DefaultTimeoutSeconds, archive, selector, mode, policy, stop: false,
-                assembly, parameters, scriptHash, parametersHash);
+                assembly, parameters, scriptHash, parametersHash, monitorPath);
             JsonObject? result = Read(Path.Combine(evidence, "result.json"));
             JsonObject? launcher = Read(Path.Combine(evidence, "launcher-result.json"));
             row["status"] = BatchRunner.Classify(result, exit, launcher);
@@ -225,6 +263,23 @@ internal static class StrategySessionRunner
             row["wallMilliseconds"] = watch.Elapsed.TotalMilliseconds;
             row["launcherExitCode"] = exit;
             row["finishedUtc"] = DateTimeOffset.UtcNow;
+            if (monitorEnabled)
+                SaveMonitorState(session, new JsonObject
+                {
+                    ["state"] = row["status"]?.ToString() ?? "failed",
+                    ["reportId"] = Path.GetFileNameWithoutExtension(archive),
+                    ["processId"] = row["processId"]?.DeepClone(),
+                    ["scriptHash"] = row["scriptHash"]?.DeepClone(),
+                    ["parametersHash"] = row["parametersHash"]?.DeepClone(),
+                    ["performancePreset"] = "VeryHigh", ["parallelism"] = 8,
+                    ["requestTimeoutSeconds"] = DefaultTimeoutSeconds,
+                    ["elapsedMilliseconds"] = row["wallMilliseconds"]?.DeepClone(),
+                    ["expandedNodes"] = row["solverMetrics"]?["selectedExpanded"]?.DeepClone(),
+                    ["bestProjectedHpLoss"] = row["solverMetrics"]?["projectedBattleHpLost"]?.DeepClone(),
+                    ["bestPotionCount"] = row["solverMetrics"]?["potionCount"]?.DeepClone(),
+                    ["reason"] = row["reason"]?.DeepClone(),
+                    ["updatedUtc"] = DateTimeOffset.UtcNow,
+                });
             Save(Path.Combine(evidence, "session-result.json"), row);
             File.AppendAllText(Path.Combine(session, "results.jsonl"), row.ToJsonString() + "\n", new UTF8Encoding(false));
             Console.WriteLine($"SESSION_RUN status={row["status"]} pid={row["processId"]} elapsed_ms={watch.Elapsed.TotalMilliseconds:F0} evidence={evidence}");
@@ -312,6 +367,81 @@ internal static class StrategySessionRunner
         Directory.CreateDirectory(session);
         return new FileStream(Path.Combine(session, "session.lock"), FileMode.OpenOrCreate,
             FileAccess.ReadWrite, FileShare.None);
+    }
+    private static void SaveMonitorState(string session, JsonObject value)
+    {
+        value["schemaVersion"] = 1;
+        Save(Path.Combine(session, "monitor-state.json"), value);
+    }
+
+    private static bool IsMonitorRunning(string session, out int pid)
+    {
+        pid = 0;
+        JsonObject? marker = Read(Path.Combine(session, "monitor-process.json"));
+        if (marker == null || !int.TryParse(marker["pid"]?.ToString(), out int recorded)
+            || !DateTimeOffset.TryParse(marker["bornUtc"]?.ToString(), out DateTimeOffset born))
+            return false;
+        try
+        {
+            using Process process = Process.GetProcessById(recorded);
+            if (process.HasExited || Math.Abs((process.StartTime.ToUniversalTime() - born.UtcDateTime).TotalSeconds) > 1)
+                return false;
+            pid = recorded;
+            return true;
+        }
+        catch (ArgumentException) { return false; }
+    }
+
+    private static async Task StartMonitor(string project, string session)
+    {
+        if (IsMonitorRunning(session, out _)) return;
+        foreach (string name in new[] { "monitor-process.json", "monitor-ready.json", "monitor.stop" })
+            File.Delete(Path.Combine(session, name));
+        bool windows = OperatingSystem.IsWindows();
+        ProcessStartInfo start = new(windows ? "pwsh" : "bash")
+        {
+            WorkingDirectory = project, UseShellExecute = false, CreateNoWindow = true,
+        };
+        if (windows)
+        {
+            start.ArgumentList.Add("-STA");
+            start.ArgumentList.Add("-NoProfile");
+            start.ArgumentList.Add("-File");
+        }
+        start.ArgumentList.Add(Path.Combine(project, "tools", windows
+            ? "strategy-monitor.ps1" : "strategy-monitor.sh"));
+        start.ArgumentList.Add(session);
+        using Process process = Process.Start(start) ?? throw new IOException("Monitor failed to start.");
+        Save(Path.Combine(session, "monitor-process.json"), new JsonObject
+        {
+            ["pid"] = process.Id, ["bornUtc"] = process.StartTime.ToUniversalTime(),
+        });
+        string ready = Path.Combine(session, "monitor-ready.json");
+        for (int attempt = 0; attempt < 100; attempt++)
+        {
+            if (File.Exists(ready)) return;
+            if (process.HasExited)
+                throw new IOException("Monitor exited during startup; see monitor-error.log.");
+            await Task.Delay(100);
+        }
+        throw new TimeoutException("Monitor window did not become ready within 10 seconds.");
+    }
+
+    private static async Task StopMonitor(string session)
+    {
+        if (!IsMonitorRunning(session, out int pid)) return;
+        File.WriteAllText(Path.Combine(session, "monitor.stop"), "stop");
+        using Process process = Process.GetProcessById(pid);
+        for (int attempt = 0; attempt < 50; attempt++)
+        {
+            if (process.HasExited) return;
+            await Task.Delay(100);
+        }
+        if (IsMonitorRunning(session, out int confirmed) && confirmed == pid)
+        {
+            process.Kill(entireProcessTree: true);
+            await process.WaitForExitAsync();
+        }
     }
     private static async Task CleanupInstance(string project, string instance, string? gameRoot)
     {
