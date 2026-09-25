@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 39 包 `4b28d1e3575c425b96959fd6e1ca7018` 预检有效，但 `combat_start` 严格恢复在 `native_replay_events` 失败：第 9 个遗物为当前 `DEPRECATED_RELIC`，录制状态为 `ANCIENTAFFECTION-DEVOTED_SERE_TALON`。状态为 `restore_mismatch`，没有搜索或当前战损结果。
 - 第 38 包 `358700198bb74b90b1942c2916bafb25` 预检有效，`combat_start` 恢复通过；VeryHigh / 180 秒 / DOP 8 搜索于 `assert_initial_solver_result` 阶段超时，记录 `exceeded_180_seconds_package_discarded`，没有当前战损结果。关联包 `5dacf918eb3e4bcd9be7b086dbda3a93` 同战斗会话，未重复运行。
 - 第 37 包 `bd580e3209034bb294d77eda34eb8705` 的 `combat_start` 与玩家第 2、3 回合检查点严格恢复，continuation、原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前 1 HP / 0 瓶、剩余 79 HP；修改后完整获胜，0 HP / 0 瓶、剩余 80 HP；玩家第 3 回合检查点当前源码续搜亦为 0 HP / 0 瓶、剩余 80 HP，仅作定位对照。仅修改比较器时仍为 1 HP；加入有界的跨回合防御候选后为 0 HP。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
 - 第 36 包 `61a935eb01414ede9833448f1c659e1d` 的 `combat_start` 与玩家首回合后检查点 continuation 对账通过；旧包原生二进制状态不可比。VeryHigh / 180 秒 / DOP 8 同根修改前仅死亡路线，38 HP / 0 瓶；修改后完整获胜，30 HP / 1 瓶、剩余 8 HP，后验入选 `MAZALETHS_GIFT+MASTER_OF_STRATEGY+DISMANTLE`。玩家检查点当前源码续搜 36 HP / 0 瓶后续用药、剩余 2 HP，仅作定位对照。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
