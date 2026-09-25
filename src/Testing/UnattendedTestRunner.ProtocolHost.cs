@@ -190,7 +190,10 @@ internal sealed partial class UnattendedTestRunner
                         UnattendedAsyncActivityTracker.AbortRequest();
                         return;
                     }
-                    await WaitUntilReusableAsync(host);
+                    if (request.ReplayMode == "SessionStart")
+                        await WaitUntilSessionStartReadyAsync(host);
+                    else
+                        await WaitUntilReusableAsync(host);
                     WriteReady(request.RunId, held: false);
                 }
             }
@@ -212,17 +215,19 @@ internal sealed partial class UnattendedTestRunner
             bool reclaimedAfterQuiescence = false;
             while (System.Environment.TickCount64 < deadline)
             {
-                bool gameIdle = !RunManager.Instance.IsInProgress
-                    && !RunManager.Instance.IsCleaningUp
-                    && !RunManager.Instance.ActionExecutor.IsRunning
-                    && RunManager.Instance.ActionQueueSet.IsEmpty
-                    && !CombatManager.Instance.IsStarting
-                    && !CombatManager.Instance.IsInProgress
-                    && CombatManager.Instance.DebugOnlyGetState() == null
+                bool gameIdle = RunManager.Instance is { ActionExecutor: not null, ActionQueueSet: not null } run
+                    && CombatManager.Instance is { } combat
+                    && !run.IsInProgress
+                    && !run.IsCleaningUp
+                    && !run.ActionExecutor.IsRunning
+                    && run.ActionQueueSet.IsEmpty
+                    && !combat.IsStarting
+                    && !combat.IsInProgress
+                    && combat.DebugOnlyGetState() == null
                     && CardSelectCmd.Selector == null
                     && !SolverController.IsSearching
                     && !SolverController.IsDeploying
-                    && host.RootSceneContainer.CurrentScene is NMainMenu;
+                    && host.RootSceneContainer?.CurrentScene is NMainMenu;
                 bool idle = UnattendedAsyncActivityTracker.IsIdle && gameIdle;
                 if (!idle)
                 {
@@ -269,6 +274,14 @@ internal sealed partial class UnattendedTestRunner
 
             throw new TimeoutException(
                 $"无人测试进程在 {quiescenceTimeoutMilliseconds} ms 内没有完成场景清理。");
+        }
+
+        private static async Task WaitUntilSessionStartReadyAsync(NGame host)
+        {
+            for (int frame = 0; frame < 2; frame++)
+                await host.ToSignal(host.GetTree(), SceneTree.SignalName.ProcessFrame);
+            if (!UnattendedAsyncActivityTracker.TryEndRequest())
+                throw new InvalidOperationException("Session start left unfinished asynchronous work.");
         }
 
         private static async Task WaitUntilHeldAsync(NGame host)

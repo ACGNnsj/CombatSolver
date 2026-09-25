@@ -12,6 +12,7 @@ param(
     [ValidateSet("default", "server-generational")]
     [string]$RuntimeProfile = "default",
     [switch]$StopInstance,
+    [switch]$ReuseOnly,
     [ValidateSet("exclusive", "parallel")]
     [string]$HeadlessExecutionMode = "exclusive",
     [ValidateRange(1, 1048576)]
@@ -36,7 +37,7 @@ param(
     [string]$ShowcaseBundlePath = "",
     [string]$CheckpointArchivePath = "",
     [string]$CheckpointSelector = "start",
-    [ValidateSet("Preflight", "RestoreOnly", "ReplayRecorded", "SearchOnly", "DeploySolver")]
+    [ValidateSet("Preflight", "RestoreOnly", "ReplayRecorded", "SearchOnly", "DeploySolver", "SessionStart")]
     [string]$ReplayMode = "RestoreOnly",
     [string]$ReplayPolicyOverridePath = "",
     [string]$DevelopmentStrategyAssemblyPath = "",
@@ -399,7 +400,10 @@ $resultPath = Join-Path $dataDir "combat_solver_test_result.json"
 $readyPath = Join-Path $dataDir "combat_solver_test_ready.json"
 $launcherLockPath = Join-Path $headlessRoot "launcher.lock"
 
-if (-not $StopInstance) {
+if ($ReuseOnly.IsPresent -and $StopInstance.IsPresent) {
+    throw 'ReuseOnly cannot be combined with StopInstance.'
+}
+if (-not $StopInstance -and -not $ReuseOnly) {
 if (-not (Test-Path -LiteralPath (Join-Path $sourceGameRoot 'SlayTheSpire2.exe') -PathType Leaf)) {
     throw "Source game executable not found: $sourceGameRoot"
 }
@@ -1083,10 +1087,28 @@ if (-not [string]::IsNullOrWhiteSpace($PowerId)) {
     )
 }
 
-$snapshotPlan = Get-HeadlessSnapshotPlan $runtimeContext $combatSolverDll $combatSolverManifest $memoryCleaner $resolvedRitsuWorkshopRoot $ritsuManifestSource
-$runtimeContext.ArtifactId = $snapshotPlan.id
-$combatSolverDllSha256 = @($snapshotPlan.files | Where-Object { $_.relative -eq 'mods\CombatSolver\CombatSolver.dll' })[0].sha256
-$combatSolverManifestSha256 = @($snapshotPlan.files | Where-Object { $_.relative -eq 'mods\CombatSolver\CombatSolver.json' })[0].sha256
+$snapshotPlan = $null
+if ($ReuseOnly) {
+    if (-not (Test-Path -LiteralPath $processMarkerPath -PathType Leaf)) {
+        throw 'ReuseOnly requires an existing owned game process; run session start first.'
+    }
+    $warmMarker = Get-Content -LiteralPath $processMarkerPath -Raw | ConvertFrom-Json
+    $runtimeContext.ArtifactId = [string]$warmMarker.artifactId
+    $combatSolverDllSha256 = [string]$warmMarker.combatSolverDllSha256
+    $combatSolverManifestSha256 = [string]$warmMarker.combatSolverManifestSha256
+    if ([string]::IsNullOrWhiteSpace($runtimeContext.ArtifactId) -or
+        [string]::IsNullOrWhiteSpace($combatSolverDllSha256) -or
+        [string]::IsNullOrWhiteSpace($combatSolverManifestSha256)) {
+        throw 'ReuseOnly process marker lacks frozen artifact identity.'
+    }
+    Write-Host "UNATTENDED_REUSE_ONLY instance=$($runtimeContext.Instance) snapshot_scan=skipped"
+} else {
+    $snapshotPlan = Get-HeadlessSnapshotPlan $runtimeContext $combatSolverDll $combatSolverManifest $memoryCleaner $resolvedRitsuWorkshopRoot $ritsuManifestSource
+    Write-Host "UNATTENDED_SNAPSHOT_PLAN cache_hits=$($snapshotPlan.cacheHits) hashed=$($snapshotPlan.hashedFiles) elapsed_ms=$($snapshotPlan.elapsedMilliseconds)"
+    $runtimeContext.ArtifactId = $snapshotPlan.id
+    $combatSolverDllSha256 = @($snapshotPlan.files | Where-Object { $_.relative -eq 'mods\CombatSolver\CombatSolver.dll' })[0].sha256
+    $combatSolverManifestSha256 = @($snapshotPlan.files | Where-Object { $_.relative -eq 'mods\CombatSolver\CombatSolver.json' })[0].sha256
+}
 if (Test-Path -LiteralPath $processMarkerPath -PathType Leaf) {
     $marker = $null
     $markerProcessId = 0
@@ -1194,6 +1216,9 @@ if (Test-Path -LiteralPath $processMarkerPath -PathType Leaf) {
     } elseif (-not [string]::Equals([string]$marker.artifactId,
             $runtimeContext.ArtifactId, [StringComparison]::OrdinalIgnoreCase) -or
             [string]$marker.runtimeEnvironmentKey -cne $runtimeEnvironmentKey) {
+        if ($ReuseOnly) {
+            throw 'ReuseOnly detected a different frozen artifact or runtime profile; run session start first.'
+        }
         Write-Host "UNATTENDED_RESTART reason=frozen_artifact_or_runtime_changed pid=$($process.Id)"
         Stop-ClaimedProcessAndRemoveDependency $process $processIdentityStartTimeUtc
         $cleanupProcessOnExit = $false
@@ -1210,6 +1235,9 @@ if (Test-Path -LiteralPath $processMarkerPath -PathType Leaf) {
             Write-Warning "Could not inspect the previous ready marker; it will be replaced by this request."
         }
         if ($previousReadyHeld) {
+            if ($ReuseOnly) {
+                throw 'ReuseOnly cannot use a held game process; run session start first.'
+            }
             Write-Host "UNATTENDED_RESTART reason=held_process_not_reusable pid=$($process.Id)"
             Stop-ClaimedProcessAndRemoveDependency $process $processIdentityStartTimeUtc
             $cleanupProcessOnExit = $false
@@ -1217,6 +1245,9 @@ if (Test-Path -LiteralPath $processMarkerPath -PathType Leaf) {
             $processIdentityStartTimeUtc = ""
         }
     }
+}
+if ($ReuseOnly -and $null -eq $process) {
+    throw 'ReuseOnly requires a running owned game process; run session start first.'
 }
 Enter-HeadlessHostLease $runtimeContext $process
 if ($null -eq $process) {

@@ -214,7 +214,7 @@ internal static class BatchRunner
         int timeout, string? archive, string selector, string mode, string? policy, bool stop,
         string? strategyAssembly = null, string? strategyParameters = null,
         string? strategyScriptHash = null, string? strategyParametersHash = null,
-        string? monitorStatePath = null)
+        string? monitorStatePath = null, bool reuseOnly = false)
     {
         bool windows = OperatingSystem.IsWindows();
         ProcessStartInfo start = new(windows ? "pwsh" : "bash")
@@ -256,6 +256,8 @@ internal static class BatchRunner
             }
             if (monitorStatePath != null)
                 Arg("DevelopmentMonitorStatePath", "development-monitor-state-path", monitorStatePath);
+            if (reuseOnly)
+                Arg("ReuseOnly", "reuse-only");
         }
         using Process process = Process.Start(start) ?? throw new IOException("launcher_start_failed");
         using StreamWriter stdout = new(Path.Combine(evidence, stop ? "cleanup.log" : "launcher.log"), append: false);

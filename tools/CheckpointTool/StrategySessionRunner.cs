@@ -9,6 +9,7 @@ using CombatSolver.Replay;
 internal static class StrategySessionRunner
 {
     private const int DefaultTimeoutSeconds = 180;
+    private const string FixedInstance = "strategy-development";
 
     public static async Task<int> Run(string[] args)
     {
@@ -19,7 +20,8 @@ internal static class StrategySessionRunner
             throw new ArgumentException("Session name must use 1..40 ASCII letters, digits, '-' or '_'.");
         string project = FindProject();
         string session = Path.Combine(project, ".local", "strategy-sessions", name);
-        string instance = "strategy-" + name;
+        string instance = FixedInstance;
+        string ownerPath = Path.Combine(project, ".local", "strategy-sessions", "active-session.json");
         int index = 2;
         string? archive = command == "run" && index < args.Length && !args[index].StartsWith("--", StringComparison.Ordinal)
             ? Path.GetFullPath(args[index++]) : null;
@@ -47,6 +49,11 @@ internal static class StrategySessionRunner
         foreach (string option in options.Keys)
             if (!allowed.Contains(option)) throw new ArgumentException("Unknown session option: " + option);
         using FileStream sessionLock = LockSession(session);
+        using FileStream? fixedLock = command is "start" or "stop" ? LockFixedInstance(project) : null;
+        JsonObject? owner = Read(ownerPath);
+        if (owner?["name"]?.ToString() is { } activeName
+            && activeName != name && IsRunning(project, instance, out _))
+            throw new InvalidOperationException($"Fixed strategy instance belongs to active session {activeName}; stop it first.");
         if (command == "start")
         {
             JsonObject? existing = Read(Path.Combine(session, "session.json"));
@@ -75,8 +82,18 @@ internal static class StrategySessionRunner
             Save(Path.Combine(session, "session.json"), state);
             string evidence = NewEvidence(session, "start");
             Stopwatch startup = Stopwatch.StartNew();
+            if (state["monitorEnabled"]?.GetValue<bool>() == true)
+            {
+                SaveMonitorState(session, new JsonObject
+                {
+                    ["state"] = "准备实例", ["phase"] = "启动固定游戏实例",
+                    ["updatedUtc"] = DateTimeOffset.UtcNow,
+                });
+                await StartMonitor(project, session);
+                Console.WriteLine($"SESSION_MONITOR_READY name={name} elapsed_ms={startup.Elapsed.TotalMilliseconds:F0}");
+            }
             int exit = await BatchRunner.Launch(project, LauncherOptions(state), evidence,
-                DefaultTimeoutSeconds, null, "start", "RestoreOnly", null, stop: false);
+                DefaultTimeoutSeconds, null, "start", "SessionStart", null, stop: false);
             JsonObject? result = Read(Path.Combine(evidence, "result.json"));
             bool running = IsRunning(project, instance, out int pid);
             bool passed = exit == 0 && result?["status"]?.ToString() == "Passed" && running;
@@ -91,13 +108,14 @@ internal static class StrategySessionRunner
             {
                 await BatchRunner.Launch(project, LauncherOptions(state), evidence,
                     DefaultTimeoutSeconds, null, "start", "RestoreOnly", null, stop: true);
-                await CleanupInstance(project, instance, state["gameRoot"]?.ToString());
+                await StopMonitor(session);
                 state["active"] = false;
                 Save(Path.Combine(session, "session.json"), state);
                 return 1;
             }
             state["active"] = true;
             Save(Path.Combine(session, "session.json"), state);
+            Save(ownerPath, new JsonObject { ["name"] = name, ["instance"] = instance });
             if (state["monitorEnabled"]?.GetValue<bool>() == true)
             {
                 SaveMonitorState(session, new JsonObject
@@ -105,7 +123,6 @@ internal static class StrategySessionRunner
                     ["state"] = "idle", ["processId"] = pid,
                     ["phase"] = "等待问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
                 });
-                await StartMonitor(project, session);
             }
             return 0;
         }
@@ -126,9 +143,10 @@ internal static class StrategySessionRunner
         {
             if (saved["active"]?.GetValue<bool>() == false
                 && !IsRunning(project, instance, out _)
-                && !IsMonitorRunning(session, out _)
-                && !Directory.Exists(Path.Combine(project, ".local", "headless-instances", instance)))
+                && !IsMonitorRunning(session, out _))
             {
+                if (Read(ownerPath)?["name"]?.ToString() == name)
+                    File.Delete(ownerPath);
                 Console.WriteLine($"SESSION_STOP name={name} status=stopped pid=0");
                 return 0;
             }
@@ -140,9 +158,10 @@ internal static class StrategySessionRunner
             if (!running && (exit == 0 || !wasRunning))
             {
                 await StopMonitor(session);
-                await CleanupInstance(project, instance, saved["gameRoot"]?.ToString());
                 saved["active"] = false;
                 Save(Path.Combine(session, "session.json"), saved);
+                if (Read(ownerPath)?["name"]?.ToString() == name)
+                    File.Delete(ownerPath);
             }
             bool stopped = !running && saved["active"]?.GetValue<bool>() == false;
             Console.WriteLine($"SESSION_STOP name={name} status={(stopped ? "stopped" : "failed")} pid={pid}");
@@ -156,19 +175,12 @@ internal static class StrategySessionRunner
     private static async Task<int> Search(string project, string session,
         JsonObject state, string archive, Dictionary<string, string> options)
     {
-        if (!File.Exists(archive)) throw new FileNotFoundException("Archive not found.", archive);
         string evidence = NewEvidence(session, "run");
         string selector = options.GetValueOrDefault("--selector", CheckpointArchive.DefaultFixtureSelector);
         const string mode = "SearchOnly";
         Stopwatch watch = Stopwatch.StartNew();
         bool monitorEnabled = state["monitorEnabled"]?.GetValue<bool>() == true;
         string? monitorPath = monitorEnabled ? Path.Combine(session, "monitor-state.json") : null;
-        if (monitorEnabled)
-            SaveMonitorState(session, new JsonObject
-            {
-                ["state"] = "preflight", ["reportId"] = Path.GetFileNameWithoutExtension(archive),
-                ["phase"] = "检查问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
-            });
         JsonObject row = new()
         {
             ["archivePath"] = archive, ["selector"] = selector, ["mode"] = mode,
@@ -178,14 +190,6 @@ internal static class StrategySessionRunner
         int exit = 1;
         try
         {
-            JsonObject inspection = CheckpointArchive.Inspect(archive, selector);
-            Save(Path.Combine(evidence, "preflight.json"), inspection);
-            if (inspection["status"]?.ToString() != "materials_valid")
-            {
-                row["status"] = "invalid_archive";
-                row["reason"] = inspection["reason"]?.DeepClone();
-                return 1;
-            }
             string? assembly = null, scriptHash = null, parametersHash = null, parameters = null;
             string main = Path.Combine(project, ".godot", "mono", "temp", "bin", "Release", "CombatSolver.dll");
             row["mainAssemblyHash"] = HashFile(main);
@@ -208,11 +212,13 @@ internal static class StrategySessionRunner
             if (monitorEnabled)
                 SaveMonitorState(session, new JsonObject
                 {
-                    ["state"] = "launching", ["reportId"] = Path.GetFileNameWithoutExtension(archive),
+                    ["state"] = "正在提交", ["reportId"] = Path.GetFileNameWithoutExtension(archive),
+                    ["processId"] = IsRunning(project, state["instance"]!.ToString(), out int runningPid)
+                        ? runningPid : null,
                     ["scriptHash"] = scriptHash, ["parametersHash"] = parametersHash,
                     ["performancePreset"] = "VeryHigh", ["parallelism"] = 8,
                     ["requestTimeoutSeconds"] = DefaultTimeoutSeconds,
-                    ["phase"] = "提交搜索请求", ["updatedUtc"] = DateTimeOffset.UtcNow,
+                    ["phase"] = "常驻游戏接收问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
                 });
             string? policy = null;
             if (options.TryGetValue("--policy", out string? policySource))
@@ -222,7 +228,7 @@ internal static class StrategySessionRunner
             }
             exit = await BatchRunner.Launch(project, LauncherOptions(state), evidence,
                 DefaultTimeoutSeconds, archive, selector, mode, policy, stop: false,
-                assembly, parameters, scriptHash, parametersHash, monitorPath);
+                assembly, parameters, scriptHash, parametersHash, monitorPath, reuseOnly: true);
             JsonObject? result = Read(Path.Combine(evidence, "result.json"));
             JsonObject? launcher = Read(Path.Combine(evidence, "launcher-result.json"));
             row["status"] = BatchRunner.Classify(result, exit, launcher);
@@ -368,6 +374,13 @@ internal static class StrategySessionRunner
         return new FileStream(Path.Combine(session, "session.lock"), FileMode.OpenOrCreate,
             FileAccess.ReadWrite, FileShare.None);
     }
+    private static FileStream LockFixedInstance(string project)
+    {
+        string sessions = Path.Combine(project, ".local", "strategy-sessions");
+        Directory.CreateDirectory(sessions);
+        return new FileStream(Path.Combine(sessions, "fixed-instance.lock"), FileMode.OpenOrCreate,
+            FileAccess.ReadWrite, FileShare.None);
+    }
     private static void SaveMonitorState(string session, JsonObject value)
     {
         value["schemaVersion"] = 1;
@@ -442,30 +455,6 @@ internal static class StrategySessionRunner
             process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync();
         }
-    }
-    private static async Task CleanupInstance(string project, string instance, string? gameRoot)
-    {
-        bool windows = OperatingSystem.IsWindows();
-        ProcessStartInfo start = new(windows ? "pwsh" : "bash")
-        {
-            WorkingDirectory = project, UseShellExecute = false, CreateNoWindow = true,
-            RedirectStandardOutput = true, RedirectStandardError = true,
-        };
-        if (windows)
-        {
-            start.ArgumentList.Add("-NoProfile");
-            start.ArgumentList.Add("-File");
-        }
-        start.ArgumentList.Add(Path.Combine(project, "tools", windows
-            ? "remove-strategy-instance.ps1" : "remove-strategy-instance.sh"));
-        start.ArgumentList.Add(instance);
-        if (windows) start.ArgumentList.Add(gameRoot ?? throw new InvalidDataException("Session game root missing."));
-        using Process process = Process.Start(start) ?? throw new IOException("Instance cleanup failed to start.");
-        Task<string> output = process.StandardOutput.ReadToEndAsync();
-        Task<string> errors = process.StandardError.ReadToEndAsync();
-        await process.WaitForExitAsync();
-        if (process.ExitCode != 0)
-            throw new IOException("Instance cleanup failed: " + await errors + await output);
     }
     private static void Save(string path, JsonNode value) => BatchRunner.Save(path, value);
     private static string HashFile(string path) => Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();

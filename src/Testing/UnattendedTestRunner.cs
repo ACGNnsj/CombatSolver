@@ -141,6 +141,13 @@ internal sealed partial class UnattendedTestRunner
         DevelopmentMonitorPublisher? monitor = DevelopmentMonitorPublisher.Start(_request);
         try
         {
+            if (_request.ReplayMode == "SessionStart")
+            {
+                SetStage("passed");
+                _writer.Write("Passed", _stage, _request.CharacterId, _request.EncounterId,
+                    combatEnded: false, startedTurn: 0, finishedTurn: 0);
+                return RunCompletion.Passed;
+            }
             SetStage("strategy_load");
             _protocolHost.LoadDevelopmentStrategy(_request);
             ScenarioContext scenario = await _scenarioBuilder.BuildAsync();
