@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 37 包 `bd580e3209034bb294d77eda34eb8705` 的 `combat_start` 与玩家第 2、3 回合检查点严格恢复，continuation、原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前 1 HP / 0 瓶、剩余 79 HP；修改后完整获胜，0 HP / 0 瓶、剩余 80 HP；玩家第 3 回合检查点当前源码续搜亦为 0 HP / 0 瓶、剩余 80 HP，仅作定位对照。仅修改比较器时仍为 1 HP；加入有界的跨回合防御候选后为 0 HP。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
 - 第 36 包 `61a935eb01414ede9833448f1c659e1d` 的 `combat_start` 与玩家首回合后检查点 continuation 对账通过；旧包原生二进制状态不可比。VeryHigh / 180 秒 / DOP 8 同根修改前仅死亡路线，38 HP / 0 瓶；修改后完整获胜，30 HP / 1 瓶、剩余 8 HP，后验入选 `MAZALETHS_GIFT+MASTER_OF_STRATEGY+DISMANTLE`。玩家检查点当前源码续搜 36 HP / 0 瓶后续用药、剩余 2 HP，仅作定位对照。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
 - 第 35 包 `9a7c143b932942d0a22ba19e1b074458` 的 `combat_start` 与玩家第 4 回合检查点严格恢复，continuation、原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前 1 HP / 0 瓶、剩余 63 HP；修改后首回合边界复搜找到 0 HP / 0 瓶、剩余 64 HP，完整获胜。玩家第 4 回合检查点当前源码续搜亦为 0 HP / 0 瓶、剩余 64 HP，只作定位对照。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
 - 第 34 包 `b0e5689561f6429c8a73766419436b8d` 的 `combat_start` 和玩家首回合后检查点严格恢复，continuation、原生状态对账通过。同根 VeryHigh / 180 秒 / DOP 8 修改前 26 HP / 0 瓶、剩余 38 HP，修改后 0 HP / 1 瓶、剩余 64 HP，完整获胜；后验日志中 `DEXTERITY_POTION+FOOTWORK+DEFEND_SILENT+CLOAK_AND_DAGGER` 前缀入选。玩家喝药后的旧求解投影为 7 HP / 1 瓶、剩余 57 HP；当前源码从玩家后续检查点续搜为 5 HP、剩余 59 HP，仅作定位对照。Windows Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。

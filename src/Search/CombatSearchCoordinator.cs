@@ -192,6 +192,87 @@ internal static partial class CombatSearchCoordinator
                         && IsBetterPotionPolicyResult(root, policy, rescue, selected))
                         selected = rescue;
                 }
+                if (refineNearZeroLoss && selected.ProjectedBattleHpLost > 0)
+                {
+                    CombatBeamSolver NewPrefixBuilder() => new(root, displayNames, battleDamage,
+                        policy, cancellationToken, enrichedProgressCallback, policy.Profile,
+                        potionPolicyOverride: SolverPotionPolicy.Disabled,
+                        maximumPotionUses: 0);
+                    int continuationAttempts = 0;
+                    foreach (PlanAction freeAction in NewPrefixBuilder().BuildOpeningFreeOffensiveActions())
+                    {
+                        foreach (PlanAction[] firstTurn in firstTurnAnchors
+                                     .DistinctBy(PowerPrefixKey).Take(4))
+                        {
+                            if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
+                                continue;
+                            int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                            long remainingNodes = policy.Profile.MaxExpandedNodes
+                                - requestWorkTotals.Snapshot().ExpandedNodes;
+                            if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                                break;
+                            SolverSearchProfile prefixProfile = policy.Profile with
+                            {
+                                MaxExpandedNodes = (int)Math.Min(30_000, remainingNodes),
+                                SoftTimeBudgetMilliseconds = Math.Min(10_000, remainingMilliseconds - 2_000),
+                            };
+                            SolverResult freeRescue = new CombatBeamSolver(root, displayNames,
+                                battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                                prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                                maximumPotionUses: 0,
+                                fixedPrefixActions: [freeAction, .. firstTurn],
+                                resetFixedPrefixSchedulingBaseline: true).Solve();
+                            if (freeRescue.ResultScope == SolverResultScope.SearchCompletion
+                                && IsBetterPotionPolicyResult(root, policy, freeRescue, selected))
+                                selected = freeRescue;
+                            if (selected.ProjectedBattleHpLost == 0)
+                                break;
+                            PlanAction[] nextTurnPrefix = [freeAction, .. firstTurn];
+                            for (int defenseCount = 0; defenseCount < 2; defenseCount++)
+                            {
+                                PlanAction? nextDefense = NewPrefixBuilder()
+                                    .BuildOpeningDefensiveFollowUp(nextTurnPrefix);
+                                if (nextDefense == null)
+                                    break;
+                                nextTurnPrefix = [.. nextTurnPrefix, nextDefense];
+                                foreach (PlanAction nextAttack in NewPrefixBuilder()
+                                             .BuildOpeningOffensiveCardVariantsAfterPrefix(nextTurnPrefix).Take(3))
+                                {
+                                    remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                                    remainingNodes = policy.Profile.MaxExpandedNodes
+                                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                                    if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                                        break;
+                                    SolverSearchProfile continuationProfile = prefixProfile with
+                                    {
+                                        MaxExpandedNodes = (int)Math.Min(30_000, remainingNodes),
+                                        SoftTimeBudgetMilliseconds = Math.Min(
+                                            10_000, remainingMilliseconds - 2_000),
+                                    };
+                                    SolverResult continuation = new CombatBeamSolver(root, displayNames,
+                                        battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                                        continuationProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                                        maximumPotionUses: 0,
+                                        fixedPrefixActions: [.. nextTurnPrefix, nextAttack,
+                                            new PlanAction(PlanActionKind.EndTurn, root.StartTurnNumber + 1)],
+                                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                                    if (continuation.ResultScope == SolverResultScope.SearchCompletion
+                                        && IsBetterPotionPolicyResult(root, policy, continuation, selected))
+                                        selected = continuation;
+                                    if (selected.ProjectedBattleHpLost == 0
+                                        || ++continuationAttempts >= 8)
+                                        break;
+                                }
+                                if (selected.ProjectedBattleHpLost == 0 || continuationAttempts >= 8)
+                                    break;
+                            }
+                            if (selected.ProjectedBattleHpLost == 0 || continuationAttempts >= 8)
+                                break;
+                        }
+                        if (selected.ProjectedBattleHpLost == 0 || continuationAttempts >= 8)
+                            break;
+                    }
+                }
             }
             if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
                 && selected.ResultScope == SolverResultScope.SearchCompletion
@@ -2045,6 +2126,16 @@ internal static partial class CombatSearchCoordinator
             candidate.Won, candidate.OutstandingStolenResource, current.Won, current.OutstandingStolenResource);
         if (recovery != 0)
             return recovery < 0;
+        if (candidate.Won && current.Won
+            && candidate.StrategicHpDeficit == current.StrategicHpDeficit
+            && candidate.PotionStrategicCost == current.PotionStrategicCost
+            && candidate.ProjectedBattlePotionCount == current.ProjectedBattlePotionCount
+            && candidate.GrowthHpCredit == current.GrowthHpCredit
+            && candidate.GrowthRewardCount == current.GrowthRewardCount
+            && candidate.ProjectedBattleHpLost != current.ProjectedBattleHpLost)
+        {
+            return candidate.ProjectedBattleHpLost < current.ProjectedBattleHpLost;
+        }
         int primaryQuality = SolverInterimResultOrdering.ComparePrimaryQuality(
             candidate.Won,
             candidate.StrategicHpDeficit,

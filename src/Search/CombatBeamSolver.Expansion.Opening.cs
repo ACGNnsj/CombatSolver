@@ -571,6 +571,36 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction> BuildOpeningFreeOffensiveActions()
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Action is
+                {
+                    Kind: PlanActionKind.PlayCard,
+                    TargetCombatId: not null,
+                } && node.Snapshot.Turn == seed.Snapshot.Turn
+                    && node.Snapshot.Energy == seed.Snapshot.Energy
+                    && node.Snapshot.EnemyHp < seed.Snapshot.EnemyHp)
+                .GroupBy(node => node.Action!.CardStateKey)
+                .Select(group => group.OrderByDescending(node => node.Score).First())
+                .OrderByDescending(node => node.Score)
+                .Take(3)
+                .Select(node => node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
     internal PlanAction? BuildOpeningDefensiveFollowUp(IReadOnlyList<PlanAction> prefix)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix);
