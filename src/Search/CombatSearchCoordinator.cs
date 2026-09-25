@@ -917,7 +917,7 @@ internal static partial class CombatSearchCoordinator
                     potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                     maximumPotionUses: maximumSmartPotionUses)
                 .BuildOpeningPotionActions();
-        IReadOnlyList<PlanAction> generatedResourcePotions = openingPotions.Count == 0
+        IReadOnlyList<PlanAction> generatedCardPotions = openingPotions.Count == 0
             ? []
             : new CombatBeamSolver(
                     root,
@@ -929,7 +929,7 @@ internal static partial class CombatSearchCoordinator
                     profile,
                     potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                     maximumPotionUses: maximumSmartPotionUses)
-                .SelectGeneratedResourcePotionActions(openingPotions);
+                .SelectGeneratedCardPotionActions(openingPotions);
         IReadOnlyList<PlanAction> openingResources = new CombatBeamSolver(
                 root,
                 displayNames,
@@ -963,7 +963,7 @@ internal static partial class CombatSearchCoordinator
                 break;
         }
         if (potionPowerPairs.Count == 0
-            && generatedResourcePotions.Count == 0
+            && generatedCardPotions.Count == 0
             && openingResources.Count == 0)
             return primary;
 
@@ -1014,7 +1014,7 @@ internal static partial class CombatSearchCoordinator
                 $"selected={ReferenceEquals(selected, resourceDefensePosterior)}");
         }
 
-        foreach (PlanAction openingPotion in generatedResourcePotions)
+        foreach (PlanAction openingPotion in generatedCardPotions)
         {
             SolverResult? resourcePosterior = SolveOptionalPotionPosterior(
                 new CombatBeamSolver(
@@ -1456,7 +1456,7 @@ internal static partial class CombatSearchCoordinator
             return primary;
         try
         {
-            return SearchSmartPotionGradient(
+            SolverResult gradient = SearchSmartPotionGradient(
                 root,
                 displayNames,
                 battleDamage,
@@ -1468,6 +1468,61 @@ internal static partial class CombatSearchCoordinator
                 primary,
                 memoryForecast,
                 interimResultCallback);
+            if (gradient.ResultScope != SolverResultScope.SearchCompletion
+                || policy.PotionStrategy.HasForcedDirectives
+                || battleDamage.PotionsUsedSoFar != 0
+                || HasReachedProvablePrimaryQualityLowerBound(root, policy, gradient))
+                return gradient;
+
+            CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
+                searchCancellationToken, progressCallback, profile,
+                potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                maximumPotionUses: 1);
+            IReadOnlyList<PlanAction> generatedPotions = builder.SelectGeneratedCardPotionActions(
+                builder.BuildOpeningPotionActions());
+            SolverResult selected = gradient;
+            foreach (PlanAction openingPotion in generatedPotions)
+            {
+                SolverResult? candidate = SolveOptionalPotionPosterior(
+                    new CombatBeamSolver(root, displayNames, battleDamage, policy,
+                        searchCancellationToken, progressCallback, profile,
+                        potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                        maximumPotionUses: 1,
+                        fixedPrefixActions: [openingPotion]),
+                    policy,
+                    $"SMART_GENERATED_POTION_POSTERIOR potion={openingPotion.PotionId} " +
+                    $"card={openingPotion.Choice!.Cards[0].CardId}");
+                if (candidate == null)
+                    continue;
+                if (candidate.ResultScope != SolverResultScope.SearchCompletion)
+                    return candidate;
+                PopulateSingleSessionTotals(candidate);
+                bool won = IsCompleteVictory(candidate);
+                int saved = IsCompleteVictory(primary)
+                    ? Math.Max(0, StrategicHpDeficit(root, policy, primary)
+                        - StrategicHpDeficit(root, policy, candidate))
+                    : won ? Math.Max(0, candidate.Snapshot.PlayerHp - primary.Snapshot.PlayerHp) : 0;
+                int required = SmartPotionHpRequired(root, policy, candidate);
+                bool acceptable = IsSmartPotionGradientCandidateAcceptable(
+                    IsCompleteVictory(primary), won, saved, required,
+                    policy.TheftPolicy == SolverTheftPolicy.PreserveResources
+                        && candidate.OutstandingStolenResource < primary.OutstandingStolenResource);
+                bool improved = acceptable && IsBetterCompletedResult(root, policy, candidate, selected);
+                if (improved)
+                {
+                    candidate.PotionHpSaved = saved;
+                    candidate.PotionHpRequired = required;
+                    selected = candidate;
+                }
+                policy.Diagnostics.Info(
+                    $"[CombatSolver/Test] SMART_GENERATED_POTION_POSTERIOR " +
+                    $"potion={openingPotion.PotionId} card={openingPotion.Choice!.Cards[0].CardId} " +
+                    $"won={won} hp_deficit={StrategicHpDeficit(root, policy, candidate)} " +
+                    $"saved={saved} required={required} selected={improved}");
+                if (HasReachedProvablePrimaryQualityLowerBound(root, policy, selected))
+                    break;
+            }
+            return selected;
         }
         catch (PotionPolicyUnsatisfiedException)
             when (policy.PotionPolicy == SolverPotionPolicy.Smart

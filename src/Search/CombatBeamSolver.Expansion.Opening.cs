@@ -411,7 +411,7 @@ internal sealed partial class CombatBeamSolver
         return selected;
     }
 
-    internal IReadOnlyList<PlanAction> SelectGeneratedResourcePotionActions(
+    internal IReadOnlyList<PlanAction> SelectGeneratedCardPotionActions(
         IReadOnlyList<PlanAction> actions)
         => actions
             .Where(action => action.Choice is
@@ -420,12 +420,12 @@ internal sealed partial class CombatBeamSolver
                 Cards.Count: 1,
             })
             .Select(action => (Action: action, Value: GeneratedCardResourceValue(action)))
-            .Where(candidate => candidate.Value > 0)
             .GroupBy(candidate => candidate.Action.PotionSlot)
-            .Select(group => group
+            .SelectMany(group => group
                 .OrderByDescending(candidate => candidate.Value)
                 .ThenBy(candidate => candidate.Action.Choice!.Cards[0].CardId, StringComparer.Ordinal)
-                .First().Action)
+                .Take(3)
+                .Select(candidate => candidate.Action))
             .ToArray();
 
     private int GeneratedCardResourceValue(PlanAction action)
