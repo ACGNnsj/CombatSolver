@@ -428,7 +428,8 @@ internal sealed partial class CombatBeamSolver
         int _potionReplacementHpCredit,
         SearchRunContext _run,
         Func<SearchNode, StandPatEvaluation> _evaluateStandPat,
-        Action<IEnumerable<SearchNode>>? _prepareStandPat = null)
+        Action<IEnumerable<SearchNode>>? _prepareStandPat = null,
+        DevelopmentSearchStrategy? _developmentStrategy = null)
     {
         private void ForEachRetentionIndex(
             int count,
@@ -1688,6 +1689,22 @@ internal sealed partial class CombatBeamSolver
                 }
                 foreach (SearchNode candidate in pareto)
                     AddRequired(required, candidate, limit);
+            }
+
+            if (preserveDefensiveRoute && !finalQualityFirst && _developmentStrategy != null
+                && required.Count < limit)
+            {
+                SearchNode? scripted = null;
+                double bestPriority = 0;
+                foreach (SearchNode node in ranked)
+                {
+                    double priority = _developmentStrategy.Retain(node);
+                    if (priority <= bestPriority)
+                        continue;
+                    scripted = node;
+                    bestPriority = priority;
+                }
+                AddRequired(required, scripted, limit);
             }
 
             List<SearchNode> quotaPool = ranked.ToList();

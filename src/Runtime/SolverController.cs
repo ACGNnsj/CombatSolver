@@ -528,6 +528,7 @@ internal static partial class SolverController
             new SearchMemoryPressureSignal())
         {
             Interaction = interaction,
+            DevelopmentStrategy = UnattendedTestRunner.CurrentDevelopmentStrategy,
             UseNoveltyPortfolio = settings.UseNoveltyPortfolio
                 || UnattendedTestRunner.UseNoveltyPortfolioOverride,
             UseBeamWidthPortfolio = settings.UseBeamWidthPortfolio

@@ -126,4 +126,5 @@ internal sealed record SearchPolicySnapshot(
     public BeamWidthPortfolioTelemetry? PortfolioTelemetry { get; init; }
     public SearchRequestWorkTotals? RequestWorkTotals { get; init; }
     public SearchInteractionState? Interaction { get; init; }
+    internal DevelopmentSearchStrategy? DevelopmentStrategy { get; init; }
 }

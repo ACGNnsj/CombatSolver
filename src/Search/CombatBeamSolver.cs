@@ -70,6 +70,7 @@ internal sealed partial class CombatBeamSolver(
     private readonly PotionFreePolicyBaseline? _potionFreePolicyBaseline = potionFreePolicyBaseline;
     private PrimarySearchIncumbent? _primaryIncumbent = primaryIncumbent;
     private readonly SearchInteractionState? _interaction = policy.Interaction;
+    private readonly DevelopmentSearchStrategy? _developmentStrategy = policy.DevelopmentStrategy;
     private readonly IReadOnlyList<PlanAction> _fixedPrefixActions = fixedPrefixActions ?? [];
     private readonly bool _resetFixedPrefixSchedulingBaseline = resetFixedPrefixSchedulingBaseline;
     private readonly string? _progressPhaseOverride = DescribePotionProgressPhase(
@@ -107,7 +108,8 @@ internal sealed partial class CombatBeamSolver(
         root.PotionRewardOutlook.ReplacementHpCredit,
         _run,
         EvaluateStandPat,
-        PrepareStandPatProbes);
+        PrepareStandPatProbes,
+        _developmentStrategy);
     private FinalPlanOrdering? _finalOrdering;
     private FinalPlanOrdering FinalOrdering => _finalOrdering ??= new FinalPlanOrdering(
         _potionPolicy,

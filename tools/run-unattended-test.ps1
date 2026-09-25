@@ -39,6 +39,10 @@ param(
     [ValidateSet("Preflight", "RestoreOnly", "ReplayRecorded", "SearchOnly", "DeploySolver")]
     [string]$ReplayMode = "RestoreOnly",
     [string]$ReplayPolicyOverridePath = "",
+    [string]$DevelopmentStrategyAssemblyPath = "",
+    [string]$DevelopmentStrategyParametersPath = "",
+    [string]$DevelopmentStrategyScriptHash = "",
+    [string]$DevelopmentStrategyParametersHash = "",
     [string]$EvidenceDirectory = "",
     [switch]$PreserveNativeCombatStateForTest,
     [string]$ProgressSnapshotPath = "",
@@ -781,6 +785,10 @@ $request = [ordered]@{
     checkpointSelector = $CheckpointSelector
     replayMode = $ReplayMode
     replayPolicyOverridePath = if ($ReplayPolicyOverridePath) { (Resolve-Path -LiteralPath $ReplayPolicyOverridePath).Path } else { $null }
+    developmentStrategyAssemblyPath = if ($DevelopmentStrategyAssemblyPath) { (Resolve-Path -LiteralPath $DevelopmentStrategyAssemblyPath).Path } else { $null }
+    developmentStrategyParametersPath = if ($DevelopmentStrategyParametersPath) { (Resolve-Path -LiteralPath $DevelopmentStrategyParametersPath).Path } else { $null }
+    developmentStrategyScriptHash = if ($DevelopmentStrategyScriptHash) { $DevelopmentStrategyScriptHash } else { $null }
+    developmentStrategyParametersHash = if ($DevelopmentStrategyParametersHash) { $DevelopmentStrategyParametersHash } else { $null }
     preserveNativeCombatStateForTest = $PreserveNativeCombatStateForTest.IsPresent
     ascension = $Ascension
     actIndexForTest = $ActIndexForTest

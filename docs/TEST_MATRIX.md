@@ -1,5 +1,13 @@
 # CombatSolver 测试清单
 
+## 策略迭代脚手架（开发中，2026-09-25）
+
+- Windows `scaffold-accept` 会话启动后，已下载的 `b642c1ccc4074802a40e4abcc97396a9` 在同一开战根搜索两次。首次脚本哈希 `059a8b23`、参数哈希 `14d3d4fc`、PID 36064、墙钟 136.2 秒；修改脚本和参数后哈希为 `c6c13b35` / `dcb10d68`，PID 仍为 36064，`reusedProcess=true`、墙钟 85.2 秒。两次均 `search_completed`、预计战损 46。墙钟包含准备和清理，不以两份样本宣称固定提速率。
+- 同进程无脚本哨兵同包 `search_completed`、PID 36064、预计战损 46、墙钟 83.3 秒。错误 C# 脚本 1.1 秒内明确记为 `strategy_or_input_failed`，留下编译日志，未向游戏提交旧脚本结果。`stop` 结束 PID 并清理私有实例；第一次停止曾因清理顺序与启动器自身所有权标记冲突失败，修正为启动器停止、独立所有权校验清理后成功。仓库忽略目录中保留会话请求证据，451 份原 ZIP 未删除。
+- Windows Release 主项目和 CheckpointTool 构建均 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；`git diff --check` 通过。Linux 脚本入口已同步，本轮未运行 Linux 门禁。180 秒超时分类未用真包等到上限，仅静态核对工具分支，不能称为实测通过。
+- 本轮结束前精确覆盖本地游戏 `mods/CombatSolver` 的 manifest、Release DLL、Windows MemoryCleaner、许可证与第三方声明；未启动可见 Steam。
+- 最终接线 `scaffold-final`：启动后 PID 25648，`b642c1ccc4074802a40e4abcc97396a9` 使用示例 C# 脚本和空参数搜索 `search_completed`，`reusedProcess=true`，墙钟 89.1 秒；开战检查点恢复通过。结果中的主 DLL／脚本／参数哈希与请求逐项一致，有效政策记录 `VeryHigh`、DOP 8、`softTimeBudgetMilliseconds=180000`。`stop` 成功，私有实例目录不存在。最终接线没有再重复做两版脚本 A/B；那项证据见上一条。
+
 ## 0.46.4：战损路线筛选与 Loadout 兼容（2026-09-25）
 
 - 本机最新独立战斗日志：`SEARCH_SETUP_FAILURE stage=combat_root_snapshot`，异常是 `PowerGiver summon powers are configured or this Loadout version is not verified`；`godot.log` 证实求解器 `0.46.4` 与 Loadout `v0.5.8` 均已加载。实际 `v0.5.8` 的召唤钩子和公开怪物能力计数读取，与保留的 `v0.5.6` 程序集反编译结果一致。

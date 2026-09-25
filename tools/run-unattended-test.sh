@@ -71,6 +71,10 @@ add_option checkpoint-archive-path "" string raw_string
 add_option checkpoint-selector "start" string raw_string
 add_option replay-mode "RestoreOnly" string raw_string "Preflight|RestoreOnly|ReplayRecorded|SearchOnly|DeploySolver"
 add_option replay-policy-override-path "" string raw_string
+add_option development-strategy-assembly-path "" string optional_string
+add_option development-strategy-parameters-path "" string optional_string
+add_option development-strategy-script-hash "" string optional_string
+add_option development-strategy-parameters-hash "" string optional_string
 add_option evidence-directory "" string raw_string
 add_option preserve-native-combat-state-for-test 0 switch bool
 add_option progress-snapshot-path "" string none
@@ -428,7 +432,7 @@ if ((option_value[stop-after-expected-player-power] == 1)) && is_blank "${option
 fi
 ((option_value[timeout-seconds] > 0)) || die "--timeout-seconds must be a positive integer"
 
-for path_option in replay-policy-override-path evidence-directory; do
+for path_option in replay-policy-override-path evidence-directory development-strategy-assembly-path development-strategy-parameters-path; do
     if [[ -n "${option_value[$path_option]}" ]]; then
         option_value[$path_option]="$(realpath -m -- "${option_value[$path_option]}")"
     fi

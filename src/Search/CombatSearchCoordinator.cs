@@ -632,15 +632,16 @@ internal static partial class CombatSearchCoordinator
             return pendingDecision;
         }
 
+        IReadOnlyList<BeamWidthPortfolioMemberSpec> builtInMembers = BeamWidthPortfolio.ProductionMembers(
+            profile.BeamWidth,
+            policy.UseBeamWidthPortfolio ? policy.BeamWidthPortfolioWidths : [profile.BeamWidth],
+            policy.BeamWidthPortfolioPlainBaselineMember && !useReallocation,
+            includePowerCommitmentMember: hasReachablePower,
+            useOffensiveRefinement: profile.OffensiveRefinementPortfolio,
+            appendBoundedOffensiveRefinement: profile.BoundedOffensiveRefinementPortfolio || useReallocation);
         BeamWidthPortfolioOutcome<SolverResult> outcome = policy.UseBeamWidthPortfolio || hasReachablePower
             ? BeamWidthPortfolio.Run(
-                BeamWidthPortfolio.ProductionMembers(
-                    profile.BeamWidth,
-                    policy.UseBeamWidthPortfolio ? policy.BeamWidthPortfolioWidths : [profile.BeamWidth],
-                    policy.BeamWidthPortfolioPlainBaselineMember && !useReallocation,
-                    includePowerCommitmentMember: hasReachablePower,
-                    useOffensiveRefinement: profile.OffensiveRefinementPortfolio,
-                    appendBoundedOffensiveRefinement: profile.BoundedOffensiveRefinementPortfolio || useReallocation),
+                policy.DevelopmentStrategy?.OrganizeMembers(builtInMembers) ?? builtInMembers,
                 profile.MaxExpandedNodes,
                 profile,
                 RunMember,

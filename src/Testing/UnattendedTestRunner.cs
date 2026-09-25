@@ -49,6 +49,8 @@ internal sealed partial class UnattendedTestRunner
     private static readonly ProtocolHost Host = new();
 
     public static bool IsActive => Host.IsActive;
+    internal static DevelopmentSearchStrategy? CurrentDevelopmentStrategy => Host.DevelopmentStrategy;
+    internal static bool ReusedProcess => Host.ReusedProcess;
     internal static bool IsReplayingRecordedInputs => CombatReplayRecording.TestObserver != null;
     public static bool AutomaticTurnSearchEnabled => Host.AutomaticTurnSearchEnabled;
     public static bool VerifyIncrementalSearch => Host.VerifyIncrementalSearch;
@@ -138,6 +140,8 @@ internal sealed partial class UnattendedTestRunner
         int startedTurn = 0;
         try
         {
+            SetStage("strategy_load");
+            _protocolHost.LoadDevelopmentStrategy(_request);
             ScenarioContext scenario = await _scenarioBuilder.BuildAsync();
             _resetModelStateIntegrationReference?.Invoke();
             combatState = scenario.CombatState;

@@ -22,6 +22,27 @@ internal sealed partial class UnattendedTestRunner
         private int _injectedPlayerHpLoss;
         private int _clearPlayerBlockBeforeEndTurn;
         private int _clearedPlayerBlock;
+        private DevelopmentStrategyLoader? _strategyLoader;
+        public DevelopmentSearchStrategy? DevelopmentStrategy => _strategyLoader?.Strategy;
+        public bool ReusedProcess => _acceptedRequestCount > 1;
+
+        public void LoadDevelopmentStrategy(UnattendedTestRequest request)
+        {
+            if (request.DevelopmentStrategyAssemblyPath == null)
+            {
+                if (request.DevelopmentStrategyParametersPath != null)
+                    throw new InvalidDataException("Strategy parameters require a strategy assembly.");
+                return;
+            }
+            if (request.DevelopmentStrategyParametersPath == null
+                || request.DevelopmentStrategyScriptHash == null
+                || request.DevelopmentStrategyParametersHash == null)
+                throw new InvalidDataException("Strategy request is missing frozen inputs or hashes.");
+            _strategyLoader = DevelopmentStrategyLoader.Load(
+                request.DevelopmentStrategyAssemblyPath,
+                request.DevelopmentStrategyParametersPath,
+                request.DevelopmentStrategyParametersHash);
+        }
 
         public bool IsActive { get; private set; }
         public bool AutomaticTurnSearchEnabled { get; private set; } = true;
@@ -379,6 +400,8 @@ internal sealed partial class UnattendedTestRunner
 
         private void Reset()
         {
+            _strategyLoader?.Dispose();
+            _strategyLoader = null;
             IsActive = false;
             AutomaticTurnSearchEnabled = true;
             VerifyIncrementalSearch = false;
