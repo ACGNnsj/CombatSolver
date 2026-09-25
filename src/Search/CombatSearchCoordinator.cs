@@ -1525,11 +1525,31 @@ internal static partial class CombatSearchCoordinator
                 searchCancellationToken, progressCallback, profile,
                 potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                 maximumPotionUses: 1);
-            IReadOnlyList<PlanAction> generatedPotions = builder.SelectGeneratedCardPotionActions(
-                builder.BuildOpeningPotionActions());
-            List<PlanAction[]> prefixes = generatedPotions
-                .Select(potion => new[] { potion })
+            IReadOnlyList<PlanAction> openingPotions = builder.BuildOpeningPotionActions();
+            IReadOnlyList<PlanAction> generatedPotions = builder.SelectGeneratedCardPotionActions(openingPotions);
+            List<PlanAction[]> prefixes = openingPotions
+                .Where(potion => potion.Choice == null
+                    && PotionUsePolicy.RequiresOpeningUse(potion.PotionId))
+                .GroupBy(potion => potion.PotionSlot)
+                .Select(group => new[] { group.First() })
+                .Concat(generatedPotions.Select(potion => new[] { potion }))
                 .ToList();
+            foreach (PlanAction[] openingPotion in prefixes.ToArray())
+            {
+                foreach (PlanAction power in builder.BuildPowerActionsAfterPrefix(openingPotion)
+                             .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                             .Take(2))
+                {
+                    PlanAction[] powerPrefix = [.. openingPotion, power];
+                    prefixes.Add(powerPrefix);
+                    PlanAction? defense = builder.BuildOpeningDefensiveFollowUp(powerPrefix);
+                    if (defense == null)
+                        continue;
+                    PlanAction[] defendedPrefix = [.. powerPrefix, defense];
+                    foreach (PlanAction setup in builder.BuildOpeningHandSetupActions(defendedPrefix).Take(2))
+                        prefixes.Add([.. defendedPrefix, setup]);
+                }
+            }
             foreach (PlanAction[] synergy in builder.BuildOpeningPowerPotionSynergyPrefixes())
             {
                 PlanAction? setup = builder.BuildOpeningSetupFollowUp(synergy);
@@ -1595,7 +1615,11 @@ internal static partial class CombatSearchCoordinator
                     $"[CombatSolver/Test] SMART_OPENING_POTION_POSTERIOR " +
                     $"prefix={prefixText} " +
                     $"won={won} hp_deficit={StrategicHpDeficit(root, policy, candidate)} " +
-                    $"saved={saved} required={required} selected={improved}");
+                    $"saved={saved} required={required} selected={improved} " +
+                    $"first_turn={string.Join(',', candidate.BestNode.Actions
+                        .TakeWhile(action => action.Turn == root.StartTurnNumber)
+                        .Select(action => action.Kind == PlanActionKind.PlayCard
+                            ? action.CardId : action.Kind.ToString()))}");
                 if (HasReachedProvablePrimaryQualityLowerBound(root, policy, selected))
                     break;
             }

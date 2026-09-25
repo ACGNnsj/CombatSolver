@@ -275,9 +275,10 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
-    internal IReadOnlyList<PlanAction> BuildOpeningHandSetupActions()
+    internal IReadOnlyList<PlanAction> BuildOpeningHandSetupActions(
+        IReadOnlyList<PlanAction>? prefix = null)
     {
-        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        SearchNode seed = CreateOpeningFollowUpSeed(prefix ?? [], SearchRouteTraits.None);
         List<SearchNode> children = [];
         try
         {
