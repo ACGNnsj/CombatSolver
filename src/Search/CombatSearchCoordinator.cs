@@ -1028,6 +1028,48 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && IsCompleteVictory(passResult)
+                && passResult.ExplicitPotionCount == 0
+                && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
+                && root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId)
+                && initialPotionPolicyOverride == SolverPotionPolicy.Disabled)
+            {
+                PlanAction endTurn = new(PlanActionKind.EndTurn, root.StartTurnNumber);
+                CombatBeamSolver deferredBuilder = new(root, displayNames, battleDamage,
+                    beamPolicy, cancellationToken, progressCallback, passProfile,
+                    potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
+                if (deferredBuilder.CanReplayOpeningPrefix([endTurn]))
+                {
+                    foreach (PlanAction power in deferredBuilder
+                                 .BuildPowerActionsAfterPrefix([endTurn])
+                                 .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                                 .Take(2))
+                    {
+                        int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
+                            - (int)passClock.ElapsedMilliseconds;
+                        long remainingNodes = passProfile.MaxExpandedNodes
+                            - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                        if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                            break;
+                        SolverSearchProfile deferredProfile = passProfile with
+                        {
+                            MaxExpandedNodes = (int)Math.Min(50_000, remainingNodes),
+                            SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
+                        };
+                        SolverResult deferred = new CombatBeamSolver(root, displayNames,
+                            battleDamage, beamPolicy, cancellationToken, progressCallback,
+                            deferredProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                            maximumPotionUses: 0, fixedPrefixActions: [endTurn, power],
+                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        if (deferred.ResultScope == SolverResultScope.SearchCompletion
+                            && IsBetterPotionPolicyResult(root, policy, deferred, passResult))
+                            passResult = deferred;
+                        policy.Diagnostics.Info($"[CombatSolver/Test] DEFERRED_OPENING_POWER " +
+                            $"power={power.CardId} hp_lost={deferred.ProjectedBattleHpLost}");
+                    }
+                }
+            }
             NoveltyPortfolioTelemetry? noveltyPass = passResult.NoveltyPortfolio;
             ObserveSmartLayerMemory(
                 policy, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
