@@ -284,8 +284,6 @@ internal sealed partial class CombatBeamSolver
         try
         {
             children.AddRange(Expand(seed));
-            CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
-            SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
             return children
                 .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
                     && (node.Action.Choice?.Effect is PlanChoiceEffect.Discard
@@ -295,8 +293,7 @@ internal sealed partial class CombatBeamSolver
                 .OrderByDescending(node => node.Snapshot.Energy)
                 .ThenBy(node => node.Action!.Choice is
                     { Effect: PlanChoiceEffect.Discard or PlanChoiceEffect.DiscardAndDraw, Cards.Count: 1 } choice
-                    ? CardChoiceSupport.CardValue(player.Hand.Cards.First(card =>
-                        CardChoiceSupport.MatchesToken(card, choice.Cards[0])).Preview)
+                    ? OpeningDiscardChoiceCardValue(node, choice)
                     : double.MaxValue)
                 .ThenByDescending(node => node.Snapshot.ReachableHandValue)
                 .ThenByDescending(node => node.Score)
@@ -312,6 +309,23 @@ internal sealed partial class CombatBeamSolver
                 child.Snapshot.ReleaseSimulator();
             seed.Snapshot.ReleaseSimulator();
         }
+    }
+
+    private double OpeningDiscardChoiceCardValue(SearchNode node, PlanCardChoice choice)
+    {
+        CombatPredictionSimulator simulator = (CombatPredictionSimulator)node.Snapshot.Simulator;
+        SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
+        PredictedCard card = player.DiscardPile.Cards
+            .Concat(player.Hand.Cards)
+            .Concat(player.DrawPile.Cards)
+            .Concat(player.ExhaustPile.Cards)
+            .FirstOrDefault(candidate => string.Equals(
+                CardChoiceSupport.ChoiceCardKey(candidate), choice.Cards[0].StateKey,
+                StringComparison.Ordinal))
+            ?? throw new InvalidOperationException(
+                $"开局弃牌选择执行后找不到 {choice.Cards[0].CardId}+{choice.Cards[0].UpgradeLevel} " +
+                $"source={choice.SourcePile} action={node.Action?.CardId}。");
+        return CardChoiceSupport.CardValue(card.Preview);
     }
 
     private static int NightmareCopyTargetValue(PredictedCard card, int nextTurnEnergy)
