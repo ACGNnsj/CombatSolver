@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 42 包 `3742f202cf4146b1a1543ba60c98f3c8` 预检有效，`combat_start` 严格恢复、continuation 与原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整获胜，3 HP / 0 瓶、最终剩余 61 HP；玩家旧投影为 3 HP 战损，用药未知。当前源码已追平战损，未修改策略；未跑哨兵或 Linux 门禁。
 - 第 41 包 `f73f92c95c3145168ab7bfe96fc848a4` 预检有效，`combat_start` 严格恢复、continuation 与原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整获胜，0 HP / 0 瓶、最终剩余 66 HP；玩家旧投影为 0 HP 战损，用药未知。当前源码已追平战损，未修改策略；未跑哨兵或 Linux 门禁。
 - 第 40 包 `384119c6bdea454a87bcd74d8574853a` 预检有效，`combat_start` 恢复通过；VeryHigh / 180 秒 / DOP 8 搜索达到上限，状态 `timeout`，没有当前战损结果。
 - 第 39 包 `4b28d1e3575c425b96959fd6e1ca7018` 预检有效，但 `combat_start` 严格恢复在 `native_replay_events` 失败：第 9 个遗物为当前 `DEPRECATED_RELIC`，录制状态为 `ANCIENTAFFECTION-DEVOTED_SERE_TALON`。状态为 `restore_mismatch`，没有搜索或当前战损结果。
