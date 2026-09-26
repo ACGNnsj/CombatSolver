@@ -2292,6 +2292,10 @@ internal static partial class CombatSearchCoordinator
                 .GroupBy(potion => potion.PotionSlot)
                 .Select(group => new[] { group.First() })
                 .Concat(generatedPotions.Select(potion => new[] { potion }))
+                .Concat(openingPotions
+                    .Where(potion => potion.Choice?.Effect == PlanChoiceEffect.SetFreeThisCombat)
+                    .Take(8)
+                    .Select(potion => new[] { potion }))
                 .ToList();
             foreach (PlanAction[] openingPotion in prefixes.ToArray())
             {
@@ -2338,6 +2342,15 @@ internal static partial class CombatSearchCoordinator
                             prefixes.Add([.. drawnPrefix, attack]);
                     }
                 }
+                if (openingPotion[0].Choice?.Effect == PlanChoiceEffect.SetFreeThisCombat)
+                {
+                    foreach (PlanAction setup in builder.BuildOpeningHandSetupActions(openingPotion).Take(1))
+                    {
+                        PlanAction[] setupPrefix = [.. openingPotion, setup];
+                        foreach (PlanAction attack in builder.BuildOpeningOffensiveFollowUps(setupPrefix))
+                            prefixes.Add([.. setupPrefix, attack]);
+                    }
+                }
             }
             foreach (PlanAction[] synergy in builder.BuildOpeningPowerPotionSynergyPrefixes())
             {
@@ -2353,22 +2366,28 @@ internal static partial class CombatSearchCoordinator
                 $"[CombatSolver/Test] SMART_OPENING_POTION_PREFIXES " +
                 $"generated={generatedPotions.Count} total={prefixes.Count}");
             SolverResult selected = gradient;
-            int prefixLimit = prefixes.Any(prefix => prefix[0].PotionId == "BLOCK_POTION") ? 12 : 8;
+            int prefixLimit = prefixes.Any(prefix => prefix[0].PotionId == "BLOCK_POTION"
+                || prefix[0].Choice?.Effect == PlanChoiceEffect.SetFreeThisCombat) ? 12 : 8;
             foreach (PlanAction[] prefix in prefixes
                          .DistinctBy(PowerPrefixKey)
                          .Take(prefixLimit))
             {
                 string prefixText = string.Join('+', prefix.Select(action =>
                     action.Kind == PlanActionKind.UsePotion
-                        ? $"POTION:{action.PotionId}@{action.PotionSlot}" : action.CardId));
+                        ? $"POTION:{action.PotionId}@{action.PotionSlot}" +
+                          (action.Choice?.Cards.FirstOrDefault() is { } chosen
+                              ? $":{chosen.CardId}" : "")
+                        : action.CardId));
                 SolverSearchProfile routeProfile = prefix.Length > 1
                     ? profile with
                     {
                         MaxExpandedNodes = Math.Min(profile.MaxExpandedNodes, 120_000),
                         SoftTimeBudgetMilliseconds = Math.Min(profile.SoftTimeBudgetMilliseconds, 60_000),
-                        BaseScoreOnly = true,
-                        BeamWidth = BeamWidthPortfolio.ScaledWidth(
-                            profile.BeamWidth, BeamWidthPortfolio.WideRefinementRatio),
+                        BaseScoreOnly = prefix[0].Choice?.Effect != PlanChoiceEffect.SetFreeThisCombat,
+                        BeamWidth = prefix[0].Choice?.Effect == PlanChoiceEffect.SetFreeThisCombat
+                            ? Math.Min(512, profile.BeamWidth * 3)
+                            : BeamWidthPortfolio.ScaledWidth(
+                                profile.BeamWidth, BeamWidthPortfolio.WideRefinementRatio),
                     }
                     : profile;
                 SolverResult? candidate = SolveOptionalPotionPosterior(
