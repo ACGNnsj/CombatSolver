@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 46 包 `eb78b8a887b841d884fdec9406ba7313` 的 `combat_start` 严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整胜利为 13 HP / 0 瓶、最终剩余 29 HP；玩家旧投影为 14 HP、录制未用药。玩家第 7 回合检查点恢复报 `native_state_mismatch:byte=569`，不能称旧人工路线严格核对。未改策略、未跑哨兵或 Linux 门禁。
 - 第 45 包 `326fb1d060fc4e97a7f67e9c2466a995` 的 `combat_start` 与玩家后续检查点严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8 开战根完整胜利为 20 HP / 1 瓶、最终剩余 60 HP；玩家路线录制了两次力量药水使用，从检查点当前源码续搜为 15 HP、最终剩余 65 HP。原始战损仍多 5 HP，但少用 1 瓶，按 9 HP / 瓶折算净省 4 HP。未改策略、未跑哨兵或 Linux 门禁。
 - 第 44 包 `ff9b6165cddb4b57bc02b99a3d22b099` 的 `combat_start` 录制状态 continuation 对账通过，旧包原生二进制因模型编号映射缺失不可比较。VeryHigh / 180 秒 / DOP 8 最终源码同根完整胜利为 5 HP / 0 瓶、剩余 58 HP；首回合组合前缀合法性修复后不再因重复物理牌导致请求失败。玩家第二回合检查点的首个原生动作不匹配（录制应打出 `TORIC_TOUGHNESS`，当前回放进入敌方回合准备），人工旧投影 3 HP 未严格验证。Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；未跑哨兵或 Linux 门禁。
 - 第 43 包 `c6907e067c294192b614078f821331be` 的 `combat_start` 与玩家第二回合检查点严格恢复，continuation、原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前 22 HP / 0 瓶、剩余 57 HP；有界零净费用前缀后完整获胜，17 HP / 0 瓶、剩余 62 HP。玩家第二回合检查点当前源码续搜亦为 17 HP / 0 瓶后续用药，仅作定位对照。最终源码同包复跑仍为 17 HP / 0 瓶，Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
