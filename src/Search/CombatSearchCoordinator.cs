@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using MegaCrit.Sts2.Core.Combat;
+using MegaCrit.Sts2.Core.Rooms;
 
 namespace CombatSolver;
 
@@ -146,6 +147,166 @@ internal static partial class CombatSearchCoordinator
                 interaction == null ? null : PublishAdoptableResult,
                 firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && selected.OnlyDeathRoutesFound
+                && policy.PotionPolicy == SolverPotionPolicy.Smart
+                && policy.PotionStrategy.HasForcedDirectives
+                && policy.PotionStrategy.Directives
+                    .Where(directive => directive.Directive == SolverPotionDirective.Force)
+                    .All(directive => !PotionUsePolicy.RequiresOpeningUse(directive.PotionId)))
+            {
+                int requestLimit = policy.BudgetOverrideMilliseconds
+                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
+                PotionFreePolicyBaseline forcedBaseline = new(
+                    false, StrategicHpDeficit(root, policy, selected),
+                    selected.Snapshot.PlayerHp, selected.CombatEndedTurn)
+                {
+                    DeathSaveUseCount = selected.Snapshot.ProjectedDeathSaveUseCount,
+                };
+                HashSet<string> attemptedOpenings = [];
+                for (int variant = 0; variant < 3; variant++)
+                {
+                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                    long remainingNodes = policy.Profile.MaxExpandedNodes
+                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    if (remainingMilliseconds <= 30_000 || remainingNodes <= 0)
+                        break;
+                    SolverSearchProfile discoveryProfile = policy.Profile with
+                    {
+                        MaxExpandedNodes = (int)Math.Min(40_000, remainingNodes),
+                        SoftTimeBudgetMilliseconds = Math.Min(12_000, remainingMilliseconds - 2_000),
+                        SecondRankBand = variant == 1,
+                        BaseScoreOnly = variant == 2,
+                        AggressivePowerCommitment = variant == 0,
+                    };
+                    SolverResult discovery = new CombatBeamSolver(root, displayNames,
+                        battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                        discoveryProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                        maximumPotionUses: 0).Solve();
+                    PlanAction[] opening = discovery.BestNode.Actions
+                        .TakeWhile(action => action.Turn == root.StartTurnNumber)
+                        .ToArray();
+                    if (opening.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
+                        continue;
+                    CombatBeamSolver targetBuilder = new(root, displayNames,
+                        battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                        discoveryProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                        maximumPotionUses: 0);
+                    IReadOnlyList<PlanAction[]> targetVariants = targetBuilder
+                        .BuildOpeningFocusedTargetPrefixes(opening);
+                    foreach (PlanAction[] focusedOpening in new[] { opening }
+                                 .Concat(targetVariants))
+                    {
+                        if (!attemptedOpenings.Add(PowerPrefixKey(focusedOpening)))
+                            continue;
+                        remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                        remainingNodes = policy.Profile.MaxExpandedNodes
+                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
+                            break;
+                        SolverSearchProfile continuationProfile = policy.Profile with
+                        {
+                            MaxExpandedNodes = (int)Math.Min(60_000, remainingNodes),
+                            SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
+                        };
+                        int forcedPotionCount = policy.PotionStrategy.ForcedDirectiveCount;
+                        int potionCount = Math.Min(root.SearchablePotionCount,
+                            forcedPotionCount + 1);
+                        SolverResult continuation;
+                        try
+                        {
+                            continuation = new CombatBeamSolver(root, displayNames,
+                                battleDamage, policy, cancellationToken,
+                                enrichedProgressCallback, continuationProfile,
+                                potionPolicyOverride: potionCount > forcedPotionCount
+                                    ? SolverPotionPolicy.RequireAtLeastOne : null,
+                                potionFreePolicyBaseline: forcedBaseline,
+                                maximumPotionUses: potionCount,
+                                fixedPrefixActions: focusedOpening,
+                                resetFixedPrefixSchedulingBaseline: true,
+                                minimumPotionUses: potionCount,
+                                earliestPotionTurn: root.EncounterRoomType == RoomType.Boss
+                                    ? root.StartTurnNumber
+                                        + SolverWeights.BossEnemyStrengthSuppressionHorizon / 2 + 1
+                                    : null).Solve();
+                        }
+                        catch (PotionPolicyUnsatisfiedException)
+                        {
+                            continue;
+                        }
+                        bool improved = continuation.ResultScope == SolverResultScope.SearchCompletion
+                            && policy.PotionStrategy.EvaluateForcedUses(
+                                continuation.BestNode.Actions, renewablePotionShapedRock: false)
+                                .AllForcedUsesSatisfied
+                            && IsBetterPotionPolicyResult(root, policy, continuation, selected);
+                        policy.Diagnostics.Info($"[CombatSolver/Test] FORCED_POTION_OPENING_RESCUE " +
+                            $"opening={string.Join('+', focusedOpening.Select(action =>
+                                $"{action.CardId}:{action.TargetCombatId}"))} " +
+                            $"won={IsCompleteVictory(continuation)} " +
+                            $"hp_lost={continuation.ProjectedBattleHpLost} " +
+                            $"potions={continuation.PotionCount} " +
+                            $"selected={improved}");
+                        if (improved)
+                            selected = continuation;
+                        if (IsCompleteVictory(continuation))
+                            continue;
+                        PlanAction[] nextTurn = continuation.BestNode.Actions
+                            .Where(action => action.Turn == root.StartTurnNumber + 1)
+                            .Take(2).ToArray();
+                        if (nextTurn.Length != 2
+                            || nextTurn.Any(action => action.Kind != PlanActionKind.PlayCard))
+                            continue;
+                        PlanAction[] reordered = [.. focusedOpening, nextTurn[1], nextTurn[0]];
+                        if (!targetBuilder.CanReplayOpeningPrefix(reordered))
+                            continue;
+                        remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                        remainingNodes = policy.Profile.MaxExpandedNodes
+                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
+                            break;
+                        SolverSearchProfile reorderedProfile = continuationProfile with
+                        {
+                            MaxExpandedNodes = (int)Math.Min(60_000, remainingNodes),
+                            SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
+                        };
+                        SolverResult reorderedResult;
+                        try
+                        {
+                            reorderedResult = new CombatBeamSolver(root, displayNames,
+                                battleDamage, policy, cancellationToken,
+                                enrichedProgressCallback, reorderedProfile,
+                                potionPolicyOverride: potionCount > forcedPotionCount
+                                    ? SolverPotionPolicy.RequireAtLeastOne : null,
+                                potionFreePolicyBaseline: forcedBaseline,
+                                maximumPotionUses: potionCount,
+                                fixedPrefixActions: reordered,
+                                resetFixedPrefixSchedulingBaseline: true,
+                                minimumPotionUses: potionCount,
+                                earliestPotionTurn: root.EncounterRoomType == RoomType.Boss
+                                    ? root.StartTurnNumber
+                                        + SolverWeights.BossEnemyStrengthSuppressionHorizon / 2 + 1
+                                    : null).Solve();
+                        }
+                        catch (PotionPolicyUnsatisfiedException)
+                        {
+                            continue;
+                        }
+                        bool reorderedImproved = reorderedResult.ResultScope
+                                == SolverResultScope.SearchCompletion
+                            && policy.PotionStrategy.EvaluateForcedUses(
+                                reorderedResult.BestNode.Actions, renewablePotionShapedRock: false)
+                                .AllForcedUsesSatisfied
+                            && IsBetterPotionPolicyResult(root, policy, reorderedResult, selected);
+                        policy.Diagnostics.Info($"[CombatSolver/Test] FORCED_POTION_TURN_ORDER " +
+                            $"prefix={nextTurn[1].CardId}+{nextTurn[0].CardId} " +
+                            $"won={IsCompleteVictory(reorderedResult)} " +
+                            $"hp_lost={reorderedResult.ProjectedBattleHpLost} " +
+                            $"potions={reorderedResult.PotionCount} selected={reorderedImproved}");
+                        if (reorderedImproved)
+                            selected = reorderedResult;
+                    }
+                }
+            }
             bool rescueAfterDeath = selected.OnlyDeathRoutesFound
                 && root.SearchablePotionCount > 0;
             bool refineNearZeroLoss = IsCompleteVictory(selected)

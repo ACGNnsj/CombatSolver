@@ -37,7 +37,8 @@ internal sealed partial class CombatBeamSolver(
     IReadOnlyList<PlanAction>? fixedPrefixActions = null,
     bool resetFixedPrefixSchedulingBaseline = false,
     int? minimumPotionUses = null,
-    PrimarySearchIncumbent? primaryIncumbent = null)
+    PrimarySearchIncumbent? primaryIncumbent = null,
+    int? earliestPotionTurn = null)
 {
     private readonly SolverSearchProfile _profile = searchProfile ?? SolverSearchProfile.Default;
     private readonly SearchRunContext _run = new(
@@ -67,6 +68,7 @@ internal sealed partial class CombatBeamSolver(
     private readonly bool _detailedDiagnostics = policy.DetailedDiagnostics;
     private readonly int? _maximumPotionUses = maximumPotionUses;
     private readonly int _minimumPotionUses = minimumPotionUses ?? 0;
+    private readonly int? _earliestPotionTurn = earliestPotionTurn;
     private readonly PotionFreePolicyBaseline? _potionFreePolicyBaseline = potionFreePolicyBaseline;
     private PrimarySearchIncumbent? _primaryIncumbent = primaryIncumbent;
     private readonly SearchInteractionState? _interaction = policy.Interaction;

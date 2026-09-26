@@ -559,6 +559,32 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction[]> BuildOpeningFocusedTargetPrefixes(
+        IReadOnlyList<PlanAction> opening)
+    {
+        if (!opening.Any(action => action is
+            { Kind: PlanActionKind.PlayCard, TargetCombatId: not null }))
+            return [];
+
+        List<PlanAction[]> focused = [];
+        for (int targetIndex = 0; targetIndex < Math.Min(3, root.Enemies.Count); targetIndex++)
+        {
+            Creature enemy = root.Enemies[targetIndex];
+            PlanAction[] prefix = opening.Select(action => action is
+                { Kind: PlanActionKind.PlayCard, TargetCombatId: not null }
+                    ? action with
+                    {
+                        TargetIndex = targetIndex,
+                        TargetCombatId = enemy.CombatId,
+                        TargetName = displayNames.Creature(enemy),
+                    }
+                    : action).ToArray();
+            if (CanReplayOpeningPrefix(prefix))
+                focused.Add(prefix);
+        }
+        return focused;
+    }
+
     internal IReadOnlyList<PlanAction> BuildOpeningOffensiveCardVariantsAfterPrefix(
         IReadOnlyList<PlanAction> prefix)
     {
