@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Json;
 using MegaCrit.Sts2.Core.Combat;
 using MegaCrit.Sts2.Core.Entities.Cards;
 using MegaCrit.Sts2.Core.Entities.Creatures;
@@ -622,6 +623,37 @@ internal sealed partial class CombatBeamSolver
             seed.Snapshot.ReleaseSimulator();
         }
     }
+
+    internal IReadOnlyList<PlanAction> BuildTurnEndChoiceActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix)
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Action is
+                {
+                    Kind: PlanActionKind.EndTurn,
+                    TurnStartChoices: { Count: > 0 },
+                })
+                .OrderByDescending(node => node.Score)
+                .Select(node => node.Action!)
+                .DistinctBy(TurnEndChoiceKey)
+                .Take(4)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
+    internal static string TurnEndChoiceKey(PlanAction action)
+        => JsonSerializer.Serialize(action.TurnStartChoices);
 
     internal IReadOnlyList<PlanAction[]> BuildOpeningNoCostPrefixes()
     {

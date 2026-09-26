@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 56 包 `5dbdbf0185ee4e3b8ee393d10a35d68d` 的 `combat_start` 与玩家首回合后检查点严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8，同根修改前完整胜利 42 HP / 0 瓶、剩余 33 HP；最终源码 25 HP / 0 瓶、剩余 50 HP，追平玩家检查点当前源码续搜。最终请求 `.local/strategy-sessions/worldline-20260925/requests/20260926T0803330151506-run` 记录另一合法诅咒选项后验 28 HP 入选，缩短首回合前缀后 25 HP 入选。Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；未跑哨兵或 Linux 门禁。
 - 第 54 包 `1706dd3050a44182ba74ed1c842e1fe5` 的 `combat_start` 与玩家第四回合检查点严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前完整胜利为 13 HP / 2 瓶、剩余 2 HP；最终源码为 8 HP / 2 瓶、剩余 7 HP，追平检查点当前源码续搜。中途基线修正与前缀续搜先达到 9 HP，合法同类零费攻击补打后达到 8 HP；末次源码调整后目标结果再次通过。Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；未跑哨兵或 Linux 门禁。
 - 第 46 包 `eb78b8a887b841d884fdec9406ba7313` 的 `combat_start` 严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整胜利为 13 HP / 0 瓶、最终剩余 29 HP；玩家旧投影为 14 HP、录制未用药。玩家第 7 回合检查点恢复报 `native_state_mismatch:byte=569`，不能称旧人工路线严格核对。未改策略、未跑哨兵或 Linux 门禁。
 - 第 45 包 `326fb1d060fc4e97a7f67e9c2466a995` 的 `combat_start` 与玩家后续检查点严格恢复，continuation 和原生状态对账通过。VeryHigh / 180 秒 / DOP 8 开战根完整胜利为 20 HP / 1 瓶、最终剩余 60 HP；玩家路线录制了两次力量药水使用，从检查点当前源码续搜为 15 HP、最终剩余 65 HP。原始战损仍多 5 HP，但少用 1 瓶，按 9 HP / 瓶折算净省 4 HP。未改策略、未跑哨兵或 Linux 门禁。
