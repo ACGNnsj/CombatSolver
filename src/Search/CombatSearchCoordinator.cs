@@ -694,6 +694,49 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && policy.PotionPolicy == SolverPotionPolicy.Smart
+                && !policy.PotionStrategy.HasForcedDirectives
+                && IsCompleteVictory(selected)
+                && selected.ProjectedBattleHpLost > 0
+                && selected.BestNode.Actions.Any(action => action is
+                    { Kind: PlanActionKind.UsePotion, PotionId: "DUPLICATOR" }))
+            {
+                CombatBeamSolver copyBuilder = new(root, displayNames, battleDamage,
+                    policy, cancellationToken, enrichedProgressCallback, policy.Profile);
+                int requestLimit = policy.BudgetOverrideMilliseconds
+                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
+                foreach (PlanAction[] prefix in copyBuilder
+                             .BuildEarlierCopyPotionDelayedDamagePrefixes(selected.BestNode.Actions))
+                {
+                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                    long remainingNodes = policy.Profile.MaxExpandedNodes
+                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
+                        break;
+                    SolverSearchProfile copyProfile = policy.Profile with
+                    {
+                        MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
+                        SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
+                    };
+                    SolverResult candidate = new CombatBeamSolver(root, displayNames,
+                        battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                        copyProfile, potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                        maximumPotionUses: selected.ExplicitPotionCount,
+                        fixedPrefixActions: prefix,
+                        resetFixedPrefixSchedulingBaseline: true,
+                        minimumPotionUses: selected.ExplicitPotionCount).Solve();
+                    bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
+                        && candidate.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
+                        && IsBetterPotionPolicyResult(root, policy, candidate, selected);
+                    policy.Diagnostics.Info($"[CombatSolver/Test] EARLIER_COPY_DELAYED_DAMAGE " +
+                        $"target={prefix[^1].CardId} " +
+                        $"hp_lost={candidate.ProjectedBattleHpLost} " +
+                        $"potions={candidate.PotionCount} selected={improved}");
+                    if (improved)
+                        selected = candidate;
+                }
+            }
             if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
                 && selected.ResultScope == SolverResultScope.SearchCompletion
                 && currentCompleteAdoptableResult != null)
@@ -2300,8 +2343,8 @@ internal static partial class CombatSearchCoordinator
                 hpSaved,
                 hpRequired,
                 protectsLoot);
-            bool improvesSelection = acceptable && (policy.TheftPolicy != SolverTheftPolicy.PreserveResources
-                || IsBetterCompletedResult(root, policy, candidate, selected));
+            bool improvesSelection = acceptable
+                && IsBetterPotionPolicyResult(root, policy, candidate, selected);
             if (improvesSelection)
             {
                 candidate.PotionHpSaved = hpSaved;
@@ -2322,7 +2365,9 @@ internal static partial class CombatSearchCoordinator
                 $"incumbent_turn={primaryIncumbent?.CombatEndedTurn.ToString() ?? "-"} " +
                 $"incumbent_pruned={candidate.PrimaryIncumbentBranchesPruned} " +
                 $"incumbent_updates={candidate.PrimaryIncumbentUpdates}");
-            if (acceptable && TheftEncounterStrategy.RecoverySatisfied(policy.TheftPolicy, selected.OutstandingStolenResource))
+            if (HasReachedAcceptableBattleHpLoss(policy, selected)
+                && TheftEncounterStrategy.RecoverySatisfied(
+                    policy.TheftPolicy, selected.OutstandingStolenResource))
                 break;
         }
 

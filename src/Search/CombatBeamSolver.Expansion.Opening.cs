@@ -361,6 +361,49 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction[]> BuildEarlierCopyPotionDelayedDamagePrefixes(
+        IReadOnlyList<PlanAction> route)
+    {
+        int copyIndex = -1;
+        for (int index = 0; index < route.Count; index++)
+        {
+            if (route[index] is { Kind: PlanActionKind.UsePotion, PotionId: "DUPLICATOR" })
+            {
+                copyIndex = index;
+                break;
+            }
+        }
+        if (copyIndex < 0)
+            return [];
+
+        List<(PlanAction[] Prefix, int DelayedGain)> candidates = [];
+        for (int index = 0; index < copyIndex; index++)
+        {
+            PlanAction action = route[index];
+            if (action.Kind != PlanActionKind.PlayCard
+                || action.Turn > _startTurnNumber + 2)
+                continue;
+            PlanAction[] before = route.Take(index).ToArray();
+            SimulationSnapshot beforeState = Replay(before);
+            SimulationSnapshot afterState = Replay([.. before, action]);
+            int delayedGain = afterState.DelayedDamageValue - beforeState.DelayedDamageValue;
+            beforeState.ReleaseSimulator();
+            afterState.ReleaseSimulator();
+            if (delayedGain <= 0)
+                continue;
+
+            PlanAction? copyPotion = BuildPotionActionsAfterPrefix(before)
+                .FirstOrDefault(candidate => candidate.PotionId == "DUPLICATOR");
+            if (copyPotion == null)
+                continue;
+            PlanAction[] prefix = [.. before, copyPotion, action];
+            if (CanReplayOpeningPrefix(prefix))
+                candidates.Add((prefix, delayedGain));
+        }
+        return candidates.OrderByDescending(candidate => candidate.DelayedGain)
+            .Take(3).Select(candidate => candidate.Prefix).ToArray();
+    }
+
     internal IReadOnlyList<PlanAction> BuildPreferredOpeningPotionActions()
         => BuildPreferredPotionActionsAfterPrefix([]);
 
