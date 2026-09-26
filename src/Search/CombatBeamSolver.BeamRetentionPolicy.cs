@@ -424,7 +424,6 @@ internal sealed partial class CombatBeamSolver
         SolverPotionPolicy _potionPolicy,
         PotionStrategySnapshot _potionStrategy,
         bool _enforcePotionDirectives,
-        bool _renewablePotionShapedRock,
         int _potionReplacementHpCredit,
         SearchRunContext _run,
         Func<SearchNode, StandPatEvaluation> _evaluateStandPat,
@@ -551,7 +550,7 @@ internal sealed partial class CombatBeamSolver
 
         private FinalPolicyQualificationFacts BuildFinalPolicyQualificationFacts(SearchNode node)
         {
-            int explicitPotionStrategicCost = 0;
+            int explicitPotionStrategicCost = node.Snapshot.ExplicitPotionStrategicCost;
             int explicitAmbergrisCount = 0;
             for (SearchNode? cursor = node; cursor?.Action is { } action; cursor = cursor.Parent)
             {
@@ -559,69 +558,31 @@ internal sealed partial class CombatBeamSolver
                     continue;
                 if (string.IsNullOrEmpty(action.PotionId))
                     throw new InvalidOperationException("用药动作缺少药水 ID。");
-                explicitPotionStrategicCost += _run.PotionStrategicCosts.Get(
-                    action.PotionId,
-                    _renewablePotionShapedRock);
                 if (string.Equals(action.PotionId, "AMBERGRIS", StringComparison.Ordinal))
                     explicitAmbergrisCount++;
             }
 
-            int forcedUseCount = 0;
-            int forcedStrategicHpCost = 0;
-            int forcedAmbergrisCount = 0;
-            bool forcedUsesSatisfied = true;
-            if (_enforcePotionDirectives)
-            {
-                foreach (PotionSlotDirective directive in _potionStrategy.Directives)
-                {
-                    if (directive.Directive != SolverPotionDirective.Force)
-                        continue;
-                    bool used = false;
-                    for (SearchNode? cursor = node; cursor?.Action is { } action; cursor = cursor.Parent)
-                    {
-                        if (action.Kind != PlanActionKind.UsePotion
-                            || action.PotionSlot != directive.Slot
-                            || !string.Equals(
-                                action.PotionId,
-                                directive.PotionId,
-                                StringComparison.Ordinal))
-                        {
-                            continue;
-                        }
-                        used = true;
-                        break;
-                    }
-                    if (!used)
-                    {
-                        forcedUsesSatisfied = false;
-                        continue;
-                    }
-                    forcedUseCount++;
-                    forcedStrategicHpCost += _run.PotionStrategicCosts.Get(
-                        directive.PotionId,
-                        _renewablePotionShapedRock);
-                    if (string.Equals(directive.PotionId, "AMBERGRIS", StringComparison.Ordinal))
-                        forcedAmbergrisCount++;
-                }
-            }
+            ForcedPotionUseEvaluation forced = _enforcePotionDirectives
+                ? _potionStrategy.EvaluateForcedUses(node)
+                : new ForcedPotionUseEvaluation(true, 0, 0, 0);
 
             int explicitPotionUseCount = ExplicitPotionUseCount(node);
-            int optionalPotionUseCount = Math.Max(0, explicitPotionUseCount - forcedUseCount);
+            int optionalPotionUseCount = Math.Max(0, explicitPotionUseCount - forced.ForcedUseCount);
             int optionalPotionStrategicCost = PotionUsePolicy.ApplyReplacementCredit(
-                Math.Max(0, explicitPotionStrategicCost - forcedStrategicHpCost),
+                Math.Max(0, explicitPotionStrategicCost - forced.ForcedStrategicHpCost),
                 optionalPotionUseCount,
                 _potionReplacementHpCredit);
-            int optionalAmbergrisCount = Math.Max(0, explicitAmbergrisCount - forcedAmbergrisCount);
+            int optionalAmbergrisCount = Math.Max(0, explicitAmbergrisCount - forced.ForcedAmbergrisCount);
             SolverPotionPolicy effectivePotionPolicy = _potionPolicy switch
             {
-                SolverPotionPolicy.RequireAtLeastOne when forcedUseCount > 0
+                SolverPotionPolicy.RequireAtLeastOne when forced.ForcedUseCount > 0
                     => SolverPotionPolicy.Smart,
                 SolverPotionPolicy.Disabled when optionalPotionUseCount > 0
                     => SolverPotionPolicy.Smart,
                 _ => _potionPolicy,
             };
             return new FinalPolicyQualificationFacts(
-                forcedUsesSatisfied,
+                forced.AllForcedUsesSatisfied,
                 explicitPotionUseCount,
                 effectivePotionPolicy,
                 optionalPotionUseCount,

@@ -106,7 +106,6 @@ internal sealed partial class CombatBeamSolver(
         _potionPolicy,
         _potionStrategy,
         _enforcePotionDirectives,
-        root.HasRenewablePotionShapedRock,
         root.PotionRewardOutlook.ReplacementHpCredit,
         _run,
         EvaluateStandPat,
@@ -117,7 +116,6 @@ internal sealed partial class CombatBeamSolver(
         _potionPolicy,
         _potionStrategy,
         _enforcePotionDirectives,
-        root.HasRenewablePotionShapedRock,
         root.PotionRewardOutlook.ReplacementHpCredit,
         _theftPolicy,
         _strategicBossHpRelief,
@@ -127,8 +125,7 @@ internal sealed partial class CombatBeamSolver(
         _minimumPotionUses,
         policy.Diagnostics,
         _detailedDiagnostics,
-        battleDamage,
-        _run.PotionStrategicCosts);
+        battleDamage);
 
     private bool AllowsPotionUse(int slot, string potionId)
         => _potionStrategy.AllowsExplicitUse(

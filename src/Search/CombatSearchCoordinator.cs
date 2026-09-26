@@ -340,7 +340,10 @@ internal static partial class CombatSearchCoordinator
                             policy, cancellationToken, enrichedProgressCallback, rescueProfile,
                             potionPolicyOverride: rescueAfterDeath
                                 ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
-                            maximumPotionUses: rescueAfterDeath ? 2 : 0,
+                            maximumPotionUses: rescueAfterDeath
+                                ? MaximumSmartPotionUses(root, policy, potionFreeWon: false,
+                                    potionFreeHpDeficit: 0)
+                                : 0,
                             fixedPrefixActions: firstTurn,
                             resetFixedPrefixSchedulingBaseline: true),
                         policy, "TURN_BOUNDARY_RESCUE");
@@ -2780,7 +2783,7 @@ internal static partial class CombatSearchCoordinator
         SolverResult result)
     {
         ForcedPotionUseEvaluation forced = policy.PotionStrategy.EvaluateForcedUses(
-            result.BestNode.Actions, root.HasRenewablePotionShapedRock);
+            result.PotionUses);
         int ambergrisCount = result.BestNode.Actions.Count(action =>
             action.Kind == PlanActionKind.UsePotion
             && string.Equals(action.PotionId, "AMBERGRIS", StringComparison.Ordinal))
@@ -2857,8 +2860,13 @@ internal static partial class CombatSearchCoordinator
                 && policy.PotionStrategy.Resolve(potion.Slot, potion.PotionId)
                     != SolverPotionDirective.Force)
             .ToArray();
+        int generatedPotionCapacity = allowedPotions.Any(potion =>
+            potion.PotionId == "ENTROPIC_BREW")
+            ? root.PotionSlotCount
+            : 0;
+        int searchablePotionUses = allowedPotions.Length + generatedPotionCapacity;
         if (!potionFreeWon || policy.TheftPolicy == SolverTheftPolicy.PreserveResources)
-            return allowedPotions.Length;
+            return searchablePotionUses;
         BossHpRelief bossHpRelief = StrategicBossHpRelief(root, policy);
         int paidPotionHpRequired = PotionUsePolicy.SmartRequiredHpSaved(
             SolverWeights.PotionMinimumHpSaved,
@@ -2876,8 +2884,10 @@ internal static partial class CombatSearchCoordinator
                 ? 0
                 : 1 + (Math.Max(0, potionFreeHpDeficit) - firstPaidPotionHpRequired) / paidPotionHpRequired;
         return Math.Min(
-            allowedPotions.Length,
-            allowedPotions.Count(potion => potion.StrategicHpCost == 0) + paidPotionCapacity);
+            searchablePotionUses,
+            allowedPotions.Count(potion => potion.StrategicHpCost == 0)
+                + paidPotionCapacity
+                + (paidPotionCapacity > 0 ? generatedPotionCapacity : 0));
     }
 
     private static BossHpRelief StrategicBossHpRelief(
