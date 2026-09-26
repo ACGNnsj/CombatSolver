@@ -1117,7 +1117,10 @@ internal sealed partial class CombatBeamSolver
                         root.Score)));
         }
         if (frontier.Count == 0)
-            throw new InvalidOperationException("固定搜索前缀与全部回合准备选牌分支都不相容。");
+            throw new InvalidOperationException(
+                $"固定搜索前缀与全部回合准备选牌分支都不相容：" +
+                $"include_turn_setup={_includeTurnSetup} " +
+                $"prefix={string.Join('+', _fixedPrefixActions.Select(action => action.CardId))}。");
 
         List<SearchNode> completed = [];
         SearchNode fallback = frontier.MaxBy(static node => node.Score)!;

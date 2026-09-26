@@ -211,6 +211,9 @@ internal static partial class CombatSearchCoordinator
                                 - requestWorkTotals.Snapshot().ExpandedNodes;
                             if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                                 break;
+                            PlanAction[] combinedPrefix = [freeAction, .. firstTurn];
+                            if (!NewPrefixBuilder().CanReplayOpeningPrefix(combinedPrefix))
+                                continue;
                             SolverSearchProfile prefixProfile = policy.Profile with
                             {
                                 MaxExpandedNodes = (int)Math.Min(30_000, remainingNodes),
@@ -220,14 +223,14 @@ internal static partial class CombatSearchCoordinator
                                 battleDamage, policy, cancellationToken, enrichedProgressCallback,
                                 prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
                                 maximumPotionUses: 0,
-                                fixedPrefixActions: [freeAction, .. firstTurn],
+                                fixedPrefixActions: combinedPrefix,
                                 resetFixedPrefixSchedulingBaseline: true).Solve();
                             if (freeRescue.ResultScope == SolverResultScope.SearchCompletion
                                 && IsBetterPotionPolicyResult(root, policy, freeRescue, selected))
                                 selected = freeRescue;
                             if (selected.ProjectedBattleHpLost == 0)
                                 break;
-                            PlanAction[] nextTurnPrefix = [freeAction, .. firstTurn];
+                            PlanAction[] nextTurnPrefix = combinedPrefix;
                             for (int defenseCount = 0; defenseCount < 2; defenseCount++)
                             {
                                 PlanAction? nextDefense = NewPrefixBuilder()
@@ -277,6 +280,7 @@ internal static partial class CombatSearchCoordinator
             if (selected.ResultScope == SolverResultScope.SearchCompletion
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
+                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(selected)
                 && selected.ExplicitPotionCount == 0
                 && selected.ProjectedBattleHpLost > 0

@@ -504,6 +504,23 @@ internal sealed partial class CombatBeamSolver
             ?? throw new InvalidOperationException("Opening follow-up prefix is no longer applicable.");
     }
 
+    internal bool CanReplayOpeningPrefix(IReadOnlyList<PlanAction> prefix)
+    {
+        IReadOnlyList<SimulationSnapshot> roots = _includeTurnSetup
+            ? BuildTurnSetupRoots().Select(candidate => candidate.Snapshot).ToArray()
+            : [Replay([])];
+        bool applicable = false;
+        foreach (SimulationSnapshot snapshot in roots)
+        {
+            SearchNode? applied = ApplyFixedPrefix(CreateOpeningSearchSeed(snapshot), prefix);
+            if (applied == null)
+                continue;
+            applicable = true;
+            applied.Snapshot.ReleaseSimulator();
+        }
+        return applicable;
+    }
+
     internal IReadOnlyList<PlanAction> BuildOpeningOffensiveFollowUps(
         IReadOnlyList<PlanAction> prefix)
     {
