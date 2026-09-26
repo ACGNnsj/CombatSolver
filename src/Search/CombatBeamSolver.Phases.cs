@@ -1121,6 +1121,14 @@ internal sealed partial class CombatBeamSolver
                 $"固定搜索前缀与全部回合准备选牌分支都不相容：" +
                 $"include_turn_setup={_includeTurnSetup} " +
                 $"prefix={string.Join('+', _fixedPrefixActions.Select(action => action.CardId))}。");
+        if (_resetFixedPrefixSchedulingBaseline && !_includeTurnSetup && _fixedPrefixActions.Count > 0)
+        {
+            SimulationSnapshot start = frontier[0].Snapshot;
+            _run.InitialPersistentBuffValue = start.PersistentBuffValue;
+            _run.InitialEnemyStrengthSuppression = start.EnemyStrengthSuppression;
+            _run.InitialEnemyWeakTurns = start.EnemyWeakTurns;
+            _run.InitialRetainedAttackValue = start.RetainedAttackValue;
+        }
 
         List<SearchNode> completed = [];
         SearchNode fallback = frontier.MaxBy(static node => node.Score)!;

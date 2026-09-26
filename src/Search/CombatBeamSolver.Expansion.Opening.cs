@@ -589,8 +589,12 @@ internal sealed partial class CombatBeamSolver
     }
 
     internal IReadOnlyList<PlanAction> BuildOpeningFreeOffensiveActions()
+        => BuildFreeOffensiveActionsAfterPrefix([], includeTerminal: true);
+
+    internal IReadOnlyList<PlanAction> BuildFreeOffensiveActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix, bool includeTerminal = false)
     {
-        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
         List<SearchNode> children = [];
         try
         {
@@ -602,7 +606,8 @@ internal sealed partial class CombatBeamSolver
                     TargetCombatId: not null,
                 } && node.Snapshot.Turn == seed.Snapshot.Turn
                     && node.Snapshot.Energy == seed.Snapshot.Energy
-                    && node.Snapshot.EnemyHp < seed.Snapshot.EnemyHp)
+                    && node.Snapshot.EnemyHp < seed.Snapshot.EnemyHp
+                    && (includeTerminal || !node.Snapshot.AllEnemiesDead))
                 .GroupBy(node => node.Action!.CardStateKey)
                 .Select(group => group.OrderByDescending(node => node.Score).First())
                 .OrderByDescending(node => node.Score)
