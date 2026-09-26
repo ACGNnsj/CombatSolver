@@ -637,11 +637,8 @@ internal sealed partial class CombatBeamSolver
         {
             children.AddRange(Expand(seed));
             return children
-                .Where(node => node.Action is
-                {
-                    Kind: PlanActionKind.PlayCard,
-                    TargetCombatId: not null,
-                } && node.Snapshot.Turn == seed.Snapshot.Turn
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
+                    && node.Snapshot.Turn == seed.Snapshot.Turn
                     && node.Snapshot.EnemyHp < seed.Snapshot.EnemyHp)
                 .GroupBy(node => node.Action!.CardStateKey)
                 .Select(group => group.OrderByDescending(node => node.Score).First())

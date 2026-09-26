@@ -2084,15 +2084,39 @@ internal static partial class CombatSearchCoordinator
                 maximumPotionUses: 1);
             IReadOnlyList<PlanAction> openingPotions = builder.BuildOpeningPotionActions();
             IReadOnlyList<PlanAction> generatedPotions = builder.SelectGeneratedCardPotionActions(openingPotions);
+            bool openingBlockPotionCanPayForItself = root.Forecast.Rounds.FirstOrDefault()?
+                .SelectMany(move => move.AttackHits)
+                .Sum(hit => hit.Damage) >= SolverWeights.PotionMinimumHpSaved;
             List<PlanAction[]> prefixes = openingPotions
                 .Where(potion => potion.Choice == null
-                    && PotionUsePolicy.RequiresOpeningUse(potion.PotionId))
+                    && (PotionUsePolicy.RequiresOpeningUse(potion.PotionId)
+                        || potion.PotionId == "BLOCK_POTION" && openingBlockPotionCanPayForItself))
                 .GroupBy(potion => potion.PotionSlot)
                 .Select(group => new[] { group.First() })
                 .Concat(generatedPotions.Select(potion => new[] { potion }))
                 .ToList();
             foreach (PlanAction[] openingPotion in prefixes.ToArray())
             {
+                if (openingPotion[0].PotionId == "BLOCK_POTION")
+                {
+                    foreach (PlanAction attack in builder
+                                 .BuildOpeningOffensiveCardVariantsAfterPrefix(openingPotion)
+                                 .Take(5))
+                    {
+                        PlanAction[] attackPrefix = [.. openingPotion, attack];
+                        prefixes.Add(attackPrefix);
+                        foreach (PlanAction followUpAttack in builder
+                                     .BuildOpeningOffensiveCardVariantsAfterPrefix(attackPrefix))
+                        {
+                            PlanAction[] offensivePrefix = [.. attackPrefix, followUpAttack];
+                            PlanAction? defense = builder.BuildOpeningDefensiveFollowUp(offensivePrefix);
+                            if (defense == null)
+                                continue;
+                            prefixes.Add([.. offensivePrefix, defense]);
+                            break;
+                        }
+                    }
+                }
                 foreach (PlanAction power in builder.BuildPowerActionsAfterPrefix(openingPotion)
                              .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
                              .Take(2))
@@ -2131,9 +2155,10 @@ internal static partial class CombatSearchCoordinator
                 $"[CombatSolver/Test] SMART_OPENING_POTION_PREFIXES " +
                 $"generated={generatedPotions.Count} total={prefixes.Count}");
             SolverResult selected = gradient;
+            int prefixLimit = prefixes.Any(prefix => prefix[0].PotionId == "BLOCK_POTION") ? 12 : 8;
             foreach (PlanAction[] prefix in prefixes
                          .DistinctBy(PowerPrefixKey)
-                         .Take(8))
+                         .Take(prefixLimit))
             {
                 string prefixText = string.Join('+', prefix.Select(action =>
                     action.Kind == PlanActionKind.UsePotion
@@ -2152,7 +2177,10 @@ internal static partial class CombatSearchCoordinator
                     new CombatBeamSolver(root, displayNames, battleDamage, policy,
                         searchCancellationToken, progressCallback, routeProfile,
                         potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                        maximumPotionUses: 1,
+                        maximumPotionUses: prefix[0].PotionId == "BLOCK_POTION"
+                            ? Math.Min(2, MaximumSmartPotionUses(root, policy,
+                                potionFreeWon: false, potionFreeHpDeficit: 0))
+                            : 1,
                         fixedPrefixActions: prefix),
                     policy,
                     $"SMART_OPENING_POTION_POSTERIOR prefix={prefixText}");
