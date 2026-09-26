@@ -274,6 +274,51 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && policy.PotionPolicy == SolverPotionPolicy.Smart
+                && !policy.PotionStrategy.HasForcedDirectives
+                && IsCompleteVictory(selected)
+                && selected.ExplicitPotionCount == 0
+                && selected.ProjectedBattleHpLost > 0
+                && selected.BestNode.Actions.FirstOrDefault()?.Kind == PlanActionKind.EndTurn)
+            {
+                CombatBeamSolver builder = new(root, displayNames, battleDamage,
+                    policy, cancellationToken, enrichedProgressCallback, policy.Profile,
+                    potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
+                int requestLimit = policy.BudgetOverrideMilliseconds
+                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
+                int attempts = 0;
+                if (requestLimit - requestClock.ElapsedMilliseconds > 5_000)
+                {
+                    foreach (PlanAction[] prefix in builder.BuildOpeningNoCostPrefixes())
+                    {
+                        int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
+                        long remainingNodes = policy.Profile.MaxExpandedNodes
+                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                            break;
+                        SolverSearchProfile prefixProfile = policy.Profile with
+                        {
+                            MaxExpandedNodes = (int)Math.Min(40_000, remainingNodes),
+                            SoftTimeBudgetMilliseconds = Math.Min(12_000, remainingMilliseconds - 2_000),
+                        };
+                        SolverResult candidate = new CombatBeamSolver(root, displayNames,
+                            battleDamage, policy, cancellationToken, enrichedProgressCallback,
+                            prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                            maximumPotionUses: 0, fixedPrefixActions: prefix,
+                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
+                            && IsBetterPotionPolicyResult(root, policy, candidate, selected);
+                        if (improved)
+                            selected = candidate;
+                        policy.Diagnostics.Info($"[CombatSolver/Test] NO_COST_OPENING " +
+                            $"prefix={string.Join('+', prefix.Select(action => action.CardId))} " +
+                            $"hp_lost={candidate.ProjectedBattleHpLost} selected={improved}");
+                        if (selected.ProjectedBattleHpLost == 0 || ++attempts >= 8)
+                            break;
+                    }
+                }
+            }
             if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
                 && selected.ResultScope == SolverResultScope.SearchCompletion
                 && currentCompleteAdoptableResult != null)

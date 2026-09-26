@@ -601,6 +601,47 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction[]> BuildOpeningNoCostPrefixes()
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed([], SearchRouteTraits.None);
+        List<SearchNode> allNodes = [seed];
+        List<SearchNode> frontier = [seed];
+        try
+        {
+            List<SearchNode> candidates = [];
+            for (int depth = 0; depth < 4 && frontier.Count > 0; depth++)
+            {
+                List<SearchNode> next = [];
+                foreach (SearchNode parent in frontier)
+                {
+                    List<SearchNode> children = Expand(parent).ToList();
+                    allNodes.AddRange(children);
+                    next.AddRange(children.Where(node => node.Action is
+                        { Kind: PlanActionKind.PlayCard }
+                        && node.Snapshot.Turn == parent.Snapshot.Turn
+                        && node.Snapshot.Energy == parent.Snapshot.Energy));
+                }
+                frontier = next
+                    .DistinctBy(node => node.Snapshot.StateKey)
+                    .OrderByDescending(node => node.Score)
+                    .Take(24)
+                    .ToList();
+                candidates.AddRange(frontier);
+            }
+            return candidates
+                .OrderByDescending(node => node.ActionCount)
+                .ThenByDescending(node => node.Score)
+                .Take(12)
+                .Select(node => node.Actions.ToArray())
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode node in allNodes)
+                node.Snapshot.ReleaseSimulator();
+        }
+    }
+
     internal PlanAction? BuildOpeningDefensiveFollowUp(IReadOnlyList<PlanAction> prefix)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix);

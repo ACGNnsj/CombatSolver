@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 第 43 包 `c6907e067c294192b614078f821331be` 的 `combat_start` 与玩家第二回合检查点严格恢复，continuation、原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根修改前 22 HP / 0 瓶、剩余 57 HP；有界零净费用前缀后完整获胜，17 HP / 0 瓶、剩余 62 HP。玩家第二回合检查点当前源码续搜亦为 17 HP / 0 瓶后续用药，仅作定位对照。最终源码同包复跑仍为 17 HP / 0 瓶，Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`。未跑哨兵或 Linux 门禁。
 - 第 42 包 `3742f202cf4146b1a1543ba60c98f3c8` 预检有效，`combat_start` 严格恢复、continuation 与原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整获胜，3 HP / 0 瓶、最终剩余 61 HP；玩家旧投影为 3 HP 战损，用药未知。当前源码已追平战损，未修改策略；未跑哨兵或 Linux 门禁。
 - 第 41 包 `f73f92c95c3145168ab7bfe96fc848a4` 预检有效，`combat_start` 严格恢复、continuation 与原生状态对账通过。VeryHigh / 180 秒 / DOP 8 同根完整获胜，0 HP / 0 瓶、最终剩余 66 HP；玩家旧投影为 0 HP 战损，用药未知。当前源码已追平战损，未修改策略；未跑哨兵或 Linux 门禁。
 - 第 40 包 `384119c6bdea454a87bcd74d8574853a` 预检有效，`combat_start` 恢复通过；VeryHigh / 180 秒 / DOP 8 搜索达到上限，状态 `timeout`，没有当前战损结果。
