@@ -285,7 +285,7 @@ internal sealed partial class CombatBeamSolver
         {
             children.AddRange(Expand(seed));
             return children
-                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
                     && (node.Action.Choice?.Effect is PlanChoiceEffect.Discard
                         or PlanChoiceEffect.DiscardAndDraw
                         || node.Snapshot.HandCount > seed.Snapshot.HandCount
@@ -651,7 +651,7 @@ internal sealed partial class CombatBeamSolver
         {
             children.AddRange(Expand(seed));
             return children
-                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
+                .Where(node => node.Action is { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
                     && node.Snapshot.Turn == seed.Snapshot.Turn
                     && node.Snapshot.EnemyHp < seed.Snapshot.EnemyHp)
                 .GroupBy(node => node.Action!.CardStateKey)
