@@ -1046,7 +1046,24 @@ internal static partial class CombatSearchCoordinator
             }
             if (passResult.DeterministicBlockPotionInserted)
             {
-                passSettled = true;
+                SearchPolicySnapshot potionFreePolicy = beamPolicy with
+                {
+                    PotionPolicy = SolverPotionPolicy.Disabled,
+                    PotionStrategy = new PotionStrategySnapshot(SolverPotionPolicy.Disabled, []),
+                };
+                SolverResult potionFree = new CombatBeamSolver(root, displayNames,
+                    battleDamage, potionFreePolicy, cancellationToken, progressCallback,
+                    passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled).Solve();
+                if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
+                    return potionFree;
+                SolverResult audited = RunSupplementalAudits(root, displayNames,
+                    battleDamage, policy, cancellationToken, progressCallback,
+                    passProfile, passClock, potionFree, memoryForecast,
+                    interimResultCallback);
+                if (audited.ResultScope != SolverResultScope.SearchCompletion)
+                    return audited;
+                if (IsBetterSmartPotionAuditResult(root, policy, audited, passResult))
+                    passResult = audited;
                 return passResult;
             }
             if (!policy.PotionStrategy.HasForcedDirectives || hasForcedBaseline)

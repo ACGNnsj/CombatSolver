@@ -2,6 +2,7 @@
 
 ## 策略迭代脚手架（开发中，2026-09-25）
 
+- 前 150 第 6 包 `ebeacefdcc49421294a8d66a7535caa7`：`combat_start` 严格恢复。VeryHigh / 180 秒 / DOP 8，同根基线完整胜利 47 HP / 1 瓶格挡药水、剩余 23 HP；取消格挡药水插入后的审计截断后，完整胜利 26 HP / 1 瓶迅捷药水、剩余 44 HP。报告所指玩家检查点 `:3` 没有状态材料，旧人工 4 HP / 2 瓶只作投影参考。有效结果 `.local/strategy-sessions/worldline-20260925/requests/20260926T1902005233467-run`；后续无收益组合实验已撤回，未跑哨兵或 Linux 门禁。
 - 前 150 第 5 包 `a9d1a29a2f8b49879a0f2a3f9ad1761a`：开战根和玩家第二回合检查点严格恢复，后者原生状态核对通过。VeryHigh / 180 秒 / DOP 8，默认策略修改前 0 HP / 4 瓶、剩余 74 HP；仅允许无色药水的诊断对照为 16 HP / 1 瓶；最终默认策略为 16 HP / 1 瓶、剩余 58 HP，完整胜利，追平旧人工 16 HP / 1 瓶。基线请求 `.local/strategy-sessions/worldline-20260925/requests/20260926T1817332465305-run`，单药对照 `20260926T1826260714679-run`，最终请求 `20260926T1840485624137-run`。未跑哨兵或 Linux 门禁。
 - 前 150 第 3 包 `0edb8da283cf4ca1a543de9ffbc8dcbb`：开战根与玩家两处检查点严格恢复；玩家首回合录制事件重放通过。VeryHigh / 180 秒 / DOP 8，同根基线 50 HP / 0 瓶，目标、能力与防御后验后 22 HP / 0 瓶，完整胜利；玩家第二回合后检查点当前源码续搜为整场 18 HP / 0 瓶。最终请求 `.local/strategy-sessions/worldline-20260925/requests/20260926T1804375711652-run`。未跑哨兵或 Linux 门禁。
 - 第 68 包 `493782770ca44fcaa63560ec98d130f0`：`combat_start` 严格恢复；修改前固定前缀尝试继续 `EndsPlayerTurn=True` 的虚空形态，初始搜索失败。过滤进攻及手牌整理的不可继续动作后，VeryHigh / 180 秒 / DOP 8 从开战根完整获胜，0 HP / 0 瓶、剩余 69 HP，证据 `.local/strategy-sessions/worldline-20260925/requests/20260926T1530557597261-run`。玩家第二回合检查点 `:3` 原生事件重放失败，原因是本地选牌 ID 13 与录制 ID 1 不符，不能作为当前源码续搜对照。Windows Release 构建 0 警告、0 错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；未跑哨兵或 Linux 门禁。
