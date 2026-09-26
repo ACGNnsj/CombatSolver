@@ -2170,7 +2170,8 @@ internal static partial class CombatSearchCoordinator
             if (gradient.ResultScope != SolverResultScope.SearchCompletion
                 || policy.PotionStrategy.HasForcedDirectives
                 || battleDamage.PotionsUsedSoFar != 0
-                || HasReachedProvablePrimaryQualityLowerBound(root, policy, gradient))
+                || (gradient.ExplicitPotionCount <= 1
+                    && HasReachedProvablePrimaryQualityLowerBound(root, policy, gradient)))
                 return gradient;
 
             CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
@@ -2294,7 +2295,8 @@ internal static partial class CombatSearchCoordinator
                     IsCompleteVictory(primary), won, saved, required,
                     policy.TheftPolicy == SolverTheftPolicy.PreserveResources
                         && candidate.OutstandingStolenResource < primary.OutstandingStolenResource);
-                bool improved = acceptable && IsBetterCompletedResult(root, policy, candidate, selected);
+                bool improved = acceptable && IsBetterSmartPotionAuditResult(
+                    root, policy, candidate, selected);
                 if (improved)
                 {
                     candidate.PotionHpSaved = saved;
@@ -2310,7 +2312,8 @@ internal static partial class CombatSearchCoordinator
                         .TakeWhile(action => action.Turn == root.StartTurnNumber)
                         .Select(action => action.Kind == PlanActionKind.PlayCard
                             ? action.CardId : action.Kind.ToString()))}");
-                if (HasReachedProvablePrimaryQualityLowerBound(root, policy, selected))
+                if (selected.ExplicitPotionCount <= 1
+                    && HasReachedProvablePrimaryQualityLowerBound(root, policy, selected))
                     break;
             }
             return selected;
@@ -2323,6 +2326,26 @@ internal static partial class CombatSearchCoordinator
                 "[CombatSolver/Test] SMART_POTION_AUDIT result optional_route_missing=true selected=primary");
             return primary;
         }
+    }
+
+    private static bool IsBetterSmartPotionAuditResult(
+        CombatRootSnapshot root,
+        SearchPolicySnapshot policy,
+        SolverResult candidate,
+        SolverResult current)
+    {
+        if (!IsCompleteVictory(candidate) || !IsCompleteVictory(current)
+            || candidate.Snapshot.StrategyGoalHpCredit != current.Snapshot.StrategyGoalHpCredit
+            || policy.TheftPolicy == SolverTheftPolicy.PreserveResources)
+            return IsBetterCompletedResult(root, policy, candidate, current);
+
+        int candidateCost = StrategicHpDeficit(root, policy, candidate)
+            + SmartPotionHpRequired(root, policy, candidate);
+        int currentCost = StrategicHpDeficit(root, policy, current)
+            + SmartPotionHpRequired(root, policy, current);
+        return candidateCost != currentCost
+            ? candidateCost < currentCost
+            : IsBetterCompletedResult(root, policy, candidate, current);
     }
 
     private static SolverResult SearchSmartPotionGradient(
