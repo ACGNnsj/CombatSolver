@@ -311,6 +311,49 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction> BuildOpeningHandCycleActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix)
+    {
+        SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
+        List<SearchNode> children = [];
+        try
+        {
+            SimPlayerCombatState beforePlayer = ((CombatPredictionSimulator)seed.Snapshot.Simulator)
+                .State.GetPlayerCombatState(_player);
+            Dictionary<string, int> beforeCounts = beforePlayer.Hand.Cards
+                .GroupBy(CardChoiceSupport.ChoiceCardKey)
+                .ToDictionary(group => group.Key, group => group.Count());
+            children.AddRange(Expand(seed));
+            return children
+                .Where(node => node.Action is
+                    { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
+                    && node.Snapshot.Turn == seed.Turn)
+                .Select(node =>
+                {
+                    SimPlayerCombatState afterPlayer = ((CombatPredictionSimulator)node.Snapshot.Simulator)
+                        .State.GetPlayerCombatState(_player);
+                    int newCards = afterPlayer.Hand.Cards
+                        .GroupBy(CardChoiceSupport.ChoiceCardKey)
+                        .Sum(group => Math.Max(0,
+                            group.Count() - beforeCounts.GetValueOrDefault(group.Key)));
+                    return (Node: node, NewCards: newCards);
+                })
+                .Where(item => item.NewCards >= 2)
+                .OrderByDescending(item => item.NewCards)
+                .ThenByDescending(item => item.Node.Score)
+                .DistinctBy(item => item.Node.Action!.CardStateKey)
+                .Take(3)
+                .Select(item => item.Node.Action!)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            seed.Snapshot.ReleaseSimulator();
+        }
+    }
+
     private double OpeningDiscardChoiceCardValue(SearchNode node, PlanCardChoice choice)
     {
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)node.Snapshot.Simulator;

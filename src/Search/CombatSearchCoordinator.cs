@@ -1070,6 +1070,49 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && IsCompleteVictory(passResult)
+                && passResult.ExplicitPotionCount == 0
+                && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
+                && initialPotionPolicyOverride == SolverPotionPolicy.Disabled)
+            {
+                CombatBeamSolver openingBuilder = new(root, displayNames, battleDamage,
+                    beamPolicy, cancellationToken, progressCallback, passProfile,
+                    potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
+                IReadOnlyList<PlanAction> freeAttacks = openingBuilder.BuildOpeningFreeOffensiveActions();
+                foreach (PlanAction attack in freeAttacks)
+                {
+                    IReadOnlyList<PlanAction> setups = openingBuilder
+                        .BuildOpeningHandCycleActionsAfterPrefix([attack]);
+                    foreach (PlanAction setup in setups.Take(2))
+                    {
+                        PlanAction[] prefix = [attack, setup];
+                        int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
+                            - (int)passClock.ElapsedMilliseconds;
+                        long remainingNodes = passProfile.MaxExpandedNodes
+                            - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                        if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                            break;
+                        SolverSearchProfile openingProfile = passProfile with
+                        {
+                            MaxExpandedNodes = (int)Math.Min(70_000, remainingNodes),
+                            SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
+                            BaseScoreOnly = true,
+                        };
+                        SolverResult candidate = new CombatBeamSolver(root, displayNames,
+                            battleDamage, beamPolicy, cancellationToken, progressCallback,
+                            openingProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                            maximumPotionUses: 0, fixedPrefixActions: prefix,
+                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        if (candidate.ResultScope == SolverResultScope.SearchCompletion
+                            && IsBetterPotionPolicyResult(root, policy, candidate, passResult))
+                            passResult = candidate;
+                        policy.Diagnostics.Info($"[CombatSolver/Test] FREE_ATTACK_HAND_SETUP " +
+                            $"attack={attack.CardId} setup={setup.CardId} " +
+                            $"hp_lost={candidate.ProjectedBattleHpLost}");
+                    }
+                }
+            }
             NoveltyPortfolioTelemetry? noveltyPass = passResult.NoveltyPortfolio;
             ObserveSmartLayerMemory(
                 policy, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
