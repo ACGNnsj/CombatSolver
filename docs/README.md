@@ -1,6 +1,7 @@
 # CombatSolver 文档导航
 
-- [更优世界线逐包策略记录](strategy/strategy-optimization-20260923.md)：五份玩家备注包的同根基线、实验和结论。
+- [更优世界线逐包策略记录](strategy/strategy-optimization-20260923.md)：逐包同根基线、人工对照和优化结果。
+- [日志站更优世界线前 150 包](strategy/worldline-top150-20260926.md)：按站点战损下降值固定的处理顺序。
 
 - [常驻策略迭代会话](strategy/development-session.md)：跨包复用无头游戏、C# 策略脚本与参数热更新。
 
