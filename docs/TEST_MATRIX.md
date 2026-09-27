@@ -11,6 +11,7 @@
 - 主搜索改为直接消费 `SearchPassContext` 后，#24 `start` 严格恢复与 15 秒配置的 SearchOnly 请求 `6e9c6c8bfa854a39bd610037c42fb536` Passed，实例已清理；这是执行路径检查，不是整批逐位对照。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
 - 主 Pass 内六处前缀补搜预算读取迁入账本后，Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`。上一条短场景没有触发这六处前缀通道；此边界的行为对照留到 P2 收口的固定语料，本条只记录构建与结构证据。按用户要求未运行 Linux 门禁。
 - `SearchRequestPipeline` 接管请求级首轮与升级派发后，#24 `start` 严格恢复与 15 秒固定预算 SearchOnly 请求 `23eaac6ccffc4e96896cdeb2aa272227` Passed，实例已清理。该请求覆盖首轮与固定预算返回，不把它写作本次无胜利升级的独立验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
+- 开局能力／夜魇和宽度／新颖性成员改用 Pass 上下文后，#81 同根 SearchOnly 请求 `9af903cb5fdb4b1f941ea892863b7082` Passed，实例已清理。与 `baseline-0471/report-81` 同为 VeryHigh、Beam 135、25,000 节点、DOP 1、110 秒固定预算；动作与搜索结果仅有运行环境的 `savedNoGcRegionEnabled` 标记不同，归一化后的 `solverMetrics` 和执行政策无差异。先前请求漏传预设而用了包内 Beam 300，属于不可比较的诊断运行，不计入回归。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

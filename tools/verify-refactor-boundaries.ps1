@@ -83,6 +83,22 @@ if (-not $failureRecoverySource.Contains('internal static SearchPassResult Escal
 if (-not $failureRecoverySource.Contains('Func<SearchPassContext, SearchPassResult> runPass')) {
     $violations.Add('No-victory escalation does not dispatch a search pass context')
 }
+$powerRoutesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PowerRoutes.cs') -Raw
+if (-not $powerRoutesSource.Contains('RunOpeningNightmarePortfolio(') -or
+    -not $powerRoutesSource.Contains('RunOpeningPowerRoutePortfolio(') -or
+    $powerRoutesSource.Contains('policy.RequestWorkTotals?.Snapshot()')) {
+    $violations.Add('Opening route passes bypass the search pass budget ledger')
+}
+$noveltySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs') -Raw
+if (-not $noveltySource.Contains('RunNoveltyPortfolioPass(') -or
+    -not $noveltySource.Contains('SearchPassContext context,') -or
+    $noveltySource.Contains('policy.RequestWorkTotals')) {
+    $violations.Add('Novelty portfolio bypasses the search pass context or budget ledger')
+}
+if (-not $coordinatorSource.Contains('RunBeamWidthPortfolioPass(') -or
+    -not $coordinatorSource.Contains('SearchRequestWorkTotals totals = context.Budget.WorkTotals;')) {
+    $violations.Add('Beam portfolio bypasses the search pass budget ledger')
+}
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
     'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'

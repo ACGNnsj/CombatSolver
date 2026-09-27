@@ -7,15 +7,16 @@ internal static partial class CombatSearchCoordinator
     private const int MinimumPowerRouteMilliseconds = 10_000;
 
     private static SolverResult RunOpeningNightmarePortfolio(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
+        SearchPassContext context,
         SolverResult baseline)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
         CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
             cancellationToken, progressCallback, profile,
             potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
@@ -43,8 +44,7 @@ internal static partial class CombatSearchCoordinator
                 IReadOnlyList<PlanAction> nightmareActions = builder.BuildOpeningNightmareActionsAfterPrefix(opening);
                 foreach (PlanAction nightmare in nightmareActions)
                 {
-                    long remainingNodes = profile.MaxExpandedNodes
-                        - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                    long remainingNodes = context.RemainingNodes;
                     if (remainingNodes <= 0)
                         return selected;
                     SolverSearchProfile routeProfile = profile with
@@ -93,17 +93,18 @@ internal static partial class CombatSearchCoordinator
     /// 其后再补有限的双能力前缀。这里直接比较最终真实战损，不把能力估值带进终局排序。
     /// </summary>
     private static SolverResult RunOpeningPowerRoutePortfolio(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
+        SearchPassContext context,
         SolverPotionPolicy? potionPolicyOverride,
         SolverResult baseline,
         bool generatedAfterOpeningPotionsOnly = false)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
         if (!root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
             return baseline;
         if (CanFinishTargetPortfolio(root, policy, profile, baseline))
@@ -287,7 +288,7 @@ internal static partial class CombatSearchCoordinator
                     MaxExpandedNodes = perRouteNodes,
                     SoftTimeBudgetMilliseconds = perRouteMilliseconds,
                 };
-                SearchRequestWorkSnapshot before = policy.RequestWorkTotals?.Snapshot() ?? default;
+                SearchRequestWorkSnapshot before = context.Budget.WorkTotals.Snapshot();
                 long allocatedBefore = GC.GetTotalAllocatedBytes(precise: false);
                 long startedAt = Environment.TickCount64;
                 SolverResult candidate = new CombatBeamSolver(
@@ -311,7 +312,7 @@ internal static partial class CombatSearchCoordinator
                 bool improved = IsBetterPotionPolicyResult(root, policy, candidate, selected);
                 if (improved)
                     selected = candidate;
-                SearchRequestWorkSnapshot after = policy.RequestWorkTotals?.Snapshot() ?? default;
+                SearchRequestWorkSnapshot after = context.Budget.WorkTotals.Snapshot();
                 long elapsed = Math.Max(0, Environment.TickCount64 - startedAt);
                 long allocated = Math.Max(
                     0,

@@ -936,14 +936,17 @@ internal static partial class CombatSearchCoordinator
                     }
                     : null;
             SolverResult RunBaseline(SolverSearchProfile baselineProfile)
-                => RunBeamWidthPortfolioPass(root, beamPolicy, baselineProfile,
-                    ReferenceEquals(baselineProfile, passProfile) ? passClock : Stopwatch.StartNew(),
-                    cancellationToken, SolveMember, publishBaseline);
+                => RunBeamWidthPortfolioPass(passContext with
+                    {
+                        Policy = beamPolicy,
+                        Profile = baselineProfile,
+                        Clock = ReferenceEquals(baselineProfile, passProfile)
+                            ? passClock : Stopwatch.StartNew(),
+                    }, SolveMember, publishBaseline);
             SolverResult RunPrimary()
                 => policy.UseNoveltyPortfolio
-                    ? RunNoveltyPortfolioPass(root, displayNames, battleDamage, passPolicy, passProfile,
-                        passClock, initialPotionPolicyOverride, cancellationToken, progressCallback,
-                        interimResultCallback, RunBaseline)
+                    ? RunNoveltyPortfolioPass(passContext with { Policy = passPolicy },
+                        initialPotionPolicyOverride, RunBaseline)
                     : RunBaseline(passProfile);
             bool hasForcedBaseline = forcedSmartGradient;
             SolverResult passResult;
@@ -966,13 +969,7 @@ internal static partial class CombatSearchCoordinator
             if (passResult.ResultScope == SolverResultScope.SearchCompletion)
             {
                 passResult = RunOpeningPowerRoutePortfolio(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    beamPolicy,
-                    cancellationToken,
-                    progressCallback,
-                    passProfile,
+                    passContext with { Policy = beamPolicy },
                     initialPotionPolicyOverride,
                     passResult);
             }
@@ -1274,16 +1271,16 @@ internal static partial class CombatSearchCoordinator
     /// </para>
     /// </remarks>
     private static SolverResult RunBeamWidthPortfolioPass(
-        CombatRootSnapshot root,
-        SearchPolicySnapshot policy,
-        SolverSearchProfile profile,
-        Stopwatch passClock,
-        CancellationToken cancellationToken,
+        SearchPassContext context,
         Func<SolverSearchProfile, bool, SolverResult> solveMember,
         Action<SolverResult>? publishBaseline)
     {
-        SearchRequestWorkTotals totals = policy.RequestWorkTotals
-            ?? throw new InvalidOperationException("Beam 宽度组合需要请求级工作量记录。");
+        CombatRootSnapshot root = context.Root;
+        SearchPolicySnapshot policy = context.Policy;
+        SolverSearchProfile profile = context.Profile;
+        Stopwatch passClock = context.Clock;
+        CancellationToken cancellationToken = context.CancellationToken;
+        SearchRequestWorkTotals totals = context.Budget.WorkTotals;
         BeamWidthPortfolioTelemetry telemetry = policy.PortfolioTelemetry
             ?? throw new InvalidOperationException("Beam 宽度组合需要请求级诊断记录。");
         List<BeamWidthPortfolioMemberCost> costs = [];
@@ -1314,7 +1311,7 @@ internal static partial class CombatSearchCoordinator
             policy.Diagnostics.Info("[CombatSolver/Test] PORTFOLIO_REALLOCATION plain_baseline=False bounded_refinement=True");
 
         long RemainingMilliseconds()
-            => profile.SoftTimeBudgetMilliseconds - passClock.ElapsedMilliseconds;
+            => context.RemainingMilliseconds;
 
         BeamWidthPortfolioRun<SolverResult> RunMember(SolverSearchProfile memberProfile)
         {
@@ -1683,21 +1680,14 @@ internal static partial class CombatSearchCoordinator
                 && !IsProvenZeroDamageRoute(root, policy, selected))
             {
                 selected = RunOpeningNightmarePortfolio(
-                    root, displayNames, battleDamage, policy,
-                    deadline.Token, progressCallback, profile, selected);
+                    context with { CancellationToken = deadline.Token }, selected);
             }
             if (selected.BestNode.Actions.FirstOrDefault() is
                     { Kind: PlanActionKind.UsePotion }
                 && root.PlayerCardIds.Contains("WHITE_NOISE"))
             {
                 selected = RunOpeningPowerRoutePortfolio(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    deadline.Token,
-                    progressCallback,
-                    profile,
+                    context with { CancellationToken = deadline.Token },
                     potionPolicyOverride: null,
                     selected,
                     generatedAfterOpeningPotionsOnly: true);

@@ -45,6 +45,20 @@ fi
 if ! rg -Fq 'Func<SearchPassContext, SearchPassResult> runPass' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
     violations+=("No-victory escalation does not dispatch a search pass context")
 fi
+if ! rg -Fq 'RunOpeningNightmarePortfolio(' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs" ||
+   ! rg -Fq 'RunOpeningPowerRoutePortfolio(' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs" ||
+   rg -Fq 'policy.RequestWorkTotals?.Snapshot()' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
+    violations+=("Opening route passes bypass the search pass budget ledger")
+fi
+if ! rg -Fq 'RunNoveltyPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
+   ! rg -Fq 'SearchPassContext context,' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
+   rg -Fq 'policy.RequestWorkTotals' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then
+    violations+=("Novelty portfolio bypasses the search pass context or budget ledger")
+fi
+if ! rg -Fq 'RunBeamWidthPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   ! rg -Fq 'SearchRequestWorkTotals totals = context.Budget.WorkTotals;' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Beam portfolio bypasses the search pass budget ledger")
+fi
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
     'src/Search/CombatSearchCoordinator.cs|RouteQualityProjection.PotionPolicy' \

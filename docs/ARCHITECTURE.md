@@ -14,6 +14,10 @@
 
 `SearchRequestPipeline` 按原顺序运行首轮 Pass、检查接管／达标／固定预算，再决定是否交给无胜利升级；`SEARCH_SESSION` 仍仅在原有最终路径发布。协调器保留具体搜索成员与补充审计的实现。
 
+能力与夜魇开局补搜从 `SearchPassContext` 接受根、策略、轮次和取消；能力成员的工作量前后快照由关联的 `SearchBudgetLedger` 读取。它们的前缀生成及结果比较仍由原补搜实现负责。
+
+宽度与新颖性组合成员也从对应 Pass 上下文接线；宽度组合的成员时钟和新颖性组合的工作量快照共用该上下文关联的请求账本，现有组合准入与成员顺序保持独立。
+
 本文描述当前源码的所有权边界。它面向维护者和 coding agent；玩家功能说明见根目录 `README.md`，历史重构证据见 `docs/refactoring/`。
 
 职责迁移时优先更新本文，并同步更新 Windows 的 `tools/verify-refactor-boundaries.ps1` 与 Linux 的 `tools/verify-refactor-boundaries.sh`。历史审计记录保留当时结论，不承担当前导航职责。
