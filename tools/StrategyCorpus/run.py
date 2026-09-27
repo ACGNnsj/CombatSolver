@@ -111,7 +111,7 @@ def capture_report(case, source, directory, manifest, cleanup):
         "status": "comparable" if ready else "unavailable",
         "reason": None if ready else (f"search elapsed {elapsed:.0f} ms reached time boundary"
                   if time_boundary else result.get("error") or verification.get("reason")
-                  or f"exit={code} status={result.get('status')} restoration={verification.get('restorationVerified')} boundary={metrics.get('boundary')}",
+                  or f"exit={code} status={result.get('status')} restoration={verification.get('restorationVerified')} boundary={metrics.get('boundary')}"),
         "identity": {
             "sourceSha256": digest(source), "checkpointId": checkpoint.get("checkpointId"),
             "rootContinuationStamp": search.get("rootContinuationStamp"),
@@ -161,7 +161,7 @@ def capture_generated(case, source, directory, manifest):
         "status": "comparable" if ready else "unavailable",
         "reason": None if ready else (f"search elapsed {elapsed:.0f} ms reached time boundary"
                   if time_boundary else result.get("error")
-                  or f"exit={code} status={result.get('status')} boundary={metrics.get('boundary')}",
+                  or f"exit={code} status={result.get('status')} boundary={metrics.get('boundary')}"),
         "identity": {"sourceSha256": digest(source),
                      "rootContinuationStamp": result.get("rootContinuationStamp"),
                      "catalogFingerprint": result.get("catalogFingerprint"), "policy": search},
