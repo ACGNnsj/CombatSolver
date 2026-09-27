@@ -1264,21 +1264,16 @@ internal static partial class CombatSearchCoordinator
         // 打到可接受战损就收手那一条和改动之前一样直接返回，连 SEARCH_SESSION 都不打。
         if (lastPass.Settled || policy.FixedBudget)
             return result;
-        result = EscalateSearchWhenNoVictory(
-            root,
-            policy,
-            profile,
-            requestClock,
-            result,
-            (passProfile, passClock) =>
-            {
-                lastPass = RunSearchPass(passProfile, passClock);
-                return lastPass.Result;
-            },
-            () => lastPass.TakeoverResult != null
-                || lastPass.Settled
-                || cancellationToken.IsCancellationRequested
+        SearchPassContext requestContext = new(root, displayNames, battleDamage,
+            policy, profile, requestClock, ledger, cancellationToken,
+            progressCallback, interimResultCallback);
+        lastPass = EscalateSearchWhenNoVictory(
+            requestContext,
+            lastPass,
+            RunSearchPass,
+            () => cancellationToken.IsCancellationRequested
                 || policy.Interaction?.CurrentTakeoverRequest != null);
+        result = lastPass.Result;
         if (lastPass.TakeoverResult != null)
             return lastPass.TakeoverResult;
         if (lastPass.Settled)

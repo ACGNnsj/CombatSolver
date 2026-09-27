@@ -7,6 +7,7 @@
 - 运行器修复后 `python -m py_compile tools/StrategyCorpus/run.py tools/StrategyCorpus/compare.py tools/StrategyCorpus/test_compare.py` 通过；本次 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=215`。按用户要求未运行 Linux 门禁；未做完整自动战斗或大批量回归。
 - 补充审计改用 `SearchPassContext` 后，#24 `start` 严格恢复与 15 秒配置的 SearchOnly 请求 `286768afb4d14118863cdf5e79239cdd` Passed，实例已清理。此请求只验证上下文边界可执行，不与 110 秒固定语料比较，也不声明整场质量等价。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=216`；未运行 Linux 门禁。
 - `SearchPassResult` 接管轮次停止状态后，#24 同根 SearchOnly 请求 `7ba221e6f4ef4d48926992768476e17b` Passed，实例已清理；与上一条的预计战损同为 1 HP，请求总展开 157004、转移 460496、选择分支 21493 均一致。这只覆盖普通返回路径，不代替接管或无胜利升级验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
+- 无胜利升级改用 `SearchPassContext` / `SearchPassResult` 后，#24 `start` 严格恢复与 SearchOnly 请求 `9bcf08de582f4c67a0b6ea61cd03eba0` Passed。非固定预算 110 秒、首轮节点帽 5000；实际日志 `NO_VICTORY_ESCALATION start attempt=1 beam=135->270 nodes=5000->10000`，随后 `won=False improved=False`，保留首轮路线，实例已清理。60 秒配置的诊断请求没有进入升级，因为首轮约 29 秒、下一轮估计约 58 秒超过剩余时间；未把它算作升级路径验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

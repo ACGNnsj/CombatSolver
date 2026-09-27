@@ -60,6 +60,14 @@ if (-not $coordinatorSource.Contains('RunSupplementalAudits(auditContext,')) {
 if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(')) {
     $violations.Add('Search pass does not return its termination state')
 }
+if (-not $coordinatorSource.Contains('EscalateSearchWhenNoVictory(') -or
+    -not $coordinatorSource.Contains('requestContext,')) {
+    $violations.Add('No-victory escalation does not consume the search request context')
+}
+$failureRecoverySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.FailureRecovery.cs') -Raw
+if (-not $failureRecoverySource.Contains('internal static SearchPassResult EscalateSearchWhenNoVictory(')) {
+    $violations.Add('No-victory escalation does not return search pass state')
+}
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
     'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'
