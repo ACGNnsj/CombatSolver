@@ -147,6 +147,12 @@ internal static partial class CombatSearchCoordinator
                 interaction == null ? null : PublishAdoptableResult,
                 firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            if (policy.IncludeTurnSetup)
+            {
+                PopulateRequestWorkTotals(selected, requestWorkTotals);
+                selected.PortfolioTelemetry = portfolioTelemetry;
+                return selected;
+            }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
                 && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
@@ -979,6 +985,9 @@ internal static partial class CombatSearchCoordinator
                     ? policy : policy with { NoveltySearch = null };
                 passResult = RunPrimary();
             }
+            // Opening posteriors require a resolved hand; turn setup still owns its native choice.
+            if (!policy.IncludeTurnSetup)
+            {
             if (passResult.ResultScope == SolverResultScope.SearchCompletion)
             {
                 passResult = RunOpeningPowerRoutePortfolio(
@@ -1219,6 +1228,7 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            }
             NoveltyPortfolioTelemetry? noveltyPass = passResult.NoveltyPortfolio;
             ObserveSmartLayerMemory(
                 policy, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
@@ -1235,6 +1245,8 @@ internal static partial class CombatSearchCoordinator
                 takeoverResult = passTakeover;
                 return passResult;
             }
+            if (policy.IncludeTurnSetup)
+                return passResult;
             if (passResult.DeterministicBlockPotionInserted)
             {
                 SearchPolicySnapshot potionFreePolicy = beamPolicy with

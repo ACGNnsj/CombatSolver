@@ -7,6 +7,15 @@
 - `python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p0/baseline --right .local/strategy-refactor-p0/after --out .local/strategy-refactor-p0/comparison`：#24、#37、#81、#89 与两个生成场景的动作、结果、续用、expanded、transitions、choice branches 及剪枝逐位相同。#79、#85 的 P0 基线分别用时 109,992 和 109,985 毫秒，贴近 110,000 毫秒限时；两根标为不可比较，不将工作量漂移算作纯重构差异。四个有效玩家根已达到最低门槛，备用 #56/#63 未运行。
 - `python tools/StrategyCorpus/test_compare.py` 的分类、根身份、时限合同通过；最终 Release 构建 0 警告、0 错误。Windows/Linux 结构门禁均通过，Linux 侧 `rg` 解包于系统临时目录运行，无系统安装。未做完整自动战斗或大批量回归。
 
+## 0.47.1 紧急回归修复（2026-09-27）
+
+- `FIXED-PREFIX-TURN-LOSS` / `01ed4188c8804eedab36e7658de62a57` Passed：固定前缀先掉血再结束首回合，所选路线该回合标注与模拟累计掉血一致；实例已清理。
+- 永世沙漏报告 `dfcce7302842419987d9039968a76412` / `607138e217574725855adbb6d83b925e`：`start` 严格恢复与 SearchOnly 通过，120 秒上限内实际搜索约 83 秒，所选路线首回合标注 14 HP。原报告是 0→25 HP 的复核暂停；本次路线与搜索上限不同，只验证缺失标注已出现，不称为原路线逐位复现。实例已清理。
+- 无厌沙虫报告 `fbb5f72709ba412890063c7df907785d` / `d83be75b0e104d00882b08903058bd9b`：`combat_start` 严格恢复与 15 秒 SearchOnly 通过；准备选牌场景 `NOVELTY-TURN-SETUP-CHOICE-0400` / `2c288a63cd634a6693f50850b456f998` Passed。两实例已清理。
+- 蜂群术士报告 `932f3cf624854741a4e5dddd3cb7cdc8` / `4967277af82843dfb28423777c048ec0`：`start` 严格恢复与 15 秒 SearchOnly 通过；此前开局选牌前缀在候选审计中失败。实例已清理。
+- `LAMP-INKY-SHIV` / `0acb7fded0ba419eab9b2f64a63eec5f` Passed：墨刃生成的小刀触发不安油灯，逐动作完整续用状态与实机一致；实例已清理。
+- 未运行 Linux 门禁；尚未验证所有上报的结束回合复核、选牌及计算失败根因。
+
 ## 0.47.0 前两回合实验开关（2026-09-27）
 
 - `NOVELTY-PORTFOLIO-SETTINGS` / `9b087e2edcc54785aeb3922bd80dbb5d` Passed：新安装默认关闭，设置页第三个实验开关、持久化和请求冻结通过；开启时深度 2、整次探索期限 2400000 ms，关闭时深度 0。

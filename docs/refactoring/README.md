@@ -8,5 +8,6 @@
 - [0.41.0 代码整洁度审查](code-hygiene-review-2026-09-18.md)：分析器证据、保留裁决与轻度清理验证。
 - [技术债深挖](tech-debt-audit-2026-09-18.md)：十项静态审计、私有签名清理、纯移动分片与离线等价。
 - [4117eb0 核验记录](verified-audit-4117eb0.md)：对应基线的历史证据。
+- [策略与搜索重构 P2–P6 执行计划](strategy-refactor-p2-p6-execution-plan-20260927.md)：0.47.1 回归修复后继续。
 
 当前职责以 [架构地图](../ARCHITECTURE.md) 为准。历史核验不替代本次改动的构建或测试。
