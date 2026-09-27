@@ -31,6 +31,7 @@ internal static partial class CombatSearchCoordinator
         }
         setups.Add([]);
         SolverResult selected = baseline;
+        FrontierContinuationScheduler continuationScheduler = new(context);
         int attempts = 0;
         foreach (PlanAction[] setup in setups)
         {
@@ -55,16 +56,14 @@ internal static partial class CombatSearchCoordinator
                     };
                     PlanAction[] prefix = [.. opening, nightmare];
                     bool usesPotion = opening.Any(action => action.Kind == PlanActionKind.UsePotion);
-                    SolverResult? candidate = SolveOptionalPotionPosterior(
-                        new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                            cancellationToken, progressCallback, routeProfile,
-                            potionPolicyOverride: usesPotion
-                                ? SolverPotionPolicy.RequireAtLeastOne
+                    SolverResult? candidate = continuationScheduler.DispatchOptional(
+                        new ContinuationSearchRequest(context,
+                            ContinuationPurpose.NightmareCopyPosterior,
+                            prefix, routeProfile,
+                            usesPotion ? SolverPotionPolicy.RequireAtLeastOne
                                 : SolverPotionPolicy.Disabled,
-                            maximumPotionUses: usesPotion ? 1 : 0,
-                            fixedPrefixActions: prefix,
-                            resetFixedPrefixSchedulingBaseline: true),
-                        policy, "NIGHTMARE_COPY_POSTERIOR");
+                            usesPotion ? 1 : 0, null),
+                        "NIGHTMARE_COPY_POSTERIOR");
                     if (candidate != null)
                     {
                         if (candidate.ResultScope != SolverResultScope.SearchCompletion)
@@ -250,6 +249,7 @@ internal static partial class CombatSearchCoordinator
             $"nodes_each={perRouteNodes} time_ms_each={perRouteMilliseconds}");
 
         SolverResult selected = baseline;
+        FrontierContinuationScheduler continuationScheduler = new(context);
         int memberIndex = 0;
         foreach (PlanAction[] prefix in prefixes)
         {
@@ -291,19 +291,15 @@ internal static partial class CombatSearchCoordinator
                 SearchRequestWorkSnapshot before = context.Budget.WorkTotals.Snapshot();
                 long allocatedBefore = GC.GetTotalAllocatedBytes(precise: false);
                 long startedAt = Environment.TickCount64;
-                SolverResult candidate = new CombatBeamSolver(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    cancellationToken,
-                    progressCallback == null
-                        ? null
-                        : progress => progressCallback(progress with { Phase = "正在深搜能力路线" }),
-                    routeProfile,
-                    potionPolicyOverride: potionPolicyOverride,
-                    fixedPrefixActions: prefix,
-                    resetFixedPrefixSchedulingBaseline: true).Solve();
+                SolverResult candidate = continuationScheduler.Dispatch(
+                    new ContinuationSearchRequest(context,
+                        ContinuationPurpose.OpeningPowerRouteMember,
+                        prefix, routeProfile, potionPolicyOverride, null, null)
+                    {
+                        ProgressCallbackOverride = progressCallback == null
+                            ? null
+                            : progress => progressCallback(progress with { Phase = "正在深搜能力路线" }),
+                    });
                 if (candidate.ResultScope != SolverResultScope.SearchCompletion)
                     return candidate;
 

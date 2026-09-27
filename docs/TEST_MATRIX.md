@@ -24,6 +24,7 @@
 - P3 开局能力审计四条前缀迁移：静态核对 `ResetFixedPrefixSchedulingBaseline=false`、可选用药诊断与总计调用顺序；仅执行 Release 编译和 Windows 结构门禁，行为对照留到 P3 收口。
 - P3 强制至少用药审计三条前缀迁移：静态核对 `RequireAtLeastOne`、`primary.PotionCount` 上限及不重置调度基线；仅执行 Release 编译与 Windows 结构门禁，行为对照待 P3 收口。
 - P3 Smart 开局药水前缀迁移：静态核对原 8／12 候选上限、药水数量和可选后验诊断，双端结构门禁禁止协调器主文件新增直接固定前缀构造；只运行 Release 编译与 Windows 门禁，行为对照待 P3 收口。
+- P3 夜魇与能力路线两条前缀迁移：静态核对夜魇可选用药诊断、能力成员的专用进度阶段及工作量／时间采样位置；仅执行 Release 编译与 Windows 结构门禁，行为对照待 P3 收口。
 
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 

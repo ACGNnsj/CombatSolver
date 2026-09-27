@@ -214,6 +214,9 @@ if (-not $powerRoutesSource.Contains('context.Budget.ProfileWindow(profile)') -o
     $powerRoutesSource.Contains('Math.Min(30_000L, remainingNodes)')) {
     $violations.Add('Nightmare opening member bypasses the profile budget window')
 }
+if ($powerRoutesSource.Contains('fixedPrefixActions:')) {
+    $violations.Add('Opening power routes construct a fixed-prefix solver outside the scheduler')
+}
 $noveltySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs') -Raw
 if (-not $noveltySource.Contains('RunNoveltyPortfolioPass(') -or
     -not $noveltySource.Contains('SearchPassContext context,') -or
@@ -1108,7 +1111,7 @@ if (-not (Select-String -LiteralPath $powerPortfolioGatePath -SimpleMatch 'inter
 $powerRoutePortfolioPath = Join-Path $searchRoot 'CombatSearchCoordinator.PowerRoutes.cs'
 foreach ($powerRouteRule in @(
     'private static SolverResult RunOpeningPowerRoutePortfolio(',
-    'fixedPrefixActions: prefix',
+    'ContinuationPurpose.OpeningPowerRouteMember',
     'PowerRoutePortfolioMemberReport')) {
     if (-not (Select-String -LiteralPath $powerRoutePortfolioPath -SimpleMatch $powerRouteRule -Quiet)) {
         $violations.Add("${powerRoutePortfolioPath}: missing power route portfolio boundary '$powerRouteRule'")

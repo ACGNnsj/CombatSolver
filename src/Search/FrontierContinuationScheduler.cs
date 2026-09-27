@@ -30,6 +30,8 @@ internal enum ContinuationPurpose
     RequiredPotionPair,
     RequiredPotionPairDefensive,
     SmartOpeningPotionPosterior,
+    NightmareCopyPosterior,
+    OpeningPowerRouteMember,
 }
 
 internal interface IFrontierContinuationSource

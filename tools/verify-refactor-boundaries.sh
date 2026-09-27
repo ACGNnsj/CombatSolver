@@ -161,6 +161,9 @@ if ! rg -Fq 'context.Budget.ProfileWindow(profile)' "$repository_root/src/Search
    rg -Fq 'Math.Min(30_000L, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
     violations+=("Nightmare opening member bypasses the profile budget window")
 fi
+if rg -Fq 'fixedPrefixActions:' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
+    violations+=("Opening power routes construct a fixed-prefix solver outside the scheduler")
+fi
 if ! rg -Fq 'RunNoveltyPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    ! rg -Fq 'SearchPassContext context,' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    rg -Fq 'policy.RequestWorkTotals' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then
@@ -990,7 +993,7 @@ require_fixed "$search_root/PowerCommitmentPortfolioGate.cs" \
     'missing power commitment portfolio gate'
 for power_route_rule in \
     'private static SolverResult RunOpeningPowerRoutePortfolio(' \
-    'fixedPrefixActions: prefix' \
+    'ContinuationPurpose.OpeningPowerRouteMember' \
     'PowerRoutePortfolioMemberReport'; do
     require_fixed "$search_root/CombatSearchCoordinator.PowerRoutes.cs" \
         "$power_route_rule" \
