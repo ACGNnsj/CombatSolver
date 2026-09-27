@@ -2003,6 +2003,15 @@ foreach ($rule in @(
 
 # Contextual estimates remain pure intermediate ordering; never a bound or final policy.
 foreach ($boundary in @(
+    @('src/Search/CombatSearchCoordinator.PotionChain.cs', 'FrontierContinuationScheduler'),
+    @('src/Search/CombatBeamSolver.Expansion.Opening.cs', 'BuildFreeEntropicPotionActionsAfterPrefix'),
+    @('src/Search/SimulatedCombatState.Potions.cs', 'IsFreeEntropicPotionAtSlot')
+)) {
+    if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot $boundary[0]) -SimpleMatch $boundary[1] -Quiet)) {
+        $violations.Add("Missing generated potion chain boundary: $($boundary[0])")
+    }
+}
+foreach ($boundary in @(
     @('src/Testing/UnattendedTestRunner.ProtocolHost.cs', 'new BeamWeightPerturbation('),
     @('src/Runtime/SolverController.cs', 'UnattendedTestRunner.BeamWeightPerturbationOverride')
 )) {

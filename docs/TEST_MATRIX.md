@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## 策略重构 P7b 混沌药生成链（2026-09-28）
+
+- #90 `945939a12ac944999302b9b7f1cb34ea` 同一 `combat_start`、VeryHigh／180 秒／DOP 8、强制使用迅捷与混沌的记录政策：基线完整胜利 3 战损／2 瓶原有药／最终 46 HP，当前完整胜利 0 战损／2 瓶原有药加 2 瓶免费生成药／最终 49 HP；请求总展开 460,810→500,000，总搜索耗时约 145.0→157.7 秒。当前路线第 2 回合连续使用四瓶药，结束于第 6 回合。证据 `.local/strategy-refactor-p7b/baseline-90` 与 `chain-attack-90`。中间仅固定原首回合的生成链实验为 3 战损、第 2 回合结束；加合法进攻跟进后才追平人工。两个无头实例均已清理。
+- GA-SILENT-BOSS-00 同政策、25,000 节点／110 秒、DOP1，P7a 无扰动基线对当前源码的动作、结果及非时序计数逐位相同，均为 44 战损／0 药；证据 `.local/strategy-refactor-p7a/generated-baseline` 与 `.local/strategy-refactor-p7b/ga-silent-sentinel`。Release 编译和 Windows 结构门禁通过；Linux 门禁依用户要求不运行。未执行完整自动部署，不能据此宣称实机计划回放通过。
+
 ## 策略重构 P7a 权重敏感度（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=235`；Python 脚本语法检查通过。`run.py --case` 分别对 #24 玩家根与 GA-SILENT-BOSS-00 采集无扰动基线及 `CurrentEnergy:0.8`，四次均 `comparable`。`sensitivity.py` 接受两组同根对照且核对其余政策相同；#24 前后均胜利、0 战损／1 药／最终 57 HP，生成根前后均胜利、44 战损／0 药／最终 26 HP。两根动作与工作量有差异，质量分类均为不变。证据在 `.local/strategy-refactor-p7a/`；无头实例已由运行器清理。默认权重未调整；Linux 门禁依用户要求不运行。

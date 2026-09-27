@@ -534,6 +534,37 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    internal IReadOnlyList<PlanAction> BuildFreeEntropicPotionActionsAfterPrefix(
+        IReadOnlyList<PlanAction> prefix)
+    {
+        SimulationSnapshot snapshot = Replay(prefix);
+        List<SearchNode> children = [];
+        try
+        {
+            SimulatedCombatState combat = (SimulatedCombatState)snapshot.Simulator.State.CombatState;
+            HashSet<int> freeSlots = Enumerable.Range(0, root.PotionSlotCount)
+                .Where(slot => combat.IsFreeEntropicPotionAtSlot(_player, slot))
+                .ToHashSet();
+            if (freeSlots.Count == 0)
+                return [];
+            children.AddRange(ExpandOpeningSeed(CreateOpeningSearchSeed(snapshot)));
+            return children
+                .Where(node => node.Action is { Kind: PlanActionKind.UsePotion } action
+                    && freeSlots.Contains(action.PotionSlot))
+                .OrderByDescending(node => node.Score)
+                .GroupBy(node => node.Action!.PotionSlot)
+                .Select(group => group.First().Action!)
+                .Take(2)
+                .ToArray();
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            snapshot.ReleaseSimulator();
+        }
+    }
+
     internal IReadOnlyList<PlanAction[]> BuildEarlierCopyPotionDelayedDamagePrefixes(
         IReadOnlyList<PlanAction> route)
     {

@@ -34,6 +34,7 @@ internal enum ContinuationPurpose
     OpeningPowerRouteMember,
     EarlyTurnContinuation,
     PlanCommitment,
+    GeneratedPotionChain,
 }
 
 internal interface IFrontierContinuationSource

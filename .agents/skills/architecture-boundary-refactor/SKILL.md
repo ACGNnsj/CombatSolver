@@ -36,6 +36,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - `SearchBudgetWindow` 只冻结一次请求余量并套用既有成员上限，模式专用准入与候选合法性仍在对应 Pass；迁移预算读取时保持时钟和工作量采样顺序。
 - P6 的 `PlanCommitment` 由模拟后的开局动作发现，经 `FrontierContinuationScheduler` 与同一请求账本有界续搜；Smart 无主动用药梯度先于计划成员完成，终局仍交给既有质量与药水政策。计划专属 Beam 代表不进入状态键或普通搜索。
 - P7a 单项 Beam 权重扰动由 Testing 的请求宿主校验，Runtime 捕获为不可变 profile；Search 不读取请求宿主或运行中设置。普通请求不注入扰动，敏感度结果只用于中途保路评估，不改变终局或状态等价。
+- P7b 生成药水链从合法早期前缀模拟识别零成本生成药，可在已选首张牌后加入合法进攻跟进，最多提名两条固定前缀并经 `FrontierContinuationScheduler` 消耗请求剩余额度。来源标记属于 `SimulatedCombatState`，Search 只读该分支事实；强制用药仍由原政策校验，终局比较保持单一权威入口。
 - 首回合计划发现数量由请求级 `SearchPlanDiscoveryState` 在审计与 `PostSearch` 间共享；常规后验结束后才探测第二回合可打能力并用剩余账本续搜，未改善时保留先前完整结果。不得把该成员提前到 Smart 无药基线之前。
 - `PlanHorizonPolicy` 只延长已实际打出收益牌的显式计划成员，最多一个当前牌堆周期；普通、未兑现计划及战斗状态键不变。阈值合同不能代替长线请求的实际触发证据。
 - 主 Pass 的固定前缀成员从 `SearchPassContext.SliceWindow` 取得轮次时间与请求节点；窗口仍按原顺序先读时间、后读节点。具体模式保留原准入阈值、profile 变体和候选顺序。

@@ -71,4 +71,7 @@ internal sealed class PotionValuationRegistry
 
     internal bool RequiresOpeningUse(PotionModel potion)
         => _openingTypes.Any(type => type.IsInstanceOfType(potion));
+
+    internal bool GeneratesPotionChain(string potionId)
+        => string.Equals(potionId, "ENTROPIC_BREW", StringComparison.Ordinal);
 }

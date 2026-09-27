@@ -25,7 +25,8 @@ internal static partial class CombatSearchCoordinator
             selected = adoptable;
         }
         selected = RunEarlyTurnExploration(context, selected);
-        return RunDeferredPowerPlanSearchPass(context, selected);
+        selected = RunDeferredPowerPlanSearchPass(context, selected);
+        return RunGeneratedPotionChainSearchPass(context, selected);
     }
 
     private static SolverResult RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)
