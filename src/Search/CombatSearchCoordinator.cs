@@ -2954,56 +2954,9 @@ internal static partial class CombatSearchCoordinator
         SolverTheftPolicy? theftPolicy,
         SolverInterimResult candidate,
         SolverInterimResult current)
-    {
-        int victoryComparison = current.Won.CompareTo(candidate.Won);
-        if (victoryComparison != 0)
-            return victoryComparison < 0;
-        int survivalComparison = current.Survives.CompareTo(candidate.Survives);
-        if (survivalComparison != 0)
-            return survivalComparison < 0;
-        if (candidate.DeathSaveUseCount != current.DeathSaveUseCount)
-            return candidate.DeathSaveUseCount < current.DeathSaveUseCount;
-        int recovery = TheftEncounterStrategy.CompareRecovery(theftPolicy,
-            candidate.Won, candidate.OutstandingStolenResource, current.Won, current.OutstandingStolenResource);
-        if (recovery != 0)
-            return recovery < 0;
-        if (candidate.Won && current.Won
-            && candidate.StrategicHpDeficit == current.StrategicHpDeficit
-            && candidate.PotionStrategicCost == current.PotionStrategicCost
-            && candidate.ProjectedBattlePotionCount == current.ProjectedBattlePotionCount
-            && candidate.GrowthHpCredit == current.GrowthHpCredit
-            && candidate.GrowthRewardCount == current.GrowthRewardCount
-            && candidate.ProjectedBattleHpLost != current.ProjectedBattleHpLost)
-        {
-            return candidate.ProjectedBattleHpLost < current.ProjectedBattleHpLost;
-        }
-        int primaryQuality = SolverInterimResultOrdering.ComparePrimaryQuality(
-            candidate.Won,
-            candidate.StrategicHpDeficit,
-            candidate.CombatEndedTurn,
-            current.Won,
-            current.StrategicHpDeficit,
-            current.CombatEndedTurn,
-            candidate.GrowthHpCredit,
-            current.GrowthHpCredit,
-            candidate.GrowthRewardCount,
-            current.GrowthRewardCount,
-            candidate.DeathSaveUseCount,
-            current.DeathSaveUseCount);
-        if (primaryQuality != 0)
-            return primaryQuality < 0;
-        if (theftPolicy == SolverTheftPolicy.PreserveResources
-            && candidate.OutstandingStolenResource != current.OutstandingStolenResource)
-        {
-            return candidate.OutstandingStolenResource < current.OutstandingStolenResource;
-        }
-        if (candidate.ProjectedBattlePotionCount != current.ProjectedBattlePotionCount)
-        {
-            return candidate.ProjectedBattlePotionCount
-                < current.ProjectedBattlePotionCount;
-        }
-        return candidate.Score > current.Score;
-    }
+        => RouteQualityPolicy.Compare(
+            RouteQuality.FromInterim(candidate), RouteQuality.FromInterim(current),
+            RouteQualityProjection.PotionPolicy, theftPolicy) < 0;
 
     private static int CompareCompletedResultPrimaryQuality(
         CombatRootSnapshot root,
@@ -3032,19 +2985,14 @@ internal static partial class CombatSearchCoordinator
             currentWon, current.OutstandingStolenResource);
         if (recovery != 0)
             return recovery;
-        return SolverInterimResultOrdering.ComparePrimaryQuality(
-            candidateWon,
-            StrategicHpDeficit(root, policy, candidate),
-            candidate.CombatEndedTurn,
-            currentWon,
-            StrategicHpDeficit(root, policy, current),
-            current.CombatEndedTurn,
-            candidate.Snapshot.StrategyGoalHpCredit,
-            current.Snapshot.StrategyGoalHpCredit,
-            candidate.Snapshot.StrategyGoalCount,
-            current.Snapshot.StrategyGoalCount,
-            candidate.Snapshot.ProjectedDeathSaveUseCount,
-            current.Snapshot.ProjectedDeathSaveUseCount);
+        return RouteQualityPolicy.Compare(
+            RouteQuality.Primary(candidateWon, StrategicHpDeficit(root, policy, candidate),
+                candidate.CombatEndedTurn, candidate.Snapshot.StrategyGoalHpCredit,
+                candidate.Snapshot.StrategyGoalCount, candidate.Snapshot.ProjectedDeathSaveUseCount),
+            RouteQuality.Primary(currentWon, StrategicHpDeficit(root, policy, current),
+                current.CombatEndedTurn, current.Snapshot.StrategyGoalHpCredit,
+                current.Snapshot.StrategyGoalCount, current.Snapshot.ProjectedDeathSaveUseCount),
+            RouteQualityProjection.Primary);
     }
 
     private static bool IsCompleteVictory(SolverResult result)
