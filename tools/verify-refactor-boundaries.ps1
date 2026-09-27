@@ -38,6 +38,18 @@ foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPo
         $violations.Add("Route quality model missing: $relative")
     }
 }
+$qualityConsumers = @{
+    'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
+    'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'
+    'src/Search/CombatBeamSolver.FinalPlanOrdering.cs' = 'candidate.Quality.StrategicHpDeficit'
+    'src/Search/CombatBeamSolver.BeamRetentionPolicy.Ranking.cs' = 'RouteQualityProjection.Primary'
+    'src/Search/CombatBeamSolver.Retention.cs' = 'RouteQualityProjection.RetentionCost'
+}
+foreach ($relative in $qualityConsumers.Keys) {
+    if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot $relative) -SimpleMatch $qualityConsumers[$relative] -Quiet)) {
+        $violations.Add("Route quality projection missing: $relative")
+    }
+}
 $strategySearch = Join-Path $searchRoot 'DevelopmentSearchStrategy.cs'
 $strategyLoader = Join-Path $repositoryRoot 'src/Testing/DevelopmentStrategyLoader.cs'
 $monitorPublisher = Join-Path $repositoryRoot 'src/Testing/DevelopmentMonitorPublisher.cs'

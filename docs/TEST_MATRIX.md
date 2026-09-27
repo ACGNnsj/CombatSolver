@@ -1,10 +1,11 @@
 # CombatSolver 测试清单
 
-## 策略重构 P0 固定根语料（2026-09-27）
+## 策略重构 P0/P1 固定根对照（2026-09-27）
 
-- 当前源码完成一次 VeryHigh / 固定每 solver 25,000 节点 / DOP 1 的 `combat_start` 基线：#24、#37、#79、#81、#85、#89 的严格恢复、continuation 与原生状态均通过，两个仓库生成场景也完成。8 根均未触及搜索时间边界，原始动作及完整证据在 `.local/strategy-refactor-p0/baseline/`；无头实例 `strategy-refactor-p0` 已由启动器清理。
+- P0 对六个 `combat_start` 玩家根及两个生成场景各运行一次 VeryHigh / 每 solver 25,000 节点 / DOP 1 基线；P1 最终源码对同八根各运行一次。六个玩家根的严格恢复、continuation 与原生状态均通过。两轮原始动作及完整证据留在 `.local/strategy-refactor-p0/`；启动器清理无头实例。
 - 基线的战损／用药依次为 #24 0/1、#37 1/0、#79 50/0、#81 31/0、#85 74/0、#89 9/0；生成场景 `GA-IRONCLAD-ELITE-00` 74/1、`GA-SILENT-BOSS-00` 44/0。这是固定短搜口径，不能与历史 180 秒策略成果直接比较。
-- `python tools/StrategyCorpus/test_compare.py` 的 3 个质量与根身份合同通过；对照器读取同一份基线的 8 根均为逐位相同。P0 Release 构建 0 警告、0 错误，Windows 结构门禁通过；Linux 门禁仍待本机提供 `rg` 后执行。尚未运行 P1 后对照。
+- `python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p0/baseline --right .local/strategy-refactor-p0/after --out .local/strategy-refactor-p0/comparison`：#24、#37、#81、#89 与两个生成场景的动作、结果、续用、expanded、transitions、choice branches 及剪枝逐位相同。#79、#85 的 P0 基线分别用时 109,992 和 109,985 毫秒，贴近 110,000 毫秒限时；两根标为不可比较，不将工作量漂移算作纯重构差异。四个有效玩家根已达到最低门槛，备用 #56/#63 未运行。
+- `python tools/StrategyCorpus/test_compare.py` 的分类、根身份、时限合同通过；最终 Release 构建 0 警告、0 错误。Windows/Linux 结构门禁均通过，Linux 侧 `rg` 解包于系统临时目录运行，无系统安装。未做完整自动战斗或大批量回归。
 
 ## 0.47.0 前两回合实验开关（2026-09-27）
 

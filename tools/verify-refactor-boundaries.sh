@@ -11,6 +11,16 @@ done
 for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs; do
     [[ -f "$repository_root/$quality_input" ]] || violations+=("Route quality model missing: $quality_input")
 done
+for quality_contract in \
+    'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
+    'src/Search/CombatSearchCoordinator.cs|RouteQualityProjection.PotionPolicy' \
+    'src/Search/CombatBeamSolver.FinalPlanOrdering.cs|candidate.Quality.StrategicHpDeficit' \
+    'src/Search/CombatBeamSolver.BeamRetentionPolicy.Ranking.cs|RouteQualityProjection.Primary' \
+    'src/Search/CombatBeamSolver.Retention.cs|RouteQualityProjection.RetentionCost'; do
+    relative="${quality_contract%%|*}"
+    marker="${quality_contract#*|}"
+    rg -Fq "$marker" "$repository_root/$relative" || violations+=("Route quality projection missing: $relative")
+done
 
 usage() {
     cat <<'EOF'

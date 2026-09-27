@@ -86,6 +86,9 @@
 | 小改动优化文献、源码切口与独立分配探针 | [精简优化深入研究](performance/surgical-research-20260912.md) |
 | 遗物独立开关、目标范围、血量额度与早停 | [战斗末遗物计数策略](relic-counters.md) |
 | 组件职责、状态所有权和调用链 | [架构与职责地图](ARCHITECTURE.md) |
+| 当前求解与搜索策略的全链路深度分析 | [求解与搜索策略深度分析（2026-09-27 快照）](strategy/solver-search-strategy-analysis-20260927.md) |
+| 后续策略优化方向、建议改动与架构不足 | [策略优化方向与架构不足分析](strategy/strategy-optimization-directions-20260927.md) |
+| 面向搜索层的大重构计划（目标架构、P0–P8、门禁与里程碑） | [策略与搜索大重构计划](refactoring/strategy-refactor-plan-20260927.md) |
 | 当前搜索、卡牌评分、保路剪枝与最终选路 | [搜索逻辑详解（2026-09-12 开发快照）](strategy/search-logic-explained-20260912.md) |
 | 当前 UI 重设计、按钮区整理与 Gemini 建议审计 | [UI 建议复核与重构方案](audits/ui-redesign-gemini-review-20260911.md) |
 | 本批未发布改动、版本演进与开发记录 | [开发笔记](DEVELOPMENT_NOTES.md) |
