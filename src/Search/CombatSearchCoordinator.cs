@@ -891,8 +891,10 @@ internal static partial class CombatSearchCoordinator
         }
         // 一轮完整的深化搜索：主搜索（Smart 时先按无主动用药跑）＋补充审计。抬节点上限重搜时
         // 原样再走一遍，所以抽成一个本地函数；每一轮自带一只秒表，补充审计那边算剩余预算靠它。
-        SearchPassResult RunSearchPass(SolverSearchProfile passProfile, Stopwatch passClock)
+        SearchPassResult RunSearchPass(SearchPassContext passContext)
         {
+            SolverSearchProfile passProfile = passContext.Profile;
+            Stopwatch passClock = passContext.Clock;
             long passAllocatedAtStart = GC.GetTotalAllocatedBytes(precise: false);
             long passTransitionsAtStart = policy.RequestWorkTotals?.Snapshot().TransitionCount ?? 0;
             SearchPolicySnapshot passPolicy = forcedBaselinePolicy;
@@ -1217,9 +1219,7 @@ internal static partial class CombatSearchCoordinator
                 return new(passResult, passTakeover, false);
             if (policy.IncludeTurnSetup)
                 return new(passResult, null, false);
-            SearchPassContext auditContext = new(root, displayNames, battleDamage,
-                policy, passProfile, passClock, ledger, cancellationToken,
-                progressCallback, interimResultCallback);
+            SearchPassContext auditContext = passContext;
             if (passResult.DeterministicBlockPotionInserted)
             {
                 SearchPolicySnapshot potionFreePolicy = beamPolicy with
@@ -1257,16 +1257,16 @@ internal static partial class CombatSearchCoordinator
             return new(passResult, null, false);
         }
 
-        SearchPassResult lastPass = RunSearchPass(profile, requestClock);
+        SearchPassContext requestContext = new(root, displayNames, battleDamage,
+            policy, profile, requestClock, ledger, cancellationToken,
+            progressCallback, interimResultCallback);
+        SearchPassResult lastPass = RunSearchPass(requestContext);
         SolverResult result = lastPass.Result;
         if (lastPass.TakeoverResult != null)
             return lastPass.TakeoverResult;
         // 打到可接受战损就收手那一条和改动之前一样直接返回，连 SEARCH_SESSION 都不打。
         if (lastPass.Settled || policy.FixedBudget)
             return result;
-        SearchPassContext requestContext = new(root, displayNames, battleDamage,
-            policy, profile, requestClock, ledger, cancellationToken,
-            progressCallback, interimResultCallback);
         lastPass = EscalateSearchWhenNoVictory(
             requestContext,
             lastPass,

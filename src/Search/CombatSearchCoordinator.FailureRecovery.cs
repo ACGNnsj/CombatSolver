@@ -38,7 +38,7 @@ internal static partial class CombatSearchCoordinator
     internal static SearchPassResult EscalateSearchWhenNoVictory(
         SearchPassContext context,
         SearchPassResult primary,
-        Func<SolverSearchProfile, Stopwatch, SearchPassResult> runPass,
+        Func<SearchPassContext, SearchPassResult> runPass,
         Func<bool> stopRequested)
     {
         SolverResult selected = primary.Result;
@@ -74,7 +74,11 @@ internal static partial class CombatSearchCoordinator
                 $"remaining_ms={escalated.SoftTimeBudgetMilliseconds} " +
                 $"last_pass_ms={lastPassMilliseconds}");
             Stopwatch passClock = Stopwatch.StartNew();
-            SearchPassResult candidatePass = runPass(escalated, passClock);
+            SearchPassResult candidatePass = runPass(context with
+            {
+                Profile = escalated,
+                Clock = passClock,
+            });
             SolverResult candidate = candidatePass.Result;
             lastPassMilliseconds = passClock.ElapsedMilliseconds;
             if (candidate.ResultScope != SolverResultScope.SearchCompletion)

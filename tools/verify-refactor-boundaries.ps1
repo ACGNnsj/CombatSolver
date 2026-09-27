@@ -60,6 +60,10 @@ if (-not $coordinatorSource.Contains('RunSupplementalAudits(auditContext,')) {
 if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(')) {
     $violations.Add('Search pass does not return its termination state')
 }
+if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(SearchPassContext passContext)') -or
+    -not $coordinatorSource.Contains('RunSearchPass(requestContext)')) {
+    $violations.Add('Primary search pass does not consume the search pass context')
+}
 if (-not $coordinatorSource.Contains('EscalateSearchWhenNoVictory(') -or
     -not $coordinatorSource.Contains('requestContext,')) {
     $violations.Add('No-victory escalation does not consume the search request context')
@@ -67,6 +71,9 @@ if (-not $coordinatorSource.Contains('EscalateSearchWhenNoVictory(') -or
 $failureRecoverySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.FailureRecovery.cs') -Raw
 if (-not $failureRecoverySource.Contains('internal static SearchPassResult EscalateSearchWhenNoVictory(')) {
     $violations.Add('No-victory escalation does not return search pass state')
+}
+if (-not $failureRecoverySource.Contains('Func<SearchPassContext, SearchPassResult> runPass')) {
+    $violations.Add('No-victory escalation does not dispatch a search pass context')
 }
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'

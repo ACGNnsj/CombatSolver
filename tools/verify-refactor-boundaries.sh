@@ -26,11 +26,18 @@ fi
 if ! rg -Fq 'SearchPassResult RunSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search pass does not return its termination state")
 fi
+if ! rg -Fq 'SearchPassResult RunSearchPass(SearchPassContext passContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   ! rg -Fq 'RunSearchPass(requestContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Primary search pass does not consume the search pass context")
+fi
 if ! rg -Fq 'requestContext,' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("No-victory escalation does not consume the search request context")
 fi
 if ! rg -Fq 'internal static SearchPassResult EscalateSearchWhenNoVictory(' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
     violations+=("No-victory escalation does not return search pass state")
+fi
+if ! rg -Fq 'Func<SearchPassContext, SearchPassResult> runPass' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
+    violations+=("No-victory escalation does not dispatch a search pass context")
 fi
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
