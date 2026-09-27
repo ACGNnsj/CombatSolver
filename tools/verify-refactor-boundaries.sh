@@ -22,6 +22,10 @@ if ! rg -Fq 'OpeningActionRegistry.Default' "$repository_root/src/Search/CombatB
    rg -q '"(WHITE_NOISE|NIGHTMARE|DUPLICATOR)"' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
     violations+=("Opening action IDs remain outside the registry")
 fi
+if [[ ! -f "$repository_root/src/Search/TargetPlanRegistry.cs" ]] ||
+   ! rg -Fq 'TargetPlanRegistry.Default' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
+    violations+=("Opening target plans are not registered")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

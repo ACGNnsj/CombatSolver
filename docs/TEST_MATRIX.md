@@ -4,6 +4,7 @@
 
 - 药水成本档位及开局使用类型移至 `PotionValuationRegistry`：`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 返回 `REFACTOR_BOUNDARIES_OK search_files=229`。未运行无头语料；语义逐位对照留到 P4 收口。Linux 门禁按用户要求不运行。
 - 白噪声、夜魇与复制药水的开局身份匹配移至 `OpeningActionRegistry`：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=230`。未运行无头语料；Linux 门禁按用户要求不运行。
+- 开局目标变体与每目标进攻代表移至 `TargetPlanRegistry`：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=231`。原始 3 目标、前 3 次目标动作、最多 2 次改目标以及目标排序保持原值；语料对照尚未运行。Linux 门禁按用户要求不运行。
 
 ## 策略重构 P2 外层补搜迁移（2026-09-28）
 

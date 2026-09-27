@@ -8,6 +8,8 @@
 
 `OpeningActionRegistry` 拥有特殊开局候选的卡牌／药水身份及触发匹配；`CombatBeamSolver.Expansion.Opening` 继续负责模拟事实判断、候选排序与保路。新增特殊开局入口时先登记其身份，不能在开局扩展文件内增加 ID 字面量。
 
+`TargetPlanRegistry` 保存开局集火、前两次改目标的枚举上限及每目标进攻代表排序。求解器提供固定根敌人顺序与前缀可回放检查，登记表只构造候选，不读取真实战斗可变状态。
+
 `RouteQuality` 保存路线比较共用的胜负、生存、战损、成长、药水和回合字段；`RouteQualityPolicy.Compare` 按现有请求、终局与保路投影比较。不同投影保留原有键次序，强制用药等硬准入仍在比较前执行。
 
 `SearchBudgetLedger` 是请求级时钟与工作量账本的所有者；`SearchRequestWorkTotals` 仍独占实际搜索工作量的线程安全累计。主 Pass 的前缀补搜经上下文从账本读取轮次剩余时间和请求剩余节点；迁移期各搜索成员、审计和升级保持既有派发与预算切片顺序，逐入口把剩余量查询移入账本。

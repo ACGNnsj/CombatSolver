@@ -663,17 +663,7 @@ internal sealed partial class CombatBeamSolver
                 }
                 && turn == prefixSnapshot.Turn
                 && node.Snapshot.EnemyHp < prefixSnapshot.EnemyHp));
-            return followUps
-                .GroupBy(node => node.Action!.TargetCombatId!.Value)
-                .Select(group => group
-                    .OrderBy(node => node.Snapshot.AliveEnemyCount)
-                    .ThenBy(node => node.Snapshot.EnemyHp)
-                    .ThenByDescending(node => node.Snapshot.FocusTargetPressure)
-                    .ThenByDescending(node => node.Score)
-                    .First().Action!)
-                .OrderBy(action => action.TargetCombatId)
-                .Take(3)
-                .ToArray();
+            return TargetPlanRegistry.Default.SelectOffensiveFollowUps(followUps);
         }
         finally
         {
@@ -685,74 +675,13 @@ internal sealed partial class CombatBeamSolver
 
     internal IReadOnlyList<PlanAction[]> BuildOpeningFocusedTargetPrefixes(
         IReadOnlyList<PlanAction> opening)
-    {
-        if (!opening.Any(action => action is
-            { Kind: PlanActionKind.PlayCard, TargetCombatId: not null }))
-            return [];
-
-        List<PlanAction[]> focused = [];
-        for (int targetIndex = 0; targetIndex < Math.Min(3, root.Enemies.Count); targetIndex++)
-        {
-            Creature enemy = root.Enemies[targetIndex];
-            PlanAction[] prefix = opening.Select(action => action is
-                { Kind: PlanActionKind.PlayCard, TargetCombatId: not null }
-                    ? action with
-                    {
-                        TargetIndex = targetIndex,
-                        TargetCombatId = enemy.CombatId,
-                        TargetName = displayNames.Creature(enemy),
-                    }
-                    : action).ToArray();
-            if (CanReplayOpeningPrefix(prefix))
-                focused.Add(prefix);
-        }
-        return focused;
-    }
+        => TargetPlanRegistry.Default.BuildFocusedPrefixes(opening, root.Enemies,
+            enemy => displayNames.Creature(enemy), CanReplayOpeningPrefix);
 
     internal IReadOnlyList<PlanAction[]> BuildOpeningLeadingTargetPrefixes(
         IReadOnlyList<PlanAction> opening)
-    {
-        int[] targetedIndices = opening.Select((action, index) => (action, index))
-            .Where(item => item.action is { Kind: PlanActionKind.PlayCard, TargetCombatId: not null })
-            .Take(3).Select(item => item.index).ToArray();
-        if (targetedIndices.Length < 2)
-            return [];
-
-        List<PlanAction[]> variants = [];
-        for (int targetIndex = 0; targetIndex < Math.Min(3, root.Enemies.Count); targetIndex++)
-        {
-            Creature enemy = root.Enemies[targetIndex];
-            for (int count = 1; count <= Math.Min(2, targetedIndices.Length); count++)
-            {
-                PlanAction[] prefix = opening.ToArray();
-                for (int i = 0; i < count; i++)
-                {
-                    int actionIndex = targetedIndices[i];
-                    prefix[actionIndex] = prefix[actionIndex] with
-                    {
-                        TargetIndex = targetIndex,
-                        TargetCombatId = enemy.CombatId,
-                        TargetName = displayNames.Creature(enemy),
-                    };
-                }
-                if (targetedIndices.Take(count).All(index =>
-                        prefix[index].TargetCombatId == opening[index].TargetCombatId))
-                    continue;
-                if (CanReplayOpeningPrefix(prefix))
-                    variants.Add(prefix);
-                if (count == 2 && targetedIndices[1] > targetedIndices[0] + 1)
-                {
-                    List<PlanAction> reordered = prefix.ToList();
-                    PlanAction secondTargeted = reordered[targetedIndices[1]];
-                    reordered.RemoveAt(targetedIndices[1]);
-                    reordered.Insert(targetedIndices[0] + 1, secondTargeted);
-                    if (CanReplayOpeningPrefix(reordered))
-                        variants.Add(reordered.ToArray());
-                }
-            }
-        }
-        return variants;
-    }
+        => TargetPlanRegistry.Default.BuildLeadingPrefixes(opening, root.Enemies,
+            enemy => displayNames.Creature(enemy), CanReplayOpeningPrefix);
 
     internal IReadOnlyList<PlanAction> BuildOpeningOffensiveCardVariantsAfterPrefix(
         IReadOnlyList<PlanAction> prefix)

@@ -55,6 +55,10 @@ if (-not $openingSource.Contains('OpeningActionRegistry.Default') -or
     $openingSource -match '"(?:WHITE_NOISE|NIGHTMARE|DUPLICATOR)"') {
     $violations.Add('Opening action IDs remain outside the registry')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/TargetPlanRegistry.cs') -PathType Leaf) -or
+    -not $openingSource.Contains('TargetPlanRegistry.Default')) {
+    $violations.Add('Opening target plans are not registered')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
