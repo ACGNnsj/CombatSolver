@@ -50,6 +50,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - 强制至少用药审计的首瓶、双药及双药后防御前缀保持原 `RequireAtLeastOne` 和 `primary.PotionCount` 上限，调度基线不重置；审计原序、提前达标与搜索总计由原函数处理。
 - Smart 开局药水前缀保持原键去重、8／12 条限额及按首瓶分类计算的最多用药数；请求显式保留 `ResetFixedPrefixSchedulingBaseline=false`。协调器主文件不再出现直接 `fixedPrefixActions:` 构造。
 - 夜魇前缀保留可选用药诊断和原药水上下界；能力路线成员的进度回调仍将阶段设为“正在深搜能力路线”，成员开始时的工作量、分配和时钟采样均在 `Dispatch` 外侧原位置。
+- 默认关闭的前两回合实验仍以自身时间与追加节点额度形成续搜 profile；前缀经 `DispatchOptional` 运行，不改变侦察、层间交错、排名限额或药水业务失败诊断。协调器各分片均不得直接构造固定前缀求解器。
 - `SearchPassResult` 同时记录所选路线质量与实际最后一轮的范围／边界及请求累计工作量；升级未改善时只把所选路线和质量换回旧值，不能把最后一轮终止原因误写成旧路线的原因。
 - 本地策略脚本由 CheckpointTool 单独编译、Testing 请求宿主加载和卸载；Search 只读冻结的策略接口与分支数值特征，不承担脚本文件读取或程序集加载。无脚本请求保持生产排序及预算路径。
 - 常驻会话的开发监控由 Testing 最多每秒发布一次纯标量快照，独立窗口进程只读会话文件；Search 不引用监控窗口或文件。关闭窗口不取消请求，stop 由工具层按进程身份清理。

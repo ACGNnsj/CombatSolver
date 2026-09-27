@@ -164,6 +164,10 @@ fi
 if rg -Fq 'fixedPrefixActions:' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
     violations+=("Opening power routes construct a fixed-prefix solver outside the scheduler")
 fi
+if rg -Fq 'fixedPrefixActions:' "$repository_root/src/Search/CombatSearchCoordinator.EarlyTurnExploration.cs" ||
+   ! rg -Fq 'ContinuationPurpose.EarlyTurnContinuation' "$repository_root/src/Search/CombatSearchCoordinator.EarlyTurnExploration.cs"; then
+    violations+=("Early-turn experiment bypasses fixed-prefix request dispatch")
+fi
 if ! rg -Fq 'RunNoveltyPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    ! rg -Fq 'SearchPassContext context,' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    rg -Fq 'policy.RequestWorkTotals' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then

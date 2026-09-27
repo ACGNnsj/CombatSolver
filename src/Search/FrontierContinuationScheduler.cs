@@ -32,6 +32,7 @@ internal enum ContinuationPurpose
     SmartOpeningPotionPosterior,
     NightmareCopyPosterior,
     OpeningPowerRouteMember,
+    EarlyTurnContinuation,
 }
 
 internal interface IFrontierContinuationSource

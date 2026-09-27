@@ -210,6 +210,11 @@ if (-not $powerRoutesSource.Contains('RunOpeningNightmarePortfolio(') -or
     $powerRoutesSource.Contains('policy.RequestWorkTotals?.Snapshot()')) {
     $violations.Add('Opening route passes bypass the search pass budget ledger')
 }
+$earlyTurnSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.EarlyTurnExploration.cs') -Raw
+if ($earlyTurnSource.Contains('fixedPrefixActions:') -or
+    -not $earlyTurnSource.Contains('ContinuationPurpose.EarlyTurnContinuation')) {
+    $violations.Add('Early-turn experiment bypasses fixed-prefix request dispatch')
+}
 if (-not $powerRoutesSource.Contains('context.Budget.ProfileWindow(profile)') -or
     $powerRoutesSource.Contains('Math.Min(30_000L, remainingNodes)')) {
     $violations.Add('Nightmare opening member bypasses the profile budget window')

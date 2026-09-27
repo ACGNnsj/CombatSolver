@@ -109,6 +109,7 @@ internal static partial class CombatSearchCoordinator
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 1)),
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 2)),
         ];
+        FrontierContinuationScheduler continuationScheduler = new(context);
         int attempted = 0;
         for (int rank = 0; rank < 24; rank++)
         {
@@ -130,14 +131,13 @@ internal static partial class CombatSearchCoordinator
                         Math.Min(120_000, policy.Profile.MaxExpandedNodes)),
                     SoftTimeBudgetMilliseconds = RemainingMilliseconds() - 5_000,
                 };
-                SolverResult? candidate = SolveOptionalPotionPosterior(
-                    new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                        cancellationToken, progressCallback, continuationProfile,
-                        potionPolicyOverride: usesPotion
-                            ? SolverPotionPolicy.RequireAtLeastOne : null,
-                        fixedPrefixActions: frontier.Actions,
-                        resetFixedPrefixSchedulingBaseline: true),
-                    policy, "EARLY_TURN_CONTINUATION");
+                SolverResult? candidate = continuationScheduler.DispatchOptional(
+                    new ContinuationSearchRequest(context,
+                        ContinuationPurpose.EarlyTurnContinuation,
+                        frontier.Actions, continuationProfile,
+                        usesPotion ? SolverPotionPolicy.RequireAtLeastOne : null,
+                        null, null),
+                    "EARLY_TURN_CONTINUATION");
                 attempted++;
                 if (candidate == null)
                     continue;
