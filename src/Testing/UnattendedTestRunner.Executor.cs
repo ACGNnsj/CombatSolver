@@ -728,6 +728,13 @@ internal sealed partial class UnattendedTestRunner
             if (request.ScenarioId == "PR18-FOREIGN-ONPLAY-BOUNDARY")
                 runner.AssertForeignCardPatchBoundary(combatState);
 
+            if (request.ScenarioId == "OPENING-DISCARD-CHOICE-VALUE")
+            {
+                runner.SetStage("opening_discard_choice_value");
+                await runner.AssertOpeningDiscardChoiceValueAsync(combatState, player);
+                return Observation(combatEnded: false);
+            }
+
             if (request.ScenarioId == "FIXED-PREFIX-TURN-OUTCOMES")
             {
                 runner.SetStage("fixed_prefix_turn_outcomes");

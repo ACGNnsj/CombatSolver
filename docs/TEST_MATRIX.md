@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：开局弃牌选择时点估值（2026-09-27）
+
+- 失败基线来自本机 `MYTES_NORMAL` / `057a700fd80b4a65ac7f8641b4ad2cbf` 第1回合generation15，18:40:19.858智能用药审计的 `OpeningDiscardChoiceCardValue` 抛 `FLICK_FLACK+0 source=Hand action=ACROBATICS`。根牌组没有该牌；同战另一成功候选记录攻击药水生成该牌、临时0费与后续恢复1费，不把它当作失败分支完整回放。
+- 新增 [OPENING-DISCARD-CHOICE-VALUE](../coverage/unattended/opening-discard-choice-value.json)。杂技从抽牌堆抽到两张同名同升级、伤害7／17的临时零费 `FLICK_FLACK` 及升级的中和；逐分支确认弃牌自动打出后旧完整状态键已不在四个牌堆，而估值仍等于选择时的正确物理实例。全部兄弟只建立一份纯值表，命中缓存后伪造状态键或选择上下文继续明确失败。
+- `ea5c7b5bb1b34591b58539e8e9dac298` Passed：真实 `BuildOpeningHandSetupActions` 在DOP1及DOP2配置下成功，DOP1启用增量回放；搜索前后live不变，完成分支Fork状态不变，原生杂技选择和弃牌自动打出结束后完整ContinuationStamp与预测一致。这里的DOP2是入口配置覆盖，不宣称该局部Expand实际双lane并发；没有运行整场搜索质量或性能对照。
+- Windows Release构建0警告0错误、结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`、静态代码审阅及 `git diff --check` 通过。实例使用仓库 `.local/headless-instances/opening-discard-value-1`，已由启动器输出删除成功；证据 `.local/opening-discard-value-20260927/native-1/`。未恢复原玩家战斗、未覆盖所有第三方及嵌套前置选择组合，未启动可见Steam。
+
 ## 下一版本（开发中）：跨回合固定前缀结果完整性（2026-09-27）
 
 - 原始失败证据是旧日雕像50,537展开的持久路线：预测Continuation为T3 HP70→T4 HP61，末态HP43／累计掉血27，但七张逐回合结果表仅有T4–6。UI求和显示18，结束回合保护缺键读0。没有恢复原玩家战斗或取得已经退休的该场完整live日志，不据此宣称另有怪物／药水模拟偏差。
