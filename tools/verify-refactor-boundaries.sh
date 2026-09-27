@@ -11,6 +11,12 @@ done
 for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs; do
     [[ -f "$repository_root/$quality_input" ]] || violations+=("Route quality model missing: $quality_input")
 done
+[[ -f "$repository_root/src/Search/PotionValuationRegistry.cs" ]] || violations+=("Potion valuation registry missing")
+if ! rg -Fq 'PotionValuationRegistry.Default' "$repository_root/src/Search/PotionUsePolicy.cs" ||
+   rg -Fq 'HighValuePotionIds' "$repository_root/src/Search/PotionUsePolicy.cs" ||
+   rg -Fq 'ElevatedValuePotionIds' "$repository_root/src/Search/PotionUsePolicy.cs"; then
+    violations+=("Potion valuation classifications remain outside the registry")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P4 登记表（2026-09-28）
+
+- 药水成本档位及开局使用类型移至 `PotionValuationRegistry`：`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 返回 `REFACTOR_BOUNDARIES_OK search_files=229`。未运行无头语料；语义逐位对照留到 P4 收口。Linux 门禁按用户要求不运行。
+
 ## 策略重构 P2 外层补搜迁移（2026-09-28）
 
 - 强制用药开局、回合边界、零费开局、战斗中精炼、回合末选牌和提前复制补搜已从外层 `Solve` 移至 `PostSearch`，前两回合探索改用 `SearchPassContext`。本边界沿用原调用顺序、预算读取与诊断标签。

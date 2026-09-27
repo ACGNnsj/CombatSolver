@@ -38,6 +38,15 @@ foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPo
         $violations.Add("Route quality model missing: $relative")
     }
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/PotionValuationRegistry.cs') -PathType Leaf)) {
+    $violations.Add('Potion valuation registry missing')
+}
+$potionPolicySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/PotionUsePolicy.cs') -Raw
+if (-not $potionPolicySource.Contains('PotionValuationRegistry.Default') -or
+    $potionPolicySource.Contains('HighValuePotionIds') -or
+    $potionPolicySource.Contains('ElevatedValuePotionIds')) {
+    $violations.Add('Potion valuation classifications remain outside the registry')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
