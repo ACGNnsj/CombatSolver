@@ -7,6 +7,8 @@ internal enum ContinuationPurpose
     EarlyPotionPair,
     EarlierCopyDelayedDamage,
     NoCostOpening,
+    TurnEndChoice,
+    TurnEndChoiceShorterOpening,
 }
 
 internal interface IFrontierContinuationSource

@@ -533,23 +533,20 @@ internal static partial class CombatSearchCoordinator
                     maximumPotionUses: 0);
                 PlanAction[] beforeEndTurn = firstTurn[..^1];
                 string chosenKey = CombatBeamSolver.TurnEndChoiceKey(chosenEndTurn);
-                foreach (PlanAction alternative in choiceBuilder
-                             .BuildTurnEndChoiceActionsAfterPrefix(beforeEndTurn)
-                             .Where(action => CombatBeamSolver.TurnEndChoiceKey(action) != chosenKey)
-                             .Take(2))
+                foreach (ContinuationSearchOutcome outcome in
+                         new FrontierContinuationScheduler(context).Run(
+                             new TurnEndChoiceContinuationSource(
+                                 choiceBuilder, beforeEndTurn, chosenKey),
+                             ContinuationPurpose.TurnEndChoice,
+                             minimumRemainingMilliseconds: 25_000,
+                             maximumNodes: 80_000,
+                             maximumMilliseconds: 20_000,
+                             reserveMilliseconds: 2_000,
+                             potionPolicyOverride: SolverPotionPolicy.Disabled,
+                             potionBounds: () => (0, null)))
                 {
-                    SearchBudgetWindow choiceWindow = ledger.RequestWindow(policy.Profile);
-                    if (!choiceWindow.CanStart(25_000))
-                        break;
-                    SolverSearchProfile choiceProfile = choiceWindow.Limit(policy.Profile,
-                        maximumNodes: 80_000, maximumMilliseconds: 20_000,
-                        reserveMilliseconds: 2_000);
-                    SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                        battleDamage, policy, cancellationToken, progressCallback,
-                        choiceProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                        maximumPotionUses: 0,
-                        fixedPrefixActions: [.. beforeEndTurn, alternative],
-                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                    PlanAction alternative = outcome.Request.Prefix[^1];
+                    SolverResult candidate = outcome.Result;
                     bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
                         && candidate.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
                         && IsBetterPotionPolicyResult(root, policy, candidate, selected);
@@ -585,26 +582,27 @@ internal static partial class CombatSearchCoordinator
                                 == CombatBeamSolver.TurnEndChoiceKey(selectedEndTurn));
                         if (endTurn == null)
                             continue;
-                        SearchBudgetWindow shorterWindow = ledger.RequestWindow(policy.Profile);
-                        if (!shorterWindow.CanStart(25_000))
-                            break;
-                        SolverSearchProfile shorterProfile = shorterWindow.Limit(policy.Profile,
-                            maximumNodes: 80_000, maximumMilliseconds: 20_000,
-                            reserveMilliseconds: 2_000);
-                        SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                            battleDamage, policy, cancellationToken, progressCallback,
-                            shorterProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0,
-                            fixedPrefixActions: [.. shorter, endTurn],
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
-                        bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
-                            && candidate.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
-                            && IsBetterPotionPolicyResult(root, policy, candidate, selected);
-                        policy.Diagnostics.Info($"[CombatSolver/Test] TURN_END_CHOICE_SHORTER_OPENING " +
-                            $"hp_lost={candidate.ProjectedBattleHpLost} " +
-                            $"potions={candidate.PotionCount} selected={improved}");
-                        if (improved)
-                            selected = candidate;
+                        foreach (ContinuationSearchOutcome outcome in
+                                 new FrontierContinuationScheduler(context).Run(
+                                     new SinglePrefixContinuationSource([.. shorter, endTurn]),
+                                     ContinuationPurpose.TurnEndChoiceShorterOpening,
+                                     minimumRemainingMilliseconds: 25_000,
+                                     maximumNodes: 80_000,
+                                     maximumMilliseconds: 20_000,
+                                     reserveMilliseconds: 2_000,
+                                     potionPolicyOverride: SolverPotionPolicy.Disabled,
+                                     potionBounds: () => (0, null)))
+                        {
+                            SolverResult candidate = outcome.Result;
+                            bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
+                                && candidate.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
+                                && IsBetterPotionPolicyResult(root, policy, candidate, selected);
+                            policy.Diagnostics.Info($"[CombatSolver/Test] TURN_END_CHOICE_SHORTER_OPENING " +
+                                $"hp_lost={candidate.ProjectedBattleHpLost} " +
+                                $"potions={candidate.PotionCount} selected={improved}");
+                            if (improved)
+                                selected = candidate;
+                        }
                         break;
                     }
                 }

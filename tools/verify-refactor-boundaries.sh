@@ -26,7 +26,7 @@ for pass_field in 'RouteQuality? Quality' 'SearchRequestWorkSnapshot WorkTotals'
 done
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 [[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
-for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs src/Search/EarlierCopyDelayedDamageContinuationSource.cs src/Search/OpeningNoCostContinuationSource.cs; do
+for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs src/Search/EarlierCopyDelayedDamageContinuationSource.cs src/Search/OpeningNoCostContinuationSource.cs src/Search/TurnEndChoiceContinuationSource.cs src/Search/SinglePrefixContinuationSource.cs; do
     [[ -f "$repository_root/$continuation_input" ]] || violations+=("Frontier continuation component missing: $continuation_input")
 done
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
@@ -69,6 +69,10 @@ fi
 if ! rg -Fq 'OpeningNoCostContinuationSource source = new(context);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'source.DeduplicatePrefixes' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
     violations+=("No-cost opening rescue bypasses source-specific continuation identity")
+fi
+if ! rg -Fq 'new TurnEndChoiceContinuationSource(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'new SinglePrefixContinuationSource(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Turn-end choice posterior bypasses the frontier continuation scheduler")
 fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
