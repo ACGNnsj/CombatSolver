@@ -8,6 +8,7 @@ internal sealed partial class SolverSettingsPanel
     private OptionButton _performancePreset = null!;
     private CheckButton _beamWidthPortfolioEnabled = null!;
     private CheckButton _noveltyPortfolioEnabled = null!;
+    private CheckButton _earlyTurnExplorationEnabled = null!;
     private CheckButton _noGcRegionEnabled = null!;
     private LineEdit _noGcRegionBudget = null!;
     private Label _gcStartupStatus = null!;
@@ -27,6 +28,7 @@ internal sealed partial class SolverSettingsPanel
                     PerformancePreset = SolverPerformancePreset.VeryHigh,
                     UseBeamWidthPortfolio = true,
                     UseNoveltyPortfolio = true,
+                    UseEarlyTurnExploration = true,
                     ShowNoveltyPortfolioHint = false,
                     EnableNoGcRegion = false,
                     NoGcRegionBudgetGigabytes = 8d,
@@ -36,6 +38,7 @@ internal sealed partial class SolverSettingsPanel
                 && SolverSettings.ResolvePerformancePreset(migrated) == SolverPerformancePreset.Medium
                 && migrated.UseBeamWidthPortfolio
                 && migrated.UseNoveltyPortfolio
+                && migrated.UseEarlyTurnExploration
                 && !migrated.ShowNoveltyPortfolioHint
                 && !migrated.EnableNoGcRegion
                 && migrated.NoGcRegionBudgetGigabytes == SolverSettings.DefaultNoGcRegionBudgetGigabytes;
@@ -47,6 +50,7 @@ internal sealed partial class SolverSettingsPanel
                     SearchMaxExpandedNodes = 1_000_001,
                     UseBeamWidthPortfolio = false,
                     UseNoveltyPortfolio = false,
+                    UseEarlyTurnExploration = false,
                     ShowNoveltyPortfolioHint = true,
                     EnableNoGcRegion = false,
                     NoGcRegionBudgetGigabytes = 64d,
@@ -58,6 +62,7 @@ internal sealed partial class SolverSettingsPanel
                 && SolverSettings.ResolvePerformanceValues(refinementMigrated).Profile.MaxExpandedNodes == 1_000_001
                 && !refinementMigrated.UseBeamWidthPortfolio
                 && !refinementMigrated.UseNoveltyPortfolio
+                && !refinementMigrated.UseEarlyTurnExploration
                 && refinementMigrated.ShowNoveltyPortfolioHint
                 && !refinementMigrated.EnableNoGcRegion
                 && refinementMigrated.NoGcRegionBudgetGigabytes == 64d;
@@ -66,10 +71,12 @@ internal sealed partial class SolverSettingsPanel
                 {
                     UseBeamWidthPortfolio = false,
                     UseNoveltyPortfolio = true,
+                    UseEarlyTurnExploration = true,
                     ShowNoveltyPortfolioHint = false,
                 });
             bool postMigrationPreferencePreserved = !currentPreferences.UseBeamWidthPortfolio
                 && currentPreferences.UseNoveltyPortfolio
+                && currentPreferences.UseEarlyTurnExploration
                 && !currentPreferences.ShowNoveltyPortfolioHint;
             string legacyJson =
                 "{\"performanceMigrationVersion\":" +
@@ -79,6 +86,7 @@ internal sealed partial class SolverSettingsPanel
             bool legacyDefaultApplied = legacy.EnableNoGcRegion
                                         && legacy.NoGcRegionBudgetGigabytes == 32d
                                         && !legacy.UseNoveltyPortfolio
+                                        && !legacy.UseEarlyTurnExploration
                                         && legacy.ShowNoveltyPortfolioHint
                                         && legacy.ShowSpeedXWarning;
             SolverSettingsData preset = SolverSettings.ApplyPerformancePreset(
@@ -86,6 +94,7 @@ internal sealed partial class SolverSettingsPanel
                 {
                     UseBeamWidthPortfolio = true,
                     UseNoveltyPortfolio = true,
+                    UseEarlyTurnExploration = true,
                     EnableNoGcRegion = false,
                     NoGcRegionBudgetGigabytes = 64d,
                 },
@@ -100,6 +109,7 @@ internal sealed partial class SolverSettingsPanel
                    && preset.NoGcRegionBudgetGigabytes == 64d
                    && roundTripped.UseBeamWidthPortfolio
                    && roundTripped.UseNoveltyPortfolio
+                   && roundTripped.UseEarlyTurnExploration
                    && !roundTripped.EnableNoGcRegion
                    && roundTripped.NoGcRegionBudgetGigabytes == 64d
                    && CommitPending()
@@ -109,6 +119,8 @@ internal sealed partial class SolverSettingsPanel
                    && _beamWidthPortfolioEnabled.ButtonPressed
                    && SolverSettings.Current.UseNoveltyPortfolio
                    && _noveltyPortfolioEnabled.ButtonPressed
+                   && SolverSettings.Current.UseEarlyTurnExploration
+                   && _earlyTurnExplorationEnabled.ButtonPressed
                    && !SolverSettings.Current.EnableNoGcRegion
                    && SolverSettings.Current.NoGcRegionBudgetGigabytes == 64d
                    && !_noGcRegionBudget.Editable;
@@ -164,6 +176,23 @@ internal sealed partial class SolverSettingsPanel
         };
         AddBasicRow(budgetGrid, SolverText.Get("多策略路线搜索（实验）"), _noveltyPortfolioEnabled,
             SolverText.Get("先用部分预算尝试不同路线，再用剩余预算进行常规搜索，并按当前战损、成长和药水规则选优。可能更快找到好路线，也可能因预算分配而改变结果。与常规搜索共用时间和节点上限；下次搜索生效。"));
+        _earlyTurnExplorationEnabled = CreateToggle();
+        _reloadInputs.Add(data =>
+            _earlyTurnExplorationEnabled.ButtonPressed = data.UseEarlyTurnExploration);
+        _earlyTurnExplorationEnabled.Toggled += enabled =>
+        {
+            if (_loading) return;
+            SolverSettings.Update(SolverSettings.Current with
+            {
+                UseEarlyTurnExploration = enabled,
+            });
+            SetStatus(SolverText.Get(enabled
+                ? "前两回合深入探索已启用，下次搜索生效"
+                : "前两回合深入探索已关闭"), SolverUiTokens.Palette.Success);
+        };
+        AddBasicRow(budgetGrid, SolverText.Get("前两回合深入探索（实验）"),
+            _earlyTurnExplorationEnabled,
+            SolverText.Get("常规搜索后，保留前两回合不同的合法路线并继续搜索完整战斗。最多使用 40 分钟，可随时取消；只采用战损和用药综合结果更好的完整胜利路线。默认关闭，下次搜索生效。"));
         AddBasicRow(
             budgetGrid,
             SolverText.Get("搜索并行度"),
@@ -314,7 +343,10 @@ internal sealed partial class SolverSettingsPanel
         => _performancePage.IsAncestorOf(_beamWidthPortfolioEnabled)
            && _beamWidthPortfolioEnabled.ButtonPressed == SolverSettings.Current.UseBeamWidthPortfolio
            && _performancePage.IsAncestorOf(_noveltyPortfolioEnabled)
-           && _noveltyPortfolioEnabled.ButtonPressed == SolverSettings.Current.UseNoveltyPortfolio;
+           && _noveltyPortfolioEnabled.ButtonPressed == SolverSettings.Current.UseNoveltyPortfolio
+           && _performancePage.IsAncestorOf(_earlyTurnExplorationEnabled)
+           && _earlyTurnExplorationEnabled.ButtonPressed
+               == SolverSettings.Current.UseEarlyTurnExploration;
 
     private void ReloadPerformancePage(SolverSettingsData data)
     {
@@ -322,6 +354,7 @@ internal sealed partial class SolverSettingsPanel
         _performancePreset.Selected = _performancePreset.GetItemIndex((int)preset);
         _beamWidthPortfolioEnabled.ButtonPressed = data.UseBeamWidthPortfolio;
         _noveltyPortfolioEnabled.ButtonPressed = data.UseNoveltyPortfolio;
+        _earlyTurnExplorationEnabled.ButtonPressed = data.UseEarlyTurnExploration;
         bool effectiveNoGc = RuntimeGcProfile.Current.ResolveEnableNoGcRegion(data.EnableNoGcRegion);
         _noGcRegionEnabled.ButtonPressed = effectiveNoGc;
         _noGcRegionBudget.Editable = effectiveNoGc && SearchGcPolicy.NoGcRegionSupported;

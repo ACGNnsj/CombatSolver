@@ -528,6 +528,14 @@ internal static partial class SolverController
             new SearchMemoryPressureSignal())
         {
             Interaction = interaction,
+            EarlyTurnExplorationDepth = UnattendedTestRunner.EarlyTurnExplorationDepth > 0
+                ? UnattendedTestRunner.EarlyTurnExplorationDepth
+                : settings.UseEarlyTurnExploration ? 2 : 0,
+            EarlyTurnExplorationBudgetMilliseconds =
+                UnattendedTestRunner.EarlyTurnExplorationDepth > 0
+                    ? UnattendedTestRunner.EarlyTurnExplorationBudgetMilliseconds
+                    : settings.UseEarlyTurnExploration ? 2_400_000 : 0,
+            DevelopmentStrategy = UnattendedTestRunner.CurrentDevelopmentStrategy,
             UseNoveltyPortfolio = settings.UseNoveltyPortfolio
                 || UnattendedTestRunner.UseNoveltyPortfolioOverride,
             UseBeamWidthPortfolio = settings.UseBeamWidthPortfolio
@@ -2377,6 +2385,12 @@ internal static partial class SolverController
     {
         if (ReferenceEquals(_search, search))
             search.Interaction.PublishProgress(progress);
+    }
+
+    internal static SolverProgress? CaptureDevelopmentMonitorProgress()
+    {
+        SolverSearchSession? search = Volatile.Read(ref _search);
+        return search == null ? null : Volatile.Read(ref search.Interaction.Progress);
     }
 
     private static string DescribeReplanAudit()

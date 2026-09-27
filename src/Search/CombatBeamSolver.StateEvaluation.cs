@@ -582,6 +582,8 @@ internal sealed partial class CombatBeamSolver
             simulator.TerminalStamp)
         {
             DefensiveBlockValue = MeasureDefensiveBlockReserve(combat, player, threat),
+            ExplicitPotionStrategicCost = combat.PotionUses
+                .Where(use => !use.Automatic).Sum(use => use.StrategicHpCost),
             GrowthHpCredit = growthHpCredit,
             RelicCounters = relicCounters,
             GrowthRewards = growthRewards,
