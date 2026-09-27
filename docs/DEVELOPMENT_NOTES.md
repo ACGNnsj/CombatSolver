@@ -1,5 +1,10 @@
 # CombatSolver 开发笔记与未来构想
 
+## 下一版本（开发中）：GetId 缓存与模组注册时序（#141，2026-09-27）
+
+- `ModelDbGetIdCachePatch` 原先在第一次调用时就永久缓存 `ModelDb.GetId(Type)`。RitsuLib 在 `ModelDb.GetEntry` 上用后缀补丁返回 `<MODID>_<类别>_<类名>`，但注册时的冲突检查会在分配前缀之前先按原版默认条目调用一次 `GetId`；缓存住的是无前缀结果，排在本模组之后加载的 RitsuLib 内容模组 ID 全部停在无前缀状态：与原版同类别同名时启动失败，否则本地化键对不上。
+- 原版程序集类型仍从第一次调用起缓存；模组类型要等 RitsuLib 发布 `ModelRegistryInitializedEvent`（`ModelDb.Init` 完成、注册已冻结、动态模型已注入）才进缓存。初始化时注册表已冻结则立即放开。收不到信号时模组类型一直走原方法，只少缓存收益。离线宿主在 `ModelDb.Init` 之后装补丁，直接放开。
+
 ## 0.47.1 回归修复（2026-09-27）
 
 - 0.47.0 的结束回合实机风险上升报告中，`FullAutoStoppedAtLiveRiskWorsening` 在本次查询时有 116 份（0.46.4 为 9 份）；它与只有 3 份的 `RecalculationHpLossIncreased` 是不同信号。高重复的永世沙漏、骑士、骇鳗与棱镜报告均有首回合结束动作，却缺少首回合 `TurnOutcome`，复核把缺失值当作 0 HP。固定前缀现在记录模拟后的实际回合掉血、回血、敌方损血、格挡与剩余能量。构造场景 `FIXED-PREFIX-TURN-LOSS` 通过，永世沙漏同根短搜首回合标注为 14 HP；后者路线及搜索时限与原报告不同，不能把 116 份全称为已复现并修复。

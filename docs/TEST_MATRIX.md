@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## GetId 缓存与模组注册时序（#141，2026-09-27）
+
+- macOS 克隆游戏 + 隔离 HOME + `--force-steam=off`，mod_list 为 RitsuLib → CombatSolver → 探针。探针是最小 RitsuLib 内容模组：一张普通卡，在 `ModelRegistryInitializedEvent` 里打印 `GetId`；另编一个含与原版同名 `Leap` 卡的版本。不装求解器：`CARD.GET_ID_PROBE_CARD_PROBE_UNIQUE`，同名版正常启动；工坊 0.47.0：`CARD.PROBE_UNIQUE`，同名版 `DuplicateModelException` 启动失败；修复版：两种都与不装求解器一致。
+- 控制器会话合同新增：进入战斗时注册表初始化信号已送达，且门控对原版类型始终放行、对模组类型只在信号后放行。该合同需要 Linux/Windows 无头入口，本机未重跑；macOS Release 构建 0 警告、0 错误，结构门禁通过。
+
 ## 0.47.1 紧急回归修复（2026-09-27）
 
 - `FIXED-PREFIX-TURN-LOSS` / `01ed4188c8804eedab36e7658de62a57` Passed：固定前缀先掉血再结束首回合，所选路线该回合标注与模拟累计掉血一致；实例已清理。
