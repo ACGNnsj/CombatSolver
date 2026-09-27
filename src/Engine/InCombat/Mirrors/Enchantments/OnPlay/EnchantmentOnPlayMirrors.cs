@@ -84,11 +84,12 @@ internal static class EnchantmentOnPlayMirrors
             : context.CardPlay.Target is { } selectedTarget ? [selectedTarget] : [];
         foreach (Creature target in targets)
         {
-            effects.ApplyPower(
+            effects.ApplyPowerFromSource(
                 typeof(WeakPower),
                 target,
                 enchantment.DynamicVars.Weak.IntValue,
-                context.PreviewCard.Owner.Creature);
+                context.PreviewCard.Owner.Creature,
+                context.PreviewCard);
         }
     }
 

@@ -20,6 +20,12 @@ namespace CombatSolver;
 
 internal sealed partial class CombatBeamSolver
 {
+    private IEnumerable<SearchNode> ExpandOpeningSeed(SearchNode seed)
+        => seed.IsTerminal || seed.Snapshot.PlayerDead || seed.Snapshot.AllEnemiesDead
+            || seed.Snapshot.BoundaryReason != SearchBoundaryReason.None
+                ? []
+                : Expand(seed);
+
     internal IReadOnlyList<PlanAction> BuildOpeningPowerActions()
         => BuildPowerActionsAfterPrefix([]);
 
@@ -68,7 +74,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Snapshot.Turn == seed.Snapshot.Turn
                     && HasPlayableFetchedPower(node)
@@ -103,7 +109,7 @@ internal sealed partial class CombatBeamSolver
             if (powers.Length == 0)
                 return [];
 
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is { Kind: PlanActionKind.PlayCard }
                     && node.Snapshot.Turn == seed.Snapshot.Turn)
@@ -235,7 +241,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
             SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
             int nextTurnEnergy = Math.Max(0,
@@ -284,7 +290,7 @@ internal sealed partial class CombatBeamSolver
         Dictionary<string, OpeningDiscardChoiceValues> discardValues = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
                     && (node.Action.Choice?.Effect is PlanChoiceEffect.Discard
@@ -324,7 +330,7 @@ internal sealed partial class CombatBeamSolver
             Dictionary<string, int> beforeCounts = beforePlayer.Hand.Cards
                 .GroupBy(CardChoiceSupport.ChoiceCardKey)
                 .ToDictionary(group => group.Key, group => group.Count());
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is
                     { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
@@ -466,7 +472,7 @@ internal sealed partial class CombatBeamSolver
         try
         {
             SearchNode seed = CreateOpeningSearchSeed(rootSnapshot);
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action?.Kind == PlanActionKind.UsePotion)
                 .OrderByDescending(node => node.Score)
@@ -559,7 +565,7 @@ internal sealed partial class CombatBeamSolver
                 .GroupBy(card => card.Preview.Id.Entry)
                 .ToDictionary(group => group.Key, group => group.First().Preview.Type);
             SearchNode seed = CreateOpeningSearchSeed(rootSnapshot);
-            children.AddRange(Expand(seed).Where(node =>
+            children.AddRange(ExpandOpeningSeed(seed).Where(node =>
                 node.Action is { Kind: PlanActionKind.PlayCard, Turn: var turn }
                 && turn == rootSnapshot.Turn));
             return children
@@ -657,6 +663,10 @@ internal sealed partial class CombatBeamSolver
     }
 
     private SearchNode CreateOpeningFollowUpSeed(IReadOnlyList<PlanAction> prefix, SearchRouteTraits traits = SearchRouteTraits.Scaling)
+        => TryCreateOpeningFollowUpSeed(prefix, traits)
+            ?? throw new InvalidOperationException("Opening follow-up prefix is no longer applicable.");
+
+    private SearchNode? TryCreateOpeningFollowUpSeed(IReadOnlyList<PlanAction> prefix, SearchRouteTraits traits = SearchRouteTraits.Scaling)
     {
         SimulationSnapshot snapshot = Replay([]);
         SearchNode seed = new(null, 0, snapshot.PotionUseCount, snapshot.PotionStrategicCost,
@@ -664,19 +674,28 @@ internal sealed partial class CombatBeamSolver
             snapshot.HasRisk, snapshot.BoundaryReason, false, null, snapshot, CombatProgressState.Capture(snapshot));
         // Build the actual parent chain, so replay verification and descendant actions
         // include the resource/potion/setup cards that produced this state.
-        return ApplyFixedPrefix(seed, prefix)
-            ?? throw new InvalidOperationException("Opening follow-up prefix is no longer applicable.");
+        return ApplyFixedPrefix(seed, prefix);
     }
 
     internal bool CanReplayOpeningPrefix(IReadOnlyList<PlanAction> prefix)
     {
+        if (prefix.Any(action => action.EndsPlayerTurn))
+            return false;
         IReadOnlyList<SimulationSnapshot> roots = _includeTurnSetup
             ? BuildTurnSetupRoots().Select(candidate => candidate.Snapshot).ToArray()
             : [Replay([])];
         bool applicable = false;
         foreach (SimulationSnapshot snapshot in roots)
         {
-            SearchNode? applied = ApplyFixedPrefix(CreateOpeningSearchSeed(snapshot), prefix);
+            SearchNode? applied;
+            try
+            {
+                applied = ApplyFixedPrefix(CreateOpeningSearchSeed(snapshot), prefix);
+            }
+            catch (InvalidPlannedChoiceBranchException)
+            {
+                continue;
+            }
             if (applied == null)
                 continue;
             applicable = true;
@@ -693,7 +712,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> followUps = [];
         try
         {
-            followUps.AddRange(Expand(seed).Where(node =>
+            followUps.AddRange(ExpandOpeningSeed(seed).Where(node =>
                 node.Action is
                 {
                     Kind: PlanActionKind.PlayCard,
@@ -800,7 +819,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
                     && node.Snapshot.Turn == seed.Snapshot.Turn
@@ -830,7 +849,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is
                 {
@@ -858,11 +877,13 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildTurnEndChoiceActionsAfterPrefix(
         IReadOnlyList<PlanAction> prefix)
     {
-        SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
+        SearchNode? seed = TryCreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
+        if (seed == null)
+            return [];
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(Expand(seed));
+            children.AddRange(ExpandOpeningSeed(seed));
             return children
                 .Where(node => node.Action is
                 {
@@ -899,7 +920,7 @@ internal sealed partial class CombatBeamSolver
                 List<SearchNode> next = [];
                 foreach (SearchNode parent in frontier)
                 {
-                    List<SearchNode> children = Expand(parent).ToList();
+                    List<SearchNode> children = ExpandOpeningSeed(parent).ToList();
                     allNodes.AddRange(children);
                     next.AddRange(children.Where(node => node.Action is
                         { Kind: PlanActionKind.PlayCard }
@@ -937,7 +958,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> followUps = [];
         try
         {
-            followUps.AddRange(Expand(seed).Where(node =>
+            followUps.AddRange(ExpandOpeningSeed(seed).Where(node =>
                 node.Action is { Kind: PlanActionKind.PlayCard, Turn: var turn }
                 && turn == prefixSnapshot.Turn));
             return followUps
@@ -964,7 +985,7 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> followUps = [];
         try
         {
-            followUps.AddRange(Expand(seed).Where(node =>
+            followUps.AddRange(ExpandOpeningSeed(seed).Where(node =>
                 node.Action is { Kind: PlanActionKind.PlayCard, Turn: var turn }
                 && turn == prefixSnapshot.Turn));
             IReadOnlyList<PredictedCard> hand = ((CombatPredictionSimulator)prefixSnapshot.Simulator)

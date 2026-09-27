@@ -11,6 +11,56 @@ namespace CombatSolver;
 
 internal sealed partial class UnattendedTestRunner
 {
+    private async Task AssertLampInkyShivAsync(CombatState combat, Player player)
+    {
+        foreach (var relic in player.Relics.ToArray()) await RelicCmd.Remove(relic);
+        foreach (var power in combat.Creatures.SelectMany(creature => creature.Powers).ToArray())
+            await PowerCmd.Remove(power);
+        player.AddRelicInternal(ModelDb.Relic<UnsettlingLamp>().ToMutable());
+        await CreatureCmd.SetCurrentHp(combat.Enemies[0], 100);
+        await ClearPlayerPilesAsync(player);
+        await InjectCardAsync(combat, player, new UnattendedCardInjection
+        {
+            CardId = "BLADE_OF_INK",
+            Pile = "Hand",
+        });
+        SetEnergy(player, 3);
+
+        CombatRootSnapshot root = CombatRootSnapshot.Capture(combat);
+        CombatBeamSolver driver = new(root, SolverDisplayNames.Capture(combat),
+            BattleDamageTracker.Observe(combat),
+            SolverController.CaptureSearchPolicy(SolverSettings.Capture(), combat, false, null));
+        PlanAction[] actions =
+        [
+            new(PlanActionKind.PlayCard, root.StartTurnNumber, CardId: "BLADE_OF_INK"),
+            new(PlanActionKind.PlayCard, root.StartTurnNumber, CardId: "SHIV",
+                TargetCombatId: combat.Enemies[0].CombatId),
+        ];
+        for (int count = 1; count <= actions.Length; count++)
+        {
+            SimulationSnapshot prediction = InvokeForcedTerminalReplay(driver,
+                actions[..count], null, 0, null);
+            try
+            {
+                var card = FindActualHandCard(player, actions[count - 1].CardId, 0);
+                if (!card.TryManualPlay(count == 1 ? null : combat.Enemies[0]))
+                    throw new InvalidOperationException("Inky Shiv native play failed.");
+                await RunManager.Instance.ActionExecutor.FinishedExecutingActions();
+                ContinuationStamp expected = ContinuationStamp.CapturePredicted(player,
+                    prediction.Simulator, root.StartTurnNumber, root.Forecast, root.StartTurnNumber);
+                ContinuationStamp actual = ContinuationStamp.CaptureLive(combat);
+                if (expected.StateText != actual.StateText)
+                    throw new InvalidOperationException("Inky Shiv mismatch: "
+                        + string.Join("; ", expected.DescribeDifferences(actual)));
+            }
+            finally
+            {
+                prediction.ReleaseSimulator();
+            }
+        }
+        _completedChecks.Add("LampInkyShiv:ExplicitCardSource:WeakAndLamp:FullContinuationState");
+    }
+
     private async Task AssertLampIndirectPoisonAsync(CombatState combat, Player player)
     {
         foreach (string sourcePower in _request.ScenarioId == "LAMP-INDIRECT-TEMPORARY-STRENGTH"

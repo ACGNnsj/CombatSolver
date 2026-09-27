@@ -1,5 +1,13 @@
 # CombatSolver 测试清单
 
+## PR #143 合并上游 0.47.1（2026-09-27）
+
+- 合并基线为上游 `7d9b4bed`，包含 `a59d319d`。手工解决 Opening、Phases 和两份记录文档冲突，保留上游终局／边界候选门禁、前缀异常清理及准备阶段整体补充审计旁路，同时保留本分支选择时点估值、终局前缀统计和七表／缓存校验。代码审阅未发现阻断问题。
+- 合并后Windows Release构建0警告0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，冲突标记与未合并索引清除，`git diff --check` 通过。
+- 原生六场最小集在第一场启动前因实机游戏进程仍运行而被启动器的未知游戏进程门禁排队，120秒准入超时；未启动无头游戏，不计行为失败或通过，也未关闭实机游戏、绕过门禁或扩大超时。自有实例 `pr143-merge-20260927` 由清理入口输出 `UNATTENDED_INSTANCE_REMOVED`。证据 `.local/pr143-merge-20260927/prefix-launcher.log` 与 `cleanup.log`；以下此前原生测试均为合并前证据。
+- 改用不启动Godot的离线Coordinator／Smart哨兵：故障机器人精英、Low、Beam24、每成员2000节点、DOP1、20秒，完成10000总展开／40482转移、10 HP／0药。与此前同根结果106项非时间字段、完整动作路线、根／续用状态和策略配置一致，均未触发时间边界。证据 `.local/pr143-merge-20260927/offline/defect/` 与 `offline-comparison.json`；只证明该离线根，不替代原生整合或可见性能验收。
+- 准备根合并后遵循上游提前返回，不再要求出现此前的Smart补充梯度日志；原始六场集保存在本地运行脚本。未执行合并后的原生六场、Linux或可见Steam验收，没有性能结论。
+
 ## 下一版本（开发中）：开局弃牌选择时点估值（2026-09-27）
 
 - 失败基线来自本机 `MYTES_NORMAL` / `057a700fd80b4a65ac7f8641b4ad2cbf` 第1回合generation15，18:40:19.858智能用药审计的 `OpeningDiscardChoiceCardValue` 抛 `FLICK_FLACK+0 source=Hand action=ACROBATICS`。根牌组没有该牌；同战另一成功候选记录攻击药水生成该牌、临时0费与后续恢复1费，不把它当作失败分支完整回放。
@@ -25,6 +33,15 @@
 - 首次启动在游戏请求提交前因无默认离线 `settings.save` 失败，未计行为验证；只向新建的自有隔离实例复制当前Steam设置作为模板后继续，未修改实机配置或存档。首次失败和两次完成均由启动器输出 `UNATTENDED_INSTANCE_REMOVED` 删除整个实例；所有实例位于仓库 `.local/headless-instances/`。
 - 普通 Play 根哨兵复用本轮修改前保存的故障机器人精英 Coordinator / Smart 输入与政策：Low、Beam24、2,000节点、DOP1、20秒。修复后总展开10,000、转移40,482、10 HP／0药，与基线106项非时间对照、完整 `route.json`（包括选择）、根续用文本、后续续用及策略文件相同，均无时间截断。该对照仅证明此根的原路径保持，不宣称准备根的搜索质量不变或性能改善。证据 `.local/turn-setup-fixed-prefix-20260927/play-sentinel-comparison.json`。
 - Windows Release 构建0警告、0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，代码审阅通过。未运行Linux、完整自动部署或可见游戏验收；实机由用户验证。
+
+## 0.47.1 紧急回归修复（2026-09-27）
+
+- `FIXED-PREFIX-TURN-LOSS` / `01ed4188c8804eedab36e7658de62a57` Passed：固定前缀先掉血再结束首回合，所选路线该回合标注与模拟累计掉血一致；实例已清理。
+- 永世沙漏报告 `dfcce7302842419987d9039968a76412` / `607138e217574725855adbb6d83b925e`：`start` 严格恢复与 SearchOnly 通过，120 秒上限内实际搜索约 83 秒，所选路线首回合标注 14 HP。原报告是 0→25 HP 的复核暂停；本次路线与搜索上限不同，只验证缺失标注已出现，不称为原路线逐位复现。实例已清理。
+- 无厌沙虫报告 `fbb5f72709ba412890063c7df907785d` / `d83be75b0e104d00882b08903058bd9b`：`combat_start` 严格恢复与 15 秒 SearchOnly 通过；准备选牌场景 `NOVELTY-TURN-SETUP-CHOICE-0400` / `2c288a63cd634a6693f50850b456f998` Passed。两实例已清理。
+- 蜂群术士报告 `932f3cf624854741a4e5dddd3cb7cdc8` / `4967277af82843dfb28423777c048ec0`：`start` 严格恢复与 15 秒 SearchOnly 通过；此前开局选牌前缀在候选审计中失败。实例已清理。
+- `LAMP-INKY-SHIV` / `0acb7fded0ba419eab9b2f64a63eec5f` Passed：墨刃生成的小刀触发不安油灯，逐动作完整续用状态与实机一致；实例已清理。
+- 未运行 Linux 门禁；尚未验证所有上报的结束回合复核、选牌及计算失败根因。
 
 ## 0.47.0 前两回合实验开关（2026-09-27）
 

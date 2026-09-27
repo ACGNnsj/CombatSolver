@@ -153,8 +153,13 @@ internal static partial class CombatSearchCoordinator
                 interaction == null ? null : PublishAdoptableResult,
                 firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            if (policy.IncludeTurnSetup)
+            {
+                PopulateRequestWorkTotals(selected, requestWorkTotals);
+                selected.PortfolioTelemetry = portfolioTelemetry;
+                return selected;
+            }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
@@ -210,7 +215,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && policy.PotionStrategy.HasForcedDirectives
@@ -376,7 +380,6 @@ internal static partial class CombatSearchCoordinator
                 && selected.ExplicitPotionCount == 0
                 && selected.ProjectedBattleHpLost is > 0 and <= SolverWeights.PotionMinimumHpSaved;
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && (rescueAfterDeath || refineNearZeroLoss))
@@ -506,7 +509,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -552,7 +554,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -656,7 +657,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -764,7 +764,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -989,6 +988,9 @@ internal static partial class CombatSearchCoordinator
                     ? policy : policy with { NoveltySearch = null };
                 passResult = RunPrimary();
             }
+            // Opening posteriors require a resolved hand; turn setup still owns its native choice.
+            if (!policy.IncludeTurnSetup)
+            {
             if (passResult.ResultScope == SolverResultScope.SearchCompletion)
             {
                 passResult = RunOpeningPowerRoutePortfolio(
@@ -1003,7 +1005,6 @@ internal static partial class CombatSearchCoordinator
                     passResult);
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1051,7 +1052,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && root.Enemies.Count > 1
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
                 && initialPotionPolicyOverride == SolverPotionPolicy.Disabled)
@@ -1147,7 +1147,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1190,7 +1189,6 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
-                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1233,6 +1231,7 @@ internal static partial class CombatSearchCoordinator
                     }
                 }
             }
+            }
             NoveltyPortfolioTelemetry? noveltyPass = passResult.NoveltyPortfolio;
             ObserveSmartLayerMemory(
                 policy, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
@@ -1249,6 +1248,8 @@ internal static partial class CombatSearchCoordinator
                 takeoverResult = passTakeover;
                 return passResult;
             }
+            if (policy.IncludeTurnSetup)
+                return passResult;
             if (passResult.DeterministicBlockPotionInserted)
             {
                 SearchPolicySnapshot potionFreePolicy = beamPolicy with

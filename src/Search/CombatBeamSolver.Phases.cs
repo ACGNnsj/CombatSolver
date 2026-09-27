@@ -2247,78 +2247,86 @@ internal sealed partial class CombatBeamSolver
         bool resetSchedulingBaseline = false)
     {
         SearchNode node = seed;
-        foreach (PlanAction action in prefix)
+        try
         {
-            if (action.EndsPlayerTurn
-                || action.Turn != node.Turn)
+            foreach (PlanAction action in prefix)
             {
-                throw new InvalidOperationException(
-                    $"固定搜索前缀动作无效：kind={action.Kind} actionTurn={action.Turn} " +
-                    $"nodeTurn={node.Turn} endsPlayerTurn={action.EndsPlayerTurn} " +
-                    $"card={(string.IsNullOrEmpty(action.CardId) ? "-" : action.CardId)} " +
-                    $"potion={(string.IsNullOrEmpty(action.PotionId) ? "-" : action.PotionId)}。");
-            }
+                if (action.EndsPlayerTurn || action.Turn != node.Turn)
+                {
+                    throw new InvalidOperationException(
+                        $"固定搜索前缀动作无效：kind={action.Kind} actionTurn={action.Turn} " +
+                        $"nodeTurn={node.Turn} endsPlayerTurn={action.EndsPlayerTurn} " +
+                        $"card={(string.IsNullOrEmpty(action.CardId) ? "-" : action.CardId)} " +
+                        $"potion={(string.IsNullOrEmpty(action.PotionId) ? "-" : action.PotionId)}。");
+                }
 
-            if (!CanApplyFixedPrefixAction(node, action))
-            {
-                node.Snapshot.ReleaseSimulator();
-                return null;
-            }
+                if (!CanApplyFixedPrefixAction(node, action))
+                {
+                    node.Snapshot.ReleaseSimulator();
+                    return null;
+                }
 
-            SimulationSnapshot snapshot = Replay(
-                [action],
-                node.Snapshot,
-                node.Turn,
-                node.ActionCount);
-            bool terminal = snapshot.PlayerDead
-                || snapshot.AllEnemiesDead
-                || snapshot.BoundaryReason != SearchBoundaryReason.None;
-            SearchRouteTraits traits = action.Kind == PlanActionKind.UsePotion
-                ? ClassifyPotionTraits(node.Traits, node.Snapshot, snapshot)
-                : node.Traits;
-            node = new SearchNode(
-                action,
-                node.ActionCount + 1,
-                snapshot.PotionUseCount,
-                snapshot.PotionStrategicCost,
-                snapshot.Turn,
-                traits,
-                node.FutureSoldHp,
-                ApplySoldHpPenalty(snapshot.Score, node.FutureSoldHp),
-                snapshot.StateKey,
-                snapshot.HasRisk,
-                snapshot.BoundaryReason,
-                terminal,
-                node,
-                snapshot,
-                node.CombatProgress)
-            {
-                CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, snapshot),
-            };
-            node = AttachOrderedMutationLineage(node);
-            if (terminal || node.Turn > node.Parent!.Turn)
-            {
-                // Fixed prefixes have no sibling alternatives for comparative HP investment or block.
-                node = node with { Outcome = CreateUncomparedTurnOutcome(node) };
+                SimulationSnapshot snapshot = Replay(
+                    [action],
+                    node.Snapshot,
+                    node.Turn,
+                    node.ActionCount);
+                bool terminal = snapshot.PlayerDead
+                    || snapshot.AllEnemiesDead
+                    || snapshot.BoundaryReason != SearchBoundaryReason.None;
+                SearchRouteTraits traits = action.Kind == PlanActionKind.UsePotion
+                    ? ClassifyPotionTraits(node.Traits, node.Snapshot, snapshot)
+                    : node.Traits;
+                int cumulativeEnemyHpLost = AccumulateEnemyHpLost(node, snapshot);
+                node = new SearchNode(
+                    action,
+                    node.ActionCount + 1,
+                    snapshot.PotionUseCount,
+                    snapshot.PotionStrategicCost,
+                    snapshot.Turn,
+                    traits,
+                    node.FutureSoldHp,
+                    ApplySoldHpPenalty(snapshot.Score, node.FutureSoldHp),
+                    snapshot.StateKey,
+                    snapshot.HasRisk,
+                    snapshot.BoundaryReason,
+                    terminal,
+                    node,
+                    snapshot,
+                    node.CombatProgress)
+                {
+                    CumulativeEnemyHpLost = cumulativeEnemyHpLost,
+                };
+                node = AttachOrderedMutationLineage(node);
+                if (terminal || node.Turn > node.Parent!.Turn)
+                {
+                    // Fixed prefixes have no sibling alternatives for comparative HP investment or block.
+                    node = node with { Outcome = CreateUncomparedTurnOutcome(node) };
+                }
+                node.Parent!.Snapshot.ReleaseSimulator();
             }
-            node.Parent!.Snapshot.ReleaseSimulator();
+            if (resetSchedulingBaseline && prefix.Count > 0)
+            {
+                // 固定前缀模拟的是“玩家已经完成这些动作后重新计算”。后续搜索必须以此刻真实状态
+                // 重新建立进展基线；沿用前缀之前的最低/最高值会让同一局面区别于手动动作后的新根。
+                node = node with
+                {
+                    CombatProgress = CombatProgressState.Capture(node.Snapshot),
+                    Cycle = null,
+                };
+                node.PowerCommitment = null;
+                node.OrderedMutationLineage = null;
+                node.OrderedMutationBoundaryLineage = null;
+                node.OrderedMutationRetentionLease = null;
+                node.OrderedMutationActivationTicket = null;
+            }
+            return node;
         }
-        if (resetSchedulingBaseline && prefix.Count > 0)
+        catch
         {
-            // 固定前缀模拟的是“玩家已经完成这些动作后重新计算”。后续搜索必须以此刻真实状态
-            // 重新建立进展基线；沿用前缀之前的最低/最高值会让同一局面区别于手动动作后的新根。
-            node = node with
-            {
-                CombatProgress = CombatProgressState.Capture(node.Snapshot),
-                Cycle = null,
-            };
-            node.PowerCommitment = null;
-            node.OrderedMutationLineage = null;
-            node.OrderedMutationBoundaryLineage = null;
-            node.OrderedMutationRetentionLease = null;
-            node.OrderedMutationActivationTicket = null;
+            node.Snapshot.ReleaseSimulator();
+            throw;
         }
-        return node;
     }
 
     private bool CanApplyFixedPrefixAction(SearchNode node, PlanAction action)

@@ -22,7 +22,7 @@
 
 遗物目标包含优先级，达标优先值用于原 HP 轴之后的路线比较，掩码仍负责 Pareto 和早停。MeatOnTheBone 使用一个半血布尔目标；完整获胜且用户启用时，StateEvaluation 仅补入 HealFor 与 MonotoneHealFor 的差值，沿首领战略价值折算，不在模拟器重复治疗。
 
-开局后续动作探针通过 `ApplyFixedPrefix(seed, prefix)` 构造真实父链，保留前置资源/药水/准备动作的动作数与状态；不得用已经回放前缀的快照伪装成 action_count=0 的根。
+开局后续动作探针通过 `ApplyFixedPrefix(seed, prefix)` 构造真实父链，保留前置资源/药水/准备动作的动作数与状态；不得用已经回放前缀的快照伪装成 action_count=0 的根。固定前缀中的 `EndTurn` 必须从模拟前后状态写入 `TurnOutcome`，供逐回合战损展示与实机结束回合复核使用；缺失标注不能解释为零战损。回合准备的原生选择尚未结束时，搜索只运行可复用该选择根的主搜索成员。
 
 `SolverSettings` 将四档或自定义配置解析为一个 `Profile`，主线程冻结到 `SearchPolicySnapshot`。`CombatSearchCoordinator` 的主搜索、药水审计与恢复使用同一套预算维度；`FixedBudget` 只限制无胜利后的预算扩展，测试/API 可显式覆盖时间。Search 不再包含 Short/Deep 配置、枚举、检查点或分段累计统计；两端结构门禁禁止这些符号回流。`SearchRequestWorkTotals` 按请求累计唯一 elapsed 和工作计数。
 
@@ -174,7 +174,7 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 
 `BeamWidthPortfolioGate.cs` 只管理普通精炼成员；基线必须已经搜干净、不是零损最优，且节点、时间和内存估算都有余量才运行。`PowerCommitmentPortfolioGate.cs` 只检查根牌区是否有已登记能力，不再用累计分配量拒绝整条能力成员；能力成员至少取得五分之一节点预留和最多30秒的时间预留。成员开始前若连256 MiB单次提交都容不下，Coordinator 在已排空边界调用 Runtime 注入的回收信号，后续硬内存安全仍由搜索波次预约和检查点负责。`BeamWidthPortfolioTelemetry.cs` 记录首条路线、普通/能力成员、逐能力固定前缀成员及托管堆峰值。
 
-只携带 `PlanAction`、未保留来源准备选择的可选固定前缀成员要求 `IncludeTurnSetup=false`。协调器在准备根旁路这些开局、换序、跨回合和前两回合追加成员，保留基础 Beam／新颖性、无前缀药水梯度与审计；格挡药插入沿原路线携带准备选择，继续运行。该边界不取消普通搜索中的准备选择枚举，不放宽固定前缀的逐实例合法性检查，也不吞掉模拟异常。
+只携带 `PlanAction`、未保留来源准备选择的可选固定前缀成员要求 `IncludeTurnSetup=false`。准备阶段沿用 0.47.1 的协调器提前返回边界：主搜索与宽度／新颖性成员仍使用准备选择根，完成后不进入补充药水审计或开局、换序、跨回合及前两回合追加成员。格挡药插入位于单次求解内部并沿原路线携带准备选择，继续运行。该边界不取消主搜索中的准备选择枚举，不放宽固定前缀的逐实例合法性检查，也不吞掉模拟异常。
 
 `CombatSearchCoordinator.PowerRoutes.cs` 在主搜索后、可接受战损提前返回之前，为当前可打的每张已登记能力运行固定前缀完整搜索，并有限补充双能力前缀。前缀结束后重建 `CombatProgressState`、清除临时承诺与有序变异调度元数据，后续按普通 Beam 搜索；能力已经真实在场，不继续套激进承诺。最多三个前缀时分别运行普通宽度、1.5倍宽度、次排名段和基础分四种后验，更多前缀时运行普通与宽 Beam。所有成员只以完整终局和既有战损政策选优。
 
