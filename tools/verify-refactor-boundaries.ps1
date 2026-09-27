@@ -59,6 +59,17 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/TargetPl
     -not $openingSource.Contains('TargetPlanRegistry.Default')) {
     $violations.Add('Opening target plans are not registered')
 }
+$strategyIdLiteralCount = 0
+foreach ($sourceFile in Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 'src/Search') -Filter '*.cs' -Recurse) {
+    if ($sourceFile.Name -in @('PotionValuationRegistry.cs', 'OpeningActionRegistry.cs', 'TargetPlanRegistry.cs')) {
+        continue
+    }
+    $strategyIdLiteralCount += [regex]::Matches(
+        [System.IO.File]::ReadAllText($sourceFile.FullName), '"[A-Z][A-Z0-9_]{4,}"').Count
+}
+if ($strategyIdLiteralCount -gt 645) {
+    $violations.Add("Search strategy ID literals increased: $strategyIdLiteralCount > 645")
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }

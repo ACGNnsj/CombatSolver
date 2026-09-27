@@ -26,6 +26,14 @@ if [[ ! -f "$repository_root/src/Search/TargetPlanRegistry.cs" ]] ||
    ! rg -Fq 'TargetPlanRegistry.Default' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
     violations+=("Opening target plans are not registered")
 fi
+strategy_id_literal_count=$(rg -o --no-filename '"[A-Z][A-Z0-9_]{4,}"' "$repository_root/src/Search" \
+    --glob '*.cs' \
+    --glob '!PotionValuationRegistry.cs' \
+    --glob '!OpeningActionRegistry.cs' \
+    --glob '!TargetPlanRegistry.cs' | wc -l)
+if (( strategy_id_literal_count > 645 )); then
+    violations+=("Search strategy ID literals increased: $strategy_id_literal_count > 645")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then
