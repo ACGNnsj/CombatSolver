@@ -109,6 +109,7 @@ internal sealed class UnattendedTestRequest
     public bool MeasureSearchPhases { get; init; }
     public bool HoldAfterInitialSearch { get; init; }
     public int? SearchBudgetOverrideMilliseconds { get; init; }
+    public int? EarlyTurnExplorationDepthForTest { get; init; }
     [System.Text.Json.Serialization.JsonPropertyName("shortSearchBudgetOverrideMilliseconds")]
     public int? LegacyShortSearchBudgetMilliseconds { get; init; }
     [System.Text.Json.Serialization.JsonPropertyName("deepSearchBudgetOverrideMilliseconds")]

@@ -1415,7 +1415,9 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        int reservedTurnLayers = root.EncounterRoomType == RoomType.Boss
+        int reservedTurnLayers = _earlyTurnScoutDepth > 0
+            ? _earlyTurnScoutDepth
+            : root.EncounterRoomType == RoomType.Boss
                 ? SolverWeights.BossEnemyStrengthSuppressionHorizon
                 : SolverWeights.StandardEnemyStrengthSuppressionHorizon;
 
@@ -1465,6 +1467,7 @@ internal sealed partial class CombatBeamSolver
         }
 
         while (frontier.Count > 0
+            && (_earlyTurnScoutDepth == 0 || searchedTurnLayers < _earlyTurnScoutDepth)
             && (!policy.VerifyIncrementalSearch
                 || searchedTurnLayers < SolverWeights.IncrementalVerificationMaxTurns)
             && _run.Expanded < _profile.MaxExpandedNodes
@@ -2030,6 +2033,12 @@ internal sealed partial class CombatBeamSolver
             List<SearchNode> unannotatedEnded = ended;
             ended = AnnotateTurnOutcomes(unannotatedEnded);
             ReleaseDroppedSnapshots(unannotatedEnded, ended);
+            if (_earlyTurnScoutObserver != null
+                && searchedTurnLayers < _earlyTurnScoutDepth)
+            {
+                _earlyTurnScoutObserver(searchedTurnLayers + 1,
+                    SelectEarlyTurnFrontier(ended, searchedTurnLayers + 1));
+            }
 
             List<SearchNode> completedCandidates =
                 [.. completed, .. ended.Where(node => node.IsTerminal)];
@@ -2193,31 +2202,36 @@ internal sealed partial class CombatBeamSolver
         }
         List<SearchNode> finalCandidates = Retention.RankFinal(finalPool);
         ReleaseDroppedSnapshots(finalPool, finalCandidates);
-        ValidateHistoricalSimulatorsReleased(finalCandidates);
-        PublishProgress(_startTurnNumber + searchedTurnLayers, searchedTurnLayers, 0,
-            finalCandidates.Count, completed.Count, "复核最终候选", force: true);
-        List<(SearchNode Node, SimulationSnapshot Snapshot)> evaluated = finalCandidates
-            .Select(node => (Node: node, Snapshot: node.Snapshot))
-            .ToList();
-        bool onlyDeathRoutesFound = evaluated.All(candidate =>
-            candidate.Snapshot.PlayerDead || candidate.Snapshot.ProjectedPlayerHp <= 0);
-        _run.ReusedNodeSnapshots += evaluated.Count;
-        FinalPlanSelection ordering = FinalOrdering.Select(
-            evaluated,
-            initialHp,
-            emitDiagnostics: true);
-        SolverResult result = MaterializeSelectedRoute(
-            ordering,
-            onlyDeathRoutesFound,
-            currentTurnAdoptionReached
-                ? SolverResultScope.CurrentTurnAdoption
-                : SolverResultScope.SearchCompletion,
-            searchedTurnLayers,
-            timeBudgetReached,
-            memoryNoProgressTruncated);
-        foreach (SearchNode candidate in finalCandidates)
-            candidate.Snapshot.ReleaseSimulator();
-        return result;
+        try
+        {
+            ValidateHistoricalSimulatorsReleased(finalCandidates);
+            PublishProgress(_startTurnNumber + searchedTurnLayers, searchedTurnLayers, 0,
+                finalCandidates.Count, completed.Count, "复核最终候选", force: true);
+            List<(SearchNode Node, SimulationSnapshot Snapshot)> evaluated = finalCandidates
+                .Select(node => (Node: node, Snapshot: node.Snapshot))
+                .ToList();
+            bool onlyDeathRoutesFound = evaluated.All(candidate =>
+                candidate.Snapshot.PlayerDead || candidate.Snapshot.ProjectedPlayerHp <= 0);
+            _run.ReusedNodeSnapshots += evaluated.Count;
+            FinalPlanSelection ordering = FinalOrdering.Select(
+                evaluated,
+                initialHp,
+                emitDiagnostics: true);
+            return MaterializeSelectedRoute(
+                ordering,
+                onlyDeathRoutesFound,
+                currentTurnAdoptionReached
+                    ? SolverResultScope.CurrentTurnAdoption
+                    : SolverResultScope.SearchCompletion,
+                searchedTurnLayers,
+                timeBudgetReached,
+                memoryNoProgressTruncated);
+        }
+        finally
+        {
+            foreach (SearchNode candidate in finalCandidates)
+                candidate.Snapshot.ReleaseSimulator();
+        }
     }
 
     private SearchNode? ApplyFixedPrefix(SearchNode seed)

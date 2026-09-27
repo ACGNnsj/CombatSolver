@@ -43,7 +43,7 @@ internal static class StrategySessionRunner
         string[] allowed = command switch
         {
             "start" => ["--game-root", "--ritsu-root", "--no-monitor", "--host-memory-mib"],
-            "run" => ["--script", "--params", "--policy", "--selector"],
+            "run" => ["--script", "--params", "--policy", "--selector", "--early-turns", "--deadline-seconds"],
             _ => [],
         };
         foreach (string option in options.Keys)
@@ -183,6 +183,19 @@ internal static class StrategySessionRunner
     {
         string evidence = NewEvidence(session, "run");
         string selector = options.GetValueOrDefault("--selector", CheckpointArchive.DefaultFixtureSelector);
+        int earlyTurnDepth = options.TryGetValue("--early-turns", out string? requestedDepth)
+            ? int.Parse(requestedDepth) : 0;
+        if (earlyTurnDepth is < 0 or > 2)
+            throw new ArgumentOutOfRangeException(nameof(earlyTurnDepth),
+                "Early turn exploration depth must be 1 or 2.");
+        if (options.ContainsKey("--deadline-seconds") && earlyTurnDepth == 0)
+            throw new ArgumentException("--deadline-seconds requires --early-turns.");
+        int timeoutSeconds = options.TryGetValue("--deadline-seconds", out string? requestedDeadline)
+            ? int.Parse(requestedDeadline)
+            : earlyTurnDepth == 0 ? DefaultTimeoutSeconds : 2400;
+        if (earlyTurnDepth > 0 && timeoutSeconds is < 15 or > 2400)
+            throw new ArgumentOutOfRangeException(nameof(timeoutSeconds),
+                "Early turn exploration deadline must be 15..2400 seconds.");
         const string mode = "SearchOnly";
         Stopwatch watch = Stopwatch.StartNew();
         bool monitorEnabled = state["monitorEnabled"]?.GetValue<bool>() == true;
@@ -190,7 +203,9 @@ internal static class StrategySessionRunner
         JsonObject row = new()
         {
             ["archivePath"] = archive, ["selector"] = selector, ["mode"] = mode,
-            ["timeoutSeconds"] = DefaultTimeoutSeconds, ["performancePreset"] = "VeryHigh",
+            ["timeoutSeconds"] = timeoutSeconds,
+            ["earlyTurnExplorationDepth"] = earlyTurnDepth,
+            ["performancePreset"] = "VeryHigh",
             ["searchMaxDegreeOfParallelism"] = 8, ["startedUtc"] = DateTimeOffset.UtcNow,
         };
         int exit = 1;
@@ -223,7 +238,7 @@ internal static class StrategySessionRunner
                         ? runningPid : null,
                     ["scriptHash"] = scriptHash, ["parametersHash"] = parametersHash,
                     ["performancePreset"] = "VeryHigh", ["parallelism"] = 8,
-                    ["requestTimeoutSeconds"] = DefaultTimeoutSeconds,
+                    ["requestTimeoutSeconds"] = timeoutSeconds,
                     ["phase"] = "常驻游戏接收问题包", ["updatedUtc"] = DateTimeOffset.UtcNow,
                 });
             string? policy = null;
@@ -233,8 +248,9 @@ internal static class StrategySessionRunner
                 File.Copy(Path.GetFullPath(policySource), policy);
             }
             exit = await BatchRunner.Launch(project, LauncherOptions(state), evidence,
-                DefaultTimeoutSeconds, archive, selector, mode, policy, stop: false,
-                assembly, parameters, scriptHash, parametersHash, monitorPath, reuseOnly: true);
+                timeoutSeconds, archive, selector, mode, policy, stop: false,
+                assembly, parameters, scriptHash, parametersHash, monitorPath,
+                reuseOnly: true, earlyTurnExplorationDepth: earlyTurnDepth);
             JsonObject? result = Read(Path.Combine(evidence, "result.json"));
             JsonObject? launcher = Read(Path.Combine(evidence, "launcher-result.json"));
             row["status"] = BatchRunner.Classify(result, exit, launcher);
@@ -255,7 +271,7 @@ internal static class StrategySessionRunner
                 throw new InvalidDataException("Result strategy or main assembly identity differs from submitted inputs.");
             if (row["status"]?.ToString() == "timeout")
             {
-                row["reason"] = "exceeded_180_seconds_package_discarded";
+                row["reason"] = $"exceeded_{timeoutSeconds}_seconds_package_discarded";
                 int stopExit = await BatchRunner.Launch(project, LauncherOptions(state), evidence,
                     DefaultTimeoutSeconds, null, selector, mode, null, stop: true);
                 row["timeoutStopExitCode"] = stopExit;

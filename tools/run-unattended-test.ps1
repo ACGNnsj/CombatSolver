@@ -122,6 +122,8 @@ param(
     [switch]$ForceShortSearchOnly,
     [switch]$FixedSearchBudget,
     [int]$SearchBudgetOverrideMilliseconds = -1,
+    [ValidateSet(0, 1, 2)]
+    [int]$EarlyTurnExplorationDepthForTest = 0,
     [switch]$MeasureSearchPhases,
     [ValidateSet(-1, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16)]
     [int]$SearchMaxDegreeOfParallelismForTest = -1,
@@ -846,6 +848,7 @@ $request = [ordered]@{
     forceShortSearchOnly = $ForceShortSearchOnly.IsPresent
     fixedSearchBudget = $FixedSearchBudget.IsPresent -or $ForceShortSearchOnly.IsPresent
     searchBudgetOverrideMilliseconds = if ($SearchBudgetOverrideMilliseconds -gt 0) { $SearchBudgetOverrideMilliseconds } else { $null }
+    earlyTurnExplorationDepthForTest = if ($EarlyTurnExplorationDepthForTest -gt 0) { $EarlyTurnExplorationDepthForTest } else { $null }
     measureSearchPhases = $MeasureSearchPhases.IsPresent
     searchMaxDegreeOfParallelismForTest = if ($SearchMaxDegreeOfParallelismForTest -gt 0) { $SearchMaxDegreeOfParallelismForTest } else { $null }
     useNoveltyPortfolioForTest = if ($UseNoveltyPortfolioForTest.IsPresent) { $true } else { $null }

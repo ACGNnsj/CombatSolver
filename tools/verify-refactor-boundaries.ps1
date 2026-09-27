@@ -642,6 +642,7 @@ $expectedBeamFiles = @(
     "CombatBeamSolver.CyclePlanning.cs",
     "CombatBeamSolver.CycleRegionRetention.cs",
     "CombatBeamSolver.CycleReplay.cs",
+    "CombatBeamSolver.EarlyTurnFrontier.cs",
     "CombatBeamSolver.Expansion.cs",
     "CombatBeamSolver.Expansion.Candidates.cs",
     "CombatBeamSolver.Expansion.Choices.cs",

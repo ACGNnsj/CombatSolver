@@ -214,7 +214,8 @@ internal static class BatchRunner
         int timeout, string? archive, string selector, string mode, string? policy, bool stop,
         string? strategyAssembly = null, string? strategyParameters = null,
         string? strategyScriptHash = null, string? strategyParametersHash = null,
-        string? monitorStatePath = null, bool reuseOnly = false)
+        string? monitorStatePath = null, bool reuseOnly = false,
+        int earlyTurnExplorationDepth = 0)
     {
         bool windows = OperatingSystem.IsWindows();
         ProcessStartInfo start = new(windows ? "pwsh" : "bash")
@@ -246,6 +247,9 @@ internal static class BatchRunner
                 Arg("PerformancePresetForTest", "performance-preset-for-test", "VeryHigh");
                 Arg("SearchMaxDegreeOfParallelismForTest", "search-max-degree-of-parallelism-for-test", "8");
                 Arg("SearchBudgetOverrideMilliseconds", "search-budget-override-milliseconds", "180000");
+                if (earlyTurnExplorationDepth > 0)
+                    Arg("EarlyTurnExplorationDepthForTest", "early-turn-exploration-depth-for-test",
+                        earlyTurnExplorationDepth.ToString());
             }
             Arg("KeepGameOpen", "keep-game-open");
             if (policy != null) Arg("ReplayPolicyOverridePath", "replay-policy-override-path", policy);

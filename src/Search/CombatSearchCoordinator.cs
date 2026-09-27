@@ -801,6 +801,8 @@ internal static partial class CombatSearchCoordinator
             {
                 selected = currentCompleteAdoptableResult;
             }
+            selected = RunEarlyTurnExploration(root, displayNames, battleDamage,
+                policy, cancellationToken, enrichedProgressCallback, requestClock, selected);
             PopulateRequestWorkTotals(selected, requestWorkTotals);
             selected.PortfolioTelemetry = portfolioTelemetry;
             return selected;

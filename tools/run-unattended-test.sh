@@ -134,6 +134,7 @@ for name in \
 done
 add_option short-search-budget-override-milliseconds -1 int positive_int
 add_option search-budget-override-milliseconds -1 int positive_int
+add_option early-turn-exploration-depth-for-test 0 int positive_int
 add_option deep-search-budget-override-milliseconds -1 int positive_int
 add_option search-max-degree-of-parallelism-for-test -1 int positive_int
 add_option expected-initial-boundary-reason "" string optional_string "None|Shuffle|NoCards|UnsupportedEffect|DynamicResolution|PendingChoice|EventDefeat|TurnLimit|NodeLimit|TimeLimit"

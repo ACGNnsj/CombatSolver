@@ -20,6 +20,8 @@ internal sealed record SearchPolicySnapshot(
     SearchMemoryPressureSignal MemoryPressureSignal)
 {
     public bool UseNoveltyPortfolio { get; init; }
+    public int EarlyTurnExplorationDepth { get; init; }
+    public int EarlyTurnExplorationBudgetMilliseconds { get; init; }
     public bool PredictPotionReward { get; init; }
     public NoveltySearchOptions? NoveltySearch { get; init; }
     public NoveltyPortfolioBudget NoveltyBudget { get; init; } = NoveltyPortfolioBudget.Default;
