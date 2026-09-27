@@ -896,7 +896,7 @@ internal static partial class CombatSearchCoordinator
             SolverSearchProfile passProfile = passContext.Profile;
             Stopwatch passClock = passContext.Clock;
             long passAllocatedAtStart = GC.GetTotalAllocatedBytes(precise: false);
-            long passTransitionsAtStart = policy.RequestWorkTotals?.Snapshot().TransitionCount ?? 0;
+            long passTransitionsAtStart = passContext.Budget.WorkTotals.Snapshot().TransitionCount;
             SearchPolicySnapshot passPolicy = forcedBaselinePolicy;
             SearchPolicySnapshot beamPolicy = passPolicy.NoveltySearch == null
                 ? passPolicy : passPolicy with { NoveltySearch = null };
@@ -1191,7 +1191,7 @@ internal static partial class CombatSearchCoordinator
             }
             NoveltyPortfolioTelemetry? noveltyPass = passResult.NoveltyPortfolio;
             ObserveSmartLayerMemory(
-                policy, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
+                passContext, memoryForecast, passAllocatedAtStart, passTransitionsAtStart,
                 passResult, passProfile,
                 completedPotionCount: hasForcedBaseline ? policy.PotionStrategy.ForcedDirectiveCount : 0);
             if (policy.MeasurePhasePerformance)
@@ -2269,17 +2269,7 @@ internal static partial class CombatSearchCoordinator
         try
         {
             SolverResult gradient = SearchSmartPotionGradient(
-                root,
-                displayNames,
-                battleDamage,
-                policy,
-                searchCancellationToken,
-                callerCancellationToken,
-                progressCallback,
-                profile,
-                primary,
-                memoryForecast,
-                interimResultCallback);
+                context, callerCancellationToken, primary, memoryForecast);
             if (gradient.ResultScope != SolverResultScope.SearchCompletion
                 || policy.PotionStrategy.HasForcedDirectives
                 || battleDamage.PotionsUsedSoFar != 0
@@ -2481,18 +2471,19 @@ internal static partial class CombatSearchCoordinator
     }
 
     private static SolverResult SearchSmartPotionGradient(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken searchCancellationToken,
+        SearchPassContext context,
         CancellationToken callerCancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
         SolverResult potionFree,
-        SmartLayerMemoryForecast memoryForecast,
-        Action<SolverResult>? interimResultCallback)
+        SmartLayerMemoryForecast memoryForecast)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken searchCancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
+        Action<SolverResult>? interimResultCallback = context.InterimResultCallback;
         int forcedPotionCount = policy.PotionStrategy.ForcedDirectiveCount;
         if (potionFree.ExplicitPotionCount != forcedPotionCount)
             throw new InvalidOperationException("Smart 梯度搜索必须从仅满足强制用药的结果开始。");
@@ -2538,10 +2529,7 @@ internal static partial class CombatSearchCoordinator
             try
             {
                 ReclaimAtPotionGradientBoundary(
-                    policy,
-                    searchCancellationToken,
-                    progressCallback,
-                    profile,
+                    context,
                     potionFree,
                     memoryForecast,
                     potionCount - 1,
@@ -2559,7 +2547,7 @@ internal static partial class CombatSearchCoordinator
                 policy,
                 selected);
             long layerAllocatedAtStart = GC.GetTotalAllocatedBytes(precise: false);
-            long layerTransitionsAtStart = policy.RequestWorkTotals?.Snapshot().TransitionCount ?? 0;
+            long layerTransitionsAtStart = context.Budget.WorkTotals.Snapshot().TransitionCount;
             SolverResult? observedLayerResult = null;
             SolverResult candidate;
             try
@@ -2597,7 +2585,7 @@ internal static partial class CombatSearchCoordinator
                 // Request totals include a solver that failed or was canceled. Use its actual
                 // interval, never the selected route's work paired with another layer's bytes.
                 ObserveSmartLayerMemory(
-                    policy, memoryForecast, layerAllocatedAtStart, layerTransitionsAtStart,
+                    context, memoryForecast, layerAllocatedAtStart, layerTransitionsAtStart,
                     observedLayerResult, profile, potionCount);
             }
             if (candidate.ResultScope != SolverResultScope.SearchCompletion)
@@ -2672,7 +2660,7 @@ internal static partial class CombatSearchCoordinator
             && (!potionFreeWon || hpSaved >= hpRequired || protectsLoot);
 
     private static void ObserveSmartLayerMemory(
-        SearchPolicySnapshot policy,
+        SearchPassContext context,
         SmartLayerMemoryForecast forecast,
         long processAllocatedAtStart,
         long transitionsAtStart,
@@ -2680,6 +2668,7 @@ internal static partial class CombatSearchCoordinator
         SolverSearchProfile profile,
         int completedPotionCount)
     {
+        SearchPolicySnapshot policy = context.Policy;
         if (policy.PotionPolicy != SolverPotionPolicy.Smart)
             return;
         long processAllocated = Math.Max(
@@ -2687,7 +2676,7 @@ internal static partial class CombatSearchCoordinator
             GC.GetTotalAllocatedBytes(precise: false) - processAllocatedAtStart);
         long transitions = Math.Max(
             0,
-            (policy.RequestWorkTotals?.Snapshot().TransitionCount ?? 0) - transitionsAtStart);
+            context.Budget.WorkTotals.Snapshot().TransitionCount - transitionsAtStart);
         // A fixed node budget is a comparable work window for the next layer using this same
         // profile. A timed-out or interrupted layer can understate that window, so keep the
         // optional reset conservative until a complete observation is available again.
@@ -2705,15 +2694,16 @@ internal static partial class CombatSearchCoordinator
     }
 
     private static void ReclaimAtPotionGradientBoundary(
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
+        SearchPassContext context,
         SolverResult totalsCarrier,
         SmartLayerMemoryForecast forecast,
         int completedPotionCount,
         int nextPotionCount)
     {
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
         SearchMemoryPressureSignal signal = policy.MemoryPressureSignal;
         cancellationToken.ThrowIfCancellationRequested();
         SmartLayerMemoryDecision decision = forecast.Decide(
@@ -2782,7 +2772,7 @@ internal static partial class CombatSearchCoordinator
             if (maxObservedGcPause > totalsCarrier.TotalMaxObservedGcPause)
                 totalsCarrier.TotalMaxObservedGcPause = maxObservedGcPause;
             totalsCarrier.TotalSearchElapsed += stopwatch.Elapsed;
-            policy.RequestWorkTotals?.RecordCoordinatorOverhead(
+            context.Budget.WorkTotals.RecordCoordinatorOverhead(
                 stopwatch.Elapsed,
                 allocatedBytes,
                 gen0Collections,

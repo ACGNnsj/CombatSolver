@@ -104,6 +104,10 @@ foreach ($audit in @('AuditRequiredPotionUse', 'AuditSmartPotionUse', 'AuditOpen
         $violations.Add("Supplemental audit bypasses the search pass context: $audit")
     }
 }
+if ($coordinatorSource.Contains('policy.RequestWorkTotals?.Snapshot()') -or
+    $coordinatorSource.Contains('policy.RequestWorkTotals?.RecordCoordinatorOverhead(')) {
+    $violations.Add('Potion gradient work accounting bypasses the request budget ledger')
+}
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
     'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'

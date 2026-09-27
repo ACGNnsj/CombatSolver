@@ -13,6 +13,7 @@
 - `SearchRequestPipeline` 接管请求级首轮与升级派发后，#24 `start` 严格恢复与 15 秒固定预算 SearchOnly 请求 `23eaac6ccffc4e96896cdeb2aa272227` Passed，实例已清理。该请求覆盖首轮与固定预算返回，不把它写作本次无胜利升级的独立验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 - 开局能力／夜魇和宽度／新颖性成员改用 Pass 上下文后，#81 同根 SearchOnly 请求 `9af903cb5fdb4b1f941ea892863b7082` Passed，实例已清理。与 `baseline-0471/report-81` 同为 VeryHigh、Beam 135、25,000 节点、DOP 1、110 秒固定预算；动作与搜索结果仅有运行环境的 `savedNoGcRegionEnabled` 标记不同，归一化后的 `solverMetrics` 和执行政策无差异。先前请求漏传预设而用了包内 Beam 300，属于不可比较的诊断运行，不计入回归。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 - 三个补充审计入口共用 Pass 上下文后，#81 同根同政策 SearchOnly 请求 `b00a458217a840b8a4be98e773a75242` Passed，两层 Smart 药水梯度均执行，实例已清理。与 `baseline-0471/report-81` 的执行政策、`search-result.json` 全字段及剔除时间／分配／GC 的 `solverMetrics` 无差异。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
+- Smart 药水梯度的层转移与回收开销改由账本读取后，#81 同根同政策 SearchOnly 请求 `65baeec98b724b2daa8ab9c2ea8894b6` Passed，实例已清理；与 `baseline-0471/report-81` 的执行政策、`search-result.json` 全字段及剔除时间／分配／GC 的 `solverMetrics` 无差异。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

@@ -20,6 +20,8 @@
 
 补充审计的强制用药、智能用药和开局能力审计通过同一 Pass 上下文取得冻结输入；审计截止令牌由原补充审计作用域派生并传入，药水梯度搜索仍沿既有顺序运行。
 
+Smart 药水梯度的层前后转移采样及协调器回收开销归入上下文的 `SearchBudgetLedger.WorkTotals`；`SmartLayerMemoryForecast` 继续独占预测与回收判断。
+
 本文描述当前源码的所有权边界。它面向维护者和 coding agent；玩家功能说明见根目录 `README.md`，历史重构证据见 `docs/refactoring/`。
 
 职责迁移时优先更新本文，并同步更新 Windows 的 `tools/verify-refactor-boundaries.ps1` 与 Linux 的 `tools/verify-refactor-boundaries.sh`。历史审计记录保留当时结论，不承担当前导航职责。

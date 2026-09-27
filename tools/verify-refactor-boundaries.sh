@@ -64,6 +64,10 @@ for audit in AuditRequiredPotionUse AuditSmartPotionUse AuditOpeningPowerUse; do
         violations+=("Supplemental audit bypasses the search pass context: $audit")
     fi
 done
+if rg -Fq 'policy.RequestWorkTotals?.Snapshot()' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   rg -Fq 'policy.RequestWorkTotals?.RecordCoordinatorOverhead(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Potion gradient work accounting bypasses the request budget ledger")
+fi
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
     'src/Search/CombatSearchCoordinator.cs|RouteQualityProjection.PotionPolicy' \
