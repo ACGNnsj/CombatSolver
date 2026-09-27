@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## 0.47.0 前两回合实验开关（2026-09-27）
+
+- `NOVELTY-PORTFOLIO-SETTINGS` / `9b087e2edcc54785aeb3922bd80dbb5d` Passed：新安装默认关闭，设置页第三个实验开关、持久化和请求冻结通过；开启时深度 2、整次探索期限 2400000 ms，关闭时深度 0。
+- `UI-LOCALIZATION` / `b1fb101ce25c4b4aaa764552645cbd7c` 在 `BYGONE_EFFIGY_ELITE` 的怪物生成阶段报 `No valid next state found`，早于本次新增文案检查；改用既有有效遭遇 `PHROG_PARASITE_ELITE` 后，`3b8cecc6f8f24a1e9f04c88c29ce373b` Passed，eng/zhs/zht 共 451 条文本目录与设置控件检查通过。两次测试实例均由启动器删除；未做可见 UI 排版验收。
+- 第 89 包 `10d01cc2d1f7445c8ff72e76e783aeb0`：`combat_start` 严格恢复，开启两回合追加搜索各保留 24 个状态，完整胜利仍为 7 HP / 0 瓶，与此前默认结果相同；总墙钟 413 秒，请求总展开 1110752。证据 `.local/strategy-sessions/worldline-20260925/requests/20260927T0512186253886-run`。
+- 第 100 包 `88619c63f91b48998737d7a9d623e2df`：用户指令停止时仍在运行，本地人工终止游戏；工具记 `process_crash` 只是缺少结果文件，不能计为自然崩溃或质量结果。证据 `.local/strategy-sessions/worldline-20260925/requests/20260927T0520096682165-run`。
+
 ## 离线前两回合追加搜索（2026-09-27）
 
 - 骑士精英 `fd3b6e70cb9340a3bad6aae94d5b6b0b`：同一 `combat_start`，普通搜索 12 HP / 2 瓶；`--early-turns 2 --deadline-seconds 300` 完整胜利 1 HP / 2 瓶，实际展开 184237 个追加节点、续搜 5 条，仍按药水成本比人工 9 HP / 1 瓶落后 1 HP。证据 `.local/strategy-sessions/worldline-20260925/requests/20260927T0441084227454-run`。

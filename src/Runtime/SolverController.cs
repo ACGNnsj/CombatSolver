@@ -528,9 +528,13 @@ internal static partial class SolverController
             new SearchMemoryPressureSignal())
         {
             Interaction = interaction,
-            EarlyTurnExplorationDepth = UnattendedTestRunner.EarlyTurnExplorationDepth,
+            EarlyTurnExplorationDepth = UnattendedTestRunner.EarlyTurnExplorationDepth > 0
+                ? UnattendedTestRunner.EarlyTurnExplorationDepth
+                : settings.UseEarlyTurnExploration ? 2 : 0,
             EarlyTurnExplorationBudgetMilliseconds =
-                UnattendedTestRunner.EarlyTurnExplorationBudgetMilliseconds,
+                UnattendedTestRunner.EarlyTurnExplorationDepth > 0
+                    ? UnattendedTestRunner.EarlyTurnExplorationBudgetMilliseconds
+                    : settings.UseEarlyTurnExploration ? 2_400_000 : 0,
             DevelopmentStrategy = UnattendedTestRunner.CurrentDevelopmentStrategy,
             UseNoveltyPortfolio = settings.UseNoveltyPortfolio
                 || UnattendedTestRunner.UseNoveltyPortfolioOverride,

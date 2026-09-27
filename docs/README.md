@@ -1,6 +1,7 @@
 # CombatSolver 文档导航
 
 - [更优世界线逐包策略记录](strategy/strategy-optimization-20260923.md)：逐包同根基线、人工对照和优化结果。
+- [策略优化 Part 1 交接](strategy/strategy-optimization-part1-handoff-20260927.md)：实验开关、已测作用、剩余包与继续排查口径。
 - [日志站更优世界线前 150 包](strategy/worldline-top150-20260926.md)：按站点战损下降值固定的处理顺序。
 
 - [常驻策略迭代会话](strategy/development-session.md)：跨包复用无头游戏、C# 策略脚本与参数热更新。
@@ -19,6 +20,7 @@
 
 | 要查什么 | 入口 |
 |---|---|
+| 0.47.0 策略优化 Part 1（开发中） | [0.47.0 更新日志](releases/0.47.0-RELEASE_NOTES.md) |
 | 0.46.4 战损路线筛选与 Loadout 兼容的玩家说明 | [0.46.4 更新日志](releases/0.46.4-RELEASE_NOTES.md) |
 | 0.46.3 玩家更新内容 | [0.46.3 更新日志](releases/0.46.3-RELEASE_NOTES.md) |
 | 策略侧栏和可选 ServerGC 启动方式的玩家说明 | [0.46.2 更新日志](releases/0.46.2-RELEASE_NOTES.md) |
