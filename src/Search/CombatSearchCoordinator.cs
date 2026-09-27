@@ -136,6 +136,18 @@ internal static partial class CombatSearchCoordinator
                     RouteAdoptionSeed = currentRouteAdoptionSeed,
                 });
             };
+        SolverResult RunPostSearch(SolverResult result)
+        {
+            SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+            if (policy.IncludeTurnSetup)
+                return selected;
+            SearchPassContext postContext = new(root, displayNames, battleDamage,
+                policy, policy.Profile, requestClock, ledger, cancellationToken,
+                enrichedProgressCallback, interaction == null ? null : PublishAdoptableResult);
+            return RunPostSearchPasses(postContext, selected, firstTurnAnchors,
+                interaction, () => currentCompleteAdoptableResult);
+        }
+
         try
         {
             SolverResult result = SolveCore(
@@ -147,31 +159,15 @@ internal static partial class CombatSearchCoordinator
                 cancellationToken,
                 enrichedProgressCallback,
                 interaction == null ? null : PublishAdoptableResult,
-                firstTurnAnchors.Add);
-            SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
+                firstTurnAnchors.Add,
+                RunPostSearch);
+            SolverResult selected = result;
             if (policy.IncludeTurnSetup)
             {
                 PopulateRequestWorkTotals(selected, requestWorkTotals);
                 selected.PortfolioTelemetry = portfolioTelemetry;
                 return selected;
             }
-            SearchPassContext postContext = new(root, displayNames, battleDamage,
-                policy, policy.Profile, requestClock, ledger, cancellationToken,
-                enrichedProgressCallback, interaction == null ? null : PublishAdoptableResult);
-            selected = RunEarlyPotionPairRescue(postContext, selected);
-            selected = RunForcedPotionOpeningRescue(postContext, selected);
-            selected = RunTurnBoundaryRescue(postContext, selected, firstTurnAnchors);
-            selected = RunZeroCostOpeningRescue(postContext, selected);
-            selected = RunMidCombatRefinement(postContext, selected);
-            selected = RunTurnEndChoicePosterior(postContext, selected);
-            selected = RunEarlierCopyDelayedDamage(postContext, selected);
-            if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
-                && selected.ResultScope == SolverResultScope.SearchCompletion
-                && currentCompleteAdoptableResult != null)
-            {
-                selected = currentCompleteAdoptableResult;
-            }
-            selected = RunEarlyTurnExploration(postContext, selected);
             PopulateRequestWorkTotals(selected, requestWorkTotals);
             selected.PortfolioTelemetry = portfolioTelemetry;
             selected.ComparisonQuality = BuildInterimResult(root, policy, selected);
@@ -227,7 +223,8 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback,
         Action<SolverResult>? interimResultCallback,
-        Action<PlanAction[]> firstTurnAnchorObserver)
+        Action<PlanAction[]> firstTurnAnchorObserver,
+        Func<SolverResult, SolverResult> postSearch)
     {
         Stopwatch requestClock = Stopwatch.StartNew();
         bool forcedSmartGradient = policy.PotionPolicy == SolverPotionPolicy.Smart
@@ -645,7 +642,7 @@ internal static partial class CombatSearchCoordinator
         SearchPassContext requestContext = new(root, displayNames, battleDamage,
             policy, profile, requestClock, ledger, cancellationToken,
             progressCallback, interimResultCallback);
-        return new SearchRequestPipeline(requestContext, RunSearchPass).Run();
+        return new SearchRequestPipeline(requestContext, RunSearchPass, postSearch).Run();
     }
 
     /// <summary>

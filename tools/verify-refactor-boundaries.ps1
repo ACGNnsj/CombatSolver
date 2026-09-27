@@ -83,11 +83,11 @@ if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(')) {
     $violations.Add('Search pass does not return its termination state')
 }
 if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(SearchPassContext passContext)') -or
-    -not $coordinatorSource.Contains('new SearchRequestPipeline(requestContext, RunSearchPass).Run()')) {
+    -not $coordinatorSource.Contains('new SearchRequestPipeline(requestContext, RunSearchPass, postSearch).Run()')) {
     $violations.Add('Primary search pass does not consume the search pass context')
 }
 $postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
-if (-not $coordinatorSource.Contains('RunEarlyPotionPairRescue(postContext, selected)') -or
+if (-not $postSearchSource.Contains('RunEarlyPotionPairRescue(context, selected)') -or
     -not $postSearchSource.Contains('RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)') -or
     $coordinatorSource.Contains('EARLY_POTION_PAIR prefix=')) {
     $violations.Add('Early potion pair rescue is not a post-search pass')
@@ -107,15 +107,19 @@ if ($postSearchSource.Contains('MaxExpandedNodes = (int)Math.Min(')) {
 foreach ($pass in @('RunForcedPotionOpeningRescue', 'RunTurnBoundaryRescue',
         'RunZeroCostOpeningRescue', 'RunMidCombatRefinement',
         'RunTurnEndChoicePosterior', 'RunEarlierCopyDelayedDamage')) {
-    if (-not $coordinatorSource.Contains("$pass(postContext, selected") -or
+    if (-not $postSearchSource.Contains("$pass(context, selected") -or
         -not $postSearchSource.Contains("SolverResult $pass(")) {
         $violations.Add("Post-search pass ownership missing: $pass")
     }
 }
-if (-not $coordinatorSource.Contains('RunEarlyTurnExploration(postContext, selected)')) {
+if (-not $postSearchSource.Contains('RunEarlyTurnExploration(context, selected)')) {
     $violations.Add('Early-turn exploration bypasses the search pass context')
 }
 $pipelineSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -Raw
+if (-not $pipelineSource.Contains('_postSearch(') -or
+    -not $postSearchSource.Contains('RunPostSearchPasses(')) {
+    $violations.Add('Post-search passes bypass the search request pipeline')
+}
 if (-not $pipelineSource.Contains('CombatSearchCoordinator.EscalateSearchWhenNoVictory(') -or
     -not $pipelineSource.Contains('_context,')) {
     $violations.Add('No-victory escalation does not consume the search request context')

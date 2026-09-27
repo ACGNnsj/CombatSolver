@@ -4,6 +4,29 @@ namespace CombatSolver;
 
 internal static partial class CombatSearchCoordinator
 {
+    private static SolverResult RunPostSearchPasses(
+        SearchPassContext context,
+        SolverResult selected,
+        List<PlanAction[]> firstTurnAnchors,
+        SearchInteractionState? interaction,
+        Func<SolverResult?> currentCompleteAdoptableResult)
+    {
+        selected = RunEarlyPotionPairRescue(context, selected);
+        selected = RunForcedPotionOpeningRescue(context, selected);
+        selected = RunTurnBoundaryRescue(context, selected, firstTurnAnchors);
+        selected = RunZeroCostOpeningRescue(context, selected);
+        selected = RunMidCombatRefinement(context, selected);
+        selected = RunTurnEndChoicePosterior(context, selected);
+        selected = RunEarlierCopyDelayedDamage(context, selected);
+        if (interaction?.CurrentTakeoverRequest?.Kind == SearchTakeoverKind.ApplyCurrentTurn
+            && selected.ResultScope == SolverResultScope.SearchCompletion
+            && currentCompleteAdoptableResult() is { } adoptable)
+        {
+            selected = adoptable;
+        }
+        return RunEarlyTurnExploration(context, selected);
+    }
+
     private static SolverResult RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)
     {
         CombatRootSnapshot root = context.Root;

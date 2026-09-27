@@ -43,10 +43,10 @@ if ! rg -Fq 'SearchPassResult RunSearchPass(' "$repository_root/src/Search/Comba
     violations+=("Search pass does not return its termination state")
 fi
 if ! rg -Fq 'SearchPassResult RunSearchPass(SearchPassContext passContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
-   ! rg -Fq 'new SearchRequestPipeline(requestContext, RunSearchPass).Run()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+   ! rg -Fq 'new SearchRequestPipeline(requestContext, RunSearchPass, postSearch).Run()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary search pass does not consume the search pass context")
 fi
-if ! rg -Fq 'RunEarlyPotionPairRescue(postContext, selected)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+if ! rg -Fq 'RunEarlyPotionPairRescue(context, selected)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    rg -Fq 'EARLY_POTION_PAIR prefix=' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Early potion pair rescue is not a post-search pass")
@@ -66,13 +66,17 @@ fi
 for pass in RunForcedPotionOpeningRescue RunTurnBoundaryRescue \
     RunZeroCostOpeningRescue RunMidCombatRefinement \
     RunTurnEndChoicePosterior RunEarlierCopyDelayedDamage; do
-    if ! rg -Fq "$pass(postContext, selected" "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+    if ! rg -Fq "$pass(context, selected" "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
        ! rg -Fq "SolverResult $pass(" "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
         violations+=("Post-search pass ownership missing: $pass")
     fi
 done
-if ! rg -Fq 'RunEarlyTurnExploration(postContext, selected)' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+if ! rg -Fq 'RunEarlyTurnExploration(context, selected)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Early-turn exploration bypasses the search pass context")
+fi
+if ! rg -Fq '_postSearch(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
+   ! rg -Fq 'RunPostSearchPasses(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Post-search passes bypass the search request pipeline")
 fi
 if ! rg -Fq 'CombatSearchCoordinator.EscalateSearchWhenNoVictory(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
    ! rg -Fq '_context,' "$repository_root/src/Search/SearchRequestPipeline.cs"; then
