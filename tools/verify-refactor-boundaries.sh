@@ -55,6 +55,11 @@ if ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSo
    ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel paths duplicate parent expansion admission")
 fi
+if ! rg -Fq 'ProcessExpandedCardCandidate(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'ProcessExpandedCardCandidate(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   rg -Fq 'AddNonDominatedParallelCandidate(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Serial and parallel card admission remains duplicated")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

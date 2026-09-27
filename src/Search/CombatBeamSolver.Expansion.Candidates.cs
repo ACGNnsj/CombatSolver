@@ -474,7 +474,8 @@ internal sealed partial class CombatBeamSolver
 
     private void AddNonDominatedCandidate(
         List<ActionCandidate> candidates,
-        ActionCandidate candidate)
+        ActionCandidate candidate,
+        ExpansionBatch? batch = null)
     {
         for (int index = candidates.Count - 1; index >= 0; index--)
         {
@@ -482,14 +483,14 @@ internal sealed partial class CombatBeamSolver
             if (Dominates(current, candidate))
             {
                 _run.DominatedActionsPruned++;
-                candidate.Node.Snapshot.ReleaseSimulator();
+                ReleasePlannedCandidate(candidate.Node, batch);
                 return;
             }
             if (!Dominates(candidate, current))
                 continue;
             candidates.RemoveAt(index);
             _run.DominatedActionsPruned++;
-            current.Node.Snapshot.ReleaseSimulator();
+            ReleasePlannedCandidate(current.Node, batch);
         }
         candidates.Add(candidate);
     }
@@ -655,10 +656,7 @@ internal sealed partial class CombatBeamSolver
                 protectedCandidate = candidate;
                 continue;
             }
-            if (batch == null)
-                AddNonDominatedCandidate(nonDominated, candidate);
-            else
-                AddNonDominatedParallelCandidate(nonDominated, candidate, batch);
+            AddNonDominatedCandidate(nonDominated, candidate, batch);
         }
         // This is the one explicit cycle lane. It neither removes ordinary candidates nor
         // participates in their pairwise dominance pruning; final action admission decides

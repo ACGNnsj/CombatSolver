@@ -53,40 +53,9 @@ internal sealed partial class CombatBeamSolver
                 foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
                 {
                     SearchNode child = CreatePlannedCardChild(node, finalAction, finalSnapshot);
-                    PromoteOrderedMutationProgressTail(child);
-                    CommitCycleExitObservation(child);
-                    if (ShouldPruneCrossTurnNoProgress(child))
-                    {
-                        _run.RepeatableNoProgressBranchesPruned++;
-                        finalSnapshot.ReleaseSimulator();
-                        continue;
-                    }
-                    ActionCandidate actionCandidate = BuildCandidate(
-                        snapshot,
-                        finalSnapshot,
-                        child,
-                        planned.CardType,
-                        planned.TargetCombatId);
-                    if (CanRetainOrderedMutationLease(_run, child))
-                    {
-                        // An admitted ordered-state lease has a bounded coordinator budget of
-                        // its own. Let its direct semantic options reach action admission before
-                        // ordinary transposition/dominance can erase the delayed-payoff edge.
-                        nonDominated.Add(actionCandidate);
-                    }
-                    else if (ShouldDeferCycleTranspositionUntilActionAdmission(child))
-                    {
-                        deferredCycleCandidates ??= [];
-                        deferredCycleCandidates.Add(actionCandidate);
-                    }
-                    else if (TryAcceptTransposition(child))
-                    {
-                        AddNonDominatedCandidate(nonDominated, actionCandidate);
-                    }
-                    else
-                    {
-                        finalSnapshot.ReleaseSimulator();
-                    }
+                    ProcessExpandedCardCandidate(node,
+                        new RawCardCandidate(child, planned.CardType, planned.TargetCombatId),
+                        nonDominated, ref deferredCycleCandidates, batch: null);
                 }
         }
 

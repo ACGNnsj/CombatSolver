@@ -281,4 +281,51 @@ internal sealed partial class CombatBeamSolver
         };
         return AttachCycleSchedulingEvidence(child);
     }
+
+    private void ProcessExpandedCardCandidate(
+        SearchNode parent,
+        RawCardCandidate raw,
+        List<ActionCandidate> nonDominated,
+        ref List<ActionCandidate>? deferredCycleCandidates,
+        ExpansionBatch? batch)
+    {
+        SearchNode child = raw.Node;
+        PromoteOrderedMutationProgressTail(child);
+        CommitCycleExitObservation(child);
+        if (ShouldPruneCrossTurnNoProgress(child))
+        {
+            _run.RepeatableNoProgressBranchesPruned++;
+            ReleasePlannedCandidate(child, batch);
+            return;
+        }
+        ActionCandidate candidate = BuildCandidate(
+            parent.Snapshot,
+            child.Snapshot,
+            child,
+            raw.CardType,
+            raw.TargetCombatId);
+        if (CanRetainOrderedMutationLease(_run, child))
+        {
+            nonDominated.Add(candidate);
+            return;
+        }
+        if (ShouldDeferCycleTranspositionUntilActionAdmission(child))
+        {
+            deferredCycleCandidates ??= [];
+            deferredCycleCandidates.Add(candidate);
+            return;
+        }
+        if (TryAcceptTransposition(child))
+            AddNonDominatedCandidate(nonDominated, candidate, batch);
+        else
+            ReleasePlannedCandidate(child, batch);
+    }
+
+    private static void ReleasePlannedCandidate(SearchNode child, ExpansionBatch? batch)
+    {
+        if (batch == null)
+            child.Snapshot.ReleaseSimulator();
+        else
+            batch.Release(child.Snapshot);
+    }
 }

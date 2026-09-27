@@ -880,42 +880,8 @@ internal sealed partial class CombatBeamSolver
         List<ActionCandidate> nonDominated = new(16);
         List<ActionCandidate>? deferredCycleCandidates = null;
         foreach (RawCardCandidate raw in batch.Cards)
-        {
-            PromoteOrderedMutationProgressTail(raw.Node);
-            CommitCycleExitObservation(raw.Node);
-            if (ShouldPruneCrossTurnNoProgress(raw.Node))
-            {
-                _run.RepeatableNoProgressBranchesPruned++;
-                batch.Release(raw.Node.Snapshot);
-                continue;
-            }
-            ActionCandidate actionCandidate = BuildCandidate(
-                parent.Snapshot,
-                raw.Node.Snapshot,
-                raw.Node,
-                raw.CardType,
-                raw.TargetCombatId);
-            if (CanRetainOrderedMutationLease(_run, raw.Node))
-            {
-                nonDominated.Add(actionCandidate);
-                continue;
-            }
-            if (ShouldDeferCycleTranspositionUntilActionAdmission(raw.Node))
-            {
-                deferredCycleCandidates ??= [];
-                deferredCycleCandidates.Add(actionCandidate);
-                continue;
-            }
-            if (!TryAcceptTransposition(raw.Node))
-            {
-                batch.Release(raw.Node.Snapshot);
-                continue;
-            }
-            AddNonDominatedParallelCandidate(
-                nonDominated,
-                actionCandidate,
-                batch);
-        }
+            ProcessExpandedCardCandidate(parent, raw, nonDominated,
+                ref deferredCycleCandidates, batch);
 
         PruneCommittedCrossTurnCandidates(batch.Potions, batch);
         PruneCommittedCrossTurnCandidates(batch.EndTurns, batch);
@@ -1005,26 +971,4 @@ internal sealed partial class CombatBeamSolver
             candidates.RemoveRange(writeIndex, candidates.Count - writeIndex);
     }
 
-    private void AddNonDominatedParallelCandidate(
-        List<ActionCandidate> candidates,
-        ActionCandidate candidate,
-        ExpansionBatch batch)
-    {
-        for (int index = candidates.Count - 1; index >= 0; index--)
-        {
-            ActionCandidate current = candidates[index];
-            if (Dominates(current, candidate))
-            {
-                _run.DominatedActionsPruned++;
-                batch.Release(candidate.Node.Snapshot);
-                return;
-            }
-            if (!Dominates(candidate, current))
-                continue;
-            candidates.RemoveAt(index);
-            _run.DominatedActionsPruned++;
-            batch.Release(current.Node.Snapshot);
-        }
-        candidates.Add(candidate);
-    }
 }

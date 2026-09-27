@@ -95,6 +95,11 @@ if (-not $serialExpansionSource.Contains('TryAdmitExpansionParent(') -or
     -not $parallelExpansionSource.Contains('TryAdmitExpansionParent(')) {
     $violations.Add('Serial and parallel paths duplicate parent expansion admission')
 }
+if (-not $serialExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
+    -not $parallelExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
+    $parallelExpansionSource.Contains('AddNonDominatedParallelCandidate(')) {
+    $violations.Add('Serial and parallel card admission remains duplicated')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
