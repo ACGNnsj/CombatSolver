@@ -26,6 +26,9 @@ internal enum ContinuationPurpose
     PotionResourcePosterior,
     PotionPowerPosterior,
     PotionPowerDefensivePosterior,
+    RequiredOpeningPotion,
+    RequiredPotionPair,
+    RequiredPotionPairDefensive,
 }
 
 internal interface IFrontierContinuationSource

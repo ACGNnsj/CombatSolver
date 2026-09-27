@@ -22,6 +22,7 @@
 - P3 战斗中精炼两条前缀迁移：静态核对可选用药异常仍只覆盖 `Solve`、第二条用药数从更新后的 `selected` 读取；本次仅执行 Release 编译和 Windows 结构门禁，行为对照留到 P3 收口。
 - P3 主 Pass 六种开局前缀迁移：静态核对每条请求覆盖原 `beamPolicy` 并保留预算、profile 标志与候选顺序；本次仅执行 Release 编译和 Windows 结构门禁，行为逐位对照留到 P3 收口。
 - P3 开局能力审计四条前缀迁移：静态核对 `ResetFixedPrefixSchedulingBaseline=false`、可选用药诊断与总计调用顺序；仅执行 Release 编译和 Windows 结构门禁，行为对照留到 P3 收口。
+- P3 强制至少用药审计三条前缀迁移：静态核对 `RequireAtLeastOne`、`primary.PotionCount` 上限及不重置调度基线；仅执行 Release 编译与 Windows 结构门禁，行为对照待 P3 收口。
 
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 

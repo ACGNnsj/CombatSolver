@@ -34,6 +34,8 @@ P3 前沿续搜首先迁移双药开局模式：`OpeningPotionPairContinuationSo
 
 开局能力审计的资源防御、生成药水资源、药水加能力及其防御追击四种固定前缀使用请求派发，显式保持原 `resetFixedPrefixSchedulingBaseline=false`；可选药水后验仍只跳过原业务异常，审计总计和最终取优继续由原模式负责。
 
+强制至少用药审计的首瓶、第二瓶及双药后防御三条固定前缀也使用请求派发，保持原 `RequireAtLeastOne`、`primary.PotionCount` 上限和 `resetFixedPrefixSchedulingBaseline=false`，各层原序与战损目标短路仍在审计函数。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。
