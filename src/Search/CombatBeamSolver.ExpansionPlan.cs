@@ -10,6 +10,33 @@ internal sealed partial class CombatBeamSolver
 {
     private readonly record struct ExpansionPlan(SearchNode Parent, bool PrepareChoiceMetadata);
 
+    private bool TryAdmitExpansionParent(SearchNode node, SimulationSnapshot snapshot, bool parallel)
+    {
+        if (node.IsTerminal
+            || snapshot.PlayerDead
+            || snapshot.AllEnemiesDead
+            || snapshot.BoundaryReason != SearchBoundaryReason.None)
+        {
+            throw new InvalidOperationException(parallel
+                ? "终结搜索节点不应进入并行展开阶段。"
+                : "终结搜索节点不应进入展开阶段。");
+        }
+        _run.ReusedNodeSnapshots++;
+        if (!TryMarkExpandedState(node))
+            return false;
+        if (!TryConsumeCycleExitProbeExpansionBudget(node))
+        {
+            _run.CycleContinuationsStopped++;
+            _run.CycleStoppedExitBudget++;
+            ObserveSearchPath(node, SearchPathObservationStage.ExpansionBlocked, "cycle_exit_budget");
+            return false;
+        }
+        _run.Expanded++;
+        ObserveSearchPath(node, SearchPathObservationStage.Expanded,
+            parallel ? "parallel_parent" : "serial_parent");
+        return true;
+    }
+
     private IEnumerable<(PreparedCardAction Action, PredictedCard Card)> EnumeratePlannedCardActions(
         ExpansionPlan plan)
     {

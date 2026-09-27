@@ -370,26 +370,7 @@ internal sealed partial class CombatBeamSolver
     private bool TryPrepareParallelExpansion(SearchNode node)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        if (node.IsTerminal
-            || node.Snapshot.PlayerDead
-            || node.Snapshot.AllEnemiesDead
-            || node.Snapshot.BoundaryReason != SearchBoundaryReason.None)
-        {
-            throw new InvalidOperationException("终结搜索节点不应进入并行展开阶段。");
-        }
-        _run.ReusedNodeSnapshots++;
-        if (!TryMarkExpandedState(node))
-            return false;
-        if (!TryConsumeCycleExitProbeExpansionBudget(node))
-        {
-            _run.CycleContinuationsStopped++;
-            _run.CycleStoppedExitBudget++;
-            ObserveSearchPath(node, SearchPathObservationStage.ExpansionBlocked, "cycle_exit_budget");
-            return false;
-        }
-        _run.Expanded++;
-        ObserveSearchPath(node, SearchPathObservationStage.Expanded, "parallel_parent");
-        return true;
+        return TryAdmitExpansionParent(node, node.Snapshot, parallel: true);
     }
 
     private CombatBeamSolver CreateExpansionWorker()

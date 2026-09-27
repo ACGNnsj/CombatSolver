@@ -51,6 +51,10 @@ if ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatB
    ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel paths duplicate ordinary card choice dispatch")
 fi
+if ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Serial and parallel paths duplicate parent expansion admission")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

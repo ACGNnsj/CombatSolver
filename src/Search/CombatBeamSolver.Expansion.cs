@@ -23,25 +23,8 @@ internal sealed partial class CombatBeamSolver
     {
         cancellationToken.ThrowIfCancellationRequested();
         SimulationSnapshot snapshot = node.Snapshot;
-        if (node.IsTerminal
-            || snapshot.PlayerDead
-            || snapshot.AllEnemiesDead
-            || snapshot.BoundaryReason != SearchBoundaryReason.None)
-        {
-            throw new InvalidOperationException("终结搜索节点不应进入展开阶段。");
-        }
-        _run.ReusedNodeSnapshots++;
-        if (!TryMarkExpandedState(node))
+        if (!TryAdmitExpansionParent(node, snapshot, parallel: false))
             yield break;
-        if (!TryConsumeCycleExitProbeExpansionBudget(node))
-        {
-            _run.CycleContinuationsStopped++;
-            _run.CycleStoppedExitBudget++;
-            ObserveSearchPath(node, SearchPathObservationStage.ExpansionBlocked, "cycle_exit_budget");
-            yield break;
-        }
-        _run.Expanded++;
-        ObserveSearchPath(node, SearchPathObservationStage.Expanded, "serial_parent");
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
         SimulatedCombatState simulatedCombat = (SimulatedCombatState)simulator.State.CombatState;
         using ExpansionBatch? cycleExitBatch = node.CycleProbeLease == null
