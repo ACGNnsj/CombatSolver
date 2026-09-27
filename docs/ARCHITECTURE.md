@@ -64,6 +64,8 @@ Smart 开局药水的有序候选仍按原 `PowerPrefixKey` 去重并限制 8／
 
 补充审计的强制用药、智能用药和开局能力审计通过同一 Pass 上下文取得冻结输入；审计截止令牌由原补充审计作用域派生并传入，药水梯度搜索仍沿既有顺序运行。
 
+`CombatSearchCoordinator.Audits.cs` 独占补充审计调度、三种审计模式、Smart 药水梯度及层间内存检查；主协调器保留主 Pass 调用和结果质量比较。整段迁移不改变审计政策、层次、业务失败或日志。
+
 Smart 药水梯度的层前后转移采样及协调器回收开销归入上下文的 `SearchBudgetLedger.WorkTotals`；`SmartLayerMemoryForecast` 继续独占预测与回收判断。
 
 本文描述当前源码的所有权边界。它面向维护者和 coding agent；玩家功能说明见根目录 `README.md`，历史重构证据见 `docs/refactoring/`。

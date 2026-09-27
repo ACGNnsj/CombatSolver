@@ -38,6 +38,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - 夜魇开局成员通过 `SearchBudgetLedger.ProfileWindow` 取得请求剩余节点和配置 profile 的原时间帽，不把它改成轮次剩余时间。
 - P3 固定前缀迁移按模式逐个进行。双药开局的两种药水槽顺序由 `OpeningPotionPairContinuationSource` 产出，`FrontierContinuationScheduler` 负责用途／完整前缀去重、请求窗口、前缀合法性及求解器派发；模式仍负责原结果比较和诊断标签。
 - 宽度组合的运行和成员遥测属于 `CombatSearchCoordinator.BeamPortfolio.cs`，主协调器只保留调用；纯移动时保持原方法体、成员迭代及进度发布顺序。
+- 补充审计调度、开局能力／强制药／Smart 药水审计、梯度与层间内存检查属于 `CombatSearchCoordinator.Audits.cs`；主协调器只保留调用和共享质量比较。纯移动不改截止令牌、审计顺序或日志。
 - 提前复制药水补搜由独立前缀来源产出。该模式的最低／最多用药数要在每条前缀派发时从当前 `selected` 读取，不能在枚举开始前冻结，因为前一条候选可能更新 `selected`。
 - 零费开局来源沿用生成器原候选序列和八次尝试上限；该旧模式未去重，`DeduplicatePrefixes=false`，不能因迁入共享调度器而省略重复候选。
 - 回合末选牌的两个候选通道保留来源原序：备选 EndTurn 至多两条，移除回收与随后出牌的短开局至多一条。选牌身份和改进判定留在模式，调度器只执行原预算固定前缀。

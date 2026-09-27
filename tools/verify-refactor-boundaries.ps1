@@ -68,6 +68,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSe
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.BeamPortfolio.cs') -PathType Leaf)) {
     $violations.Add('Beam portfolio owner missing')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.Audits.cs') -PathType Leaf)) {
+    $violations.Add('Supplemental audit owner missing')
+}
 foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
         'src/Search/OpeningPotionPairContinuationSource.cs',
         'src/Search/EarlierCopyDelayedDamageContinuationSource.cs',
@@ -80,6 +83,7 @@ foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
     }
 }
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
+$auditSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.Audits.cs') -Raw
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
 }
@@ -99,13 +103,13 @@ foreach ($purpose in @('EarlyDiscardBeforeGeneration', 'OpeningTargetVariant',
 }
 foreach ($purpose in @('OpeningResourceDefense', 'PotionResourcePosterior',
         'PotionPowerPosterior', 'PotionPowerDefensivePosterior')) {
-    if (-not $coordinatorSource.Contains("ContinuationPurpose.$purpose")) {
+    if (-not $auditSource.Contains("ContinuationPurpose.$purpose")) {
         $violations.Add("Opening audit fixed-prefix request missing: $purpose")
     }
 }
 foreach ($purpose in @('RequiredOpeningPotion', 'RequiredPotionPair',
         'RequiredPotionPairDefensive')) {
-    if (-not $coordinatorSource.Contains("ContinuationPurpose.$purpose")) {
+    if (-not $auditSource.Contains("ContinuationPurpose.$purpose")) {
         $violations.Add("Required potion audit fixed-prefix request missing: $purpose")
     }
 }
@@ -237,12 +241,12 @@ if (-not $coordinatorSource.Contains('RunBeamWidthPortfolioPass(') -or
     $violations.Add('Beam portfolio bypasses the search pass budget ledger')
 }
 foreach ($audit in @('AuditRequiredPotionUse', 'AuditSmartPotionUse', 'AuditOpeningPowerUse')) {
-    if ($coordinatorSource -notmatch ("private static SolverResult " + $audit + '\(\s*SearchPassContext context')) {
+    if ($auditSource -notmatch ("private static SolverResult " + $audit + '\(\s*SearchPassContext context')) {
         $violations.Add("Supplemental audit bypasses the search pass context: $audit")
     }
 }
-if ($coordinatorSource.Contains('policy.RequestWorkTotals?.Snapshot()') -or
-    $coordinatorSource.Contains('policy.RequestWorkTotals?.RecordCoordinatorOverhead(')) {
+if ($auditSource.Contains('policy.RequestWorkTotals?.Snapshot()') -or
+    $auditSource.Contains('policy.RequestWorkTotals?.RecordCoordinatorOverhead(')) {
     $violations.Add('Potion gradient work accounting bypasses the request budget ledger')
 }
 $qualityConsumers = @{
