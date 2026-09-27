@@ -16,7 +16,5 @@ internal sealed record SearchPassContext(
 {
     internal long RemainingMilliseconds => Budget.RemainingMilliseconds(Profile, Clock);
 
-    internal long RemainingNodes => Budget.RemainingNodes(Profile);
-
     internal SearchBudgetWindow SliceWindow => Budget.PassWindow(Profile, Clock);
 }

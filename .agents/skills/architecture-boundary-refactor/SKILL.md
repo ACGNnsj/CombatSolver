@@ -35,6 +35,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - P2 外层补搜的双药、强制用药开局、回合边界、零费开局、战斗中精炼、回合末选牌及提前复制模式属于 `CombatSearchCoordinator.PostSearch`；`SearchRequestPipeline` 在主 Pass 和升级之后调用后处理，`Solve` 保留预览回调及最终结果字段填充。各模式共用 `SearchPassContext` 与请求账本，候选次序、原终局政策和诊断标签保持不变。
 - `SearchBudgetWindow` 只冻结一次请求余量并套用既有成员上限，模式专用准入与候选合法性仍在对应 Pass；迁移预算读取时保持时钟和工作量采样顺序。
 - 主 Pass 的固定前缀成员从 `SearchPassContext.SliceWindow` 取得轮次时间与请求节点；窗口仍按原顺序先读时间、后读节点。具体模式保留原准入阈值、profile 变体和候选顺序。
+- 夜魇开局成员通过 `SearchBudgetLedger.ProfileWindow` 取得请求剩余节点和配置 profile 的原时间帽，不把它改成轮次剩余时间。
 - `SearchPassResult` 同时记录所选路线质量与实际最后一轮的范围／边界及请求累计工作量；升级未改善时只把所选路线和质量换回旧值，不能把最后一轮终止原因误写成旧路线的原因。
 - 本地策略脚本由 CheckpointTool 单独编译、Testing 请求宿主加载和卸载；Search 只读冻结的策略接口与分支数值特征，不承担脚本文件读取或程序集加载。无脚本请求保持生产排序及预算路径。
 - 常驻会话的开发监控由 Testing 最多每秒发布一次纯标量快照，独立窗口进程只读会话文件；Search 不引用监控窗口或文件。关闭窗口不取消请求，stop 由工具层按进程身份清理。

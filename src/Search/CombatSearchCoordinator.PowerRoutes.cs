@@ -44,13 +44,13 @@ internal static partial class CombatSearchCoordinator
                 IReadOnlyList<PlanAction> nightmareActions = builder.BuildOpeningNightmareActionsAfterPrefix(opening);
                 foreach (PlanAction nightmare in nightmareActions)
                 {
-                    long remainingNodes = context.RemainingNodes;
-                    if (remainingNodes <= 0)
+                    SearchBudgetWindow routeWindow = context.Budget.ProfileWindow(profile);
+                    if (routeWindow.RemainingNodes <= 0)
                         return selected;
-                    SolverSearchProfile routeProfile = profile with
+                    SolverSearchProfile routeProfile = routeWindow.Limit(profile,
+                        maximumNodes: 30_000, maximumMilliseconds: 15_000,
+                        reserveMilliseconds: 0) with
                     {
-                        MaxExpandedNodes = (int)Math.Min(30_000L, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(profile.SoftTimeBudgetMilliseconds, 15_000),
                         AggressivePowerCommitment = false,
                     };
                     PlanAction[] prefix = [.. opening, nightmare];

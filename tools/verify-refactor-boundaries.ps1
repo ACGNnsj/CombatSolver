@@ -143,6 +143,10 @@ if (-not $powerRoutesSource.Contains('RunOpeningNightmarePortfolio(') -or
     $powerRoutesSource.Contains('policy.RequestWorkTotals?.Snapshot()')) {
     $violations.Add('Opening route passes bypass the search pass budget ledger')
 }
+if (-not $powerRoutesSource.Contains('context.Budget.ProfileWindow(profile)') -or
+    $powerRoutesSource.Contains('Math.Min(30_000L, remainingNodes)')) {
+    $violations.Add('Nightmare opening member bypasses the profile budget window')
+}
 $noveltySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs') -Raw
 if (-not $noveltySource.Contains('RunNoveltyPortfolioPass(') -or
     -not $noveltySource.Contains('SearchPassContext context,') -or

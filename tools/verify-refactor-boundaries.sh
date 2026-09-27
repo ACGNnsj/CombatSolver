@@ -99,6 +99,10 @@ if ! rg -Fq 'RunOpeningNightmarePortfolio(' "$repository_root/src/Search/CombatS
    rg -Fq 'policy.RequestWorkTotals?.Snapshot()' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
     violations+=("Opening route passes bypass the search pass budget ledger")
 fi
+if ! rg -Fq 'context.Budget.ProfileWindow(profile)' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs" ||
+   rg -Fq 'Math.Min(30_000L, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs"; then
+    violations+=("Nightmare opening member bypasses the profile budget window")
+fi
 if ! rg -Fq 'RunNoveltyPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    ! rg -Fq 'SearchPassContext context,' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
    rg -Fq 'policy.RequestWorkTotals' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then
