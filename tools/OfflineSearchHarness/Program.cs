@@ -127,6 +127,8 @@ internal static class Program
             reached = "M1";
             if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_HISTORY_CHECKS") == "1")
                 HistoryCounterChecks.Run(combat!, options.OutputDirectory);
+            if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_INFUSED_CORE_CHECKS") == "1")
+                InfusedCoreChecks.Run(combat!, options.OutputDirectory);
             payload["budget"] = DescribeBudget(options);
             payload["root"] = OfflineCombat.DescribeRoot(combat!);
             string diagnostics = ModRuntime.DescribeStart(combat!);

@@ -1,5 +1,13 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：注能核心首回合产球（2026-09-27）
+
+- 失败来源为0.47.1／`36372d40`的问题包 `0762b1da246243f1936a1e8750be8588`，工具箱选牌完成后第一次差异是预测0球／原生3个闪电球（4/9）。同版本游戏的 `InfusedCore.AfterSideTurnStart` IL核对了参与者、首回合条件及3次产球；原包未恢复。
+- `tools/OfflineSearchHarness/InfusedCoreChecks.cs` 用生产DLL创建根，注入分支空球队列后调用真实遗物Hook。`OFFLINE_HARNESS_INFUSED_CORE_CHECKS=1`、DEFECT、`--milestone M1`：修改前失败 `first turn must channel three orbs; actual=0`；修改后14项Passed，覆盖3球、被动4／激发9、历史新增3次、T2空球不再产球、T2已有球不重复触发、持有者未参与不触发，以及根、父子、兄弟和球Model独占。证据 `.local/issue-bundles/0762b1da246243f1936a1e8750be8588/fix/{baseline,final}/`。这是离线诊断，不是原生actual/simulated验收。
+- 新增 [INITIAL-TOOLBOX-INFUSED-CORE](../coverage/unattended/initial-toolbox-infused-core.json)：原生开局注能核心＋工具箱、1500ms固定搜索、增量等价，在首次准备结果完整状态匹配及原生选择顺序断言后停止，总超时120秒。**本轮未执行**：实际游戏进程仍运行，既有无头准入门禁禁止并行启动；未关闭用户游戏、绕过门禁或创建无头实例。
+- 旧 `RELIC-HOOKS-BATCH-054` 从已完成原生产球的Play状态取根，只证明既有球与未来回合，不再作为空球准备根的首次产球证据。覆盖分类已改为显式模拟补偿，保留原生验收未完成的说明。
+- Windows Release构建0警告0错误，修改文件JSON解析及格式检查通过。CoverageCatalog原有工程缺少RitsuLib分程序集引用，先因`GetOriginalIl`／`HarmonyIl`编译失败；使用仅本地的额外引用后构建成功，但`--verify-runtime-evidence`在读取既有`LOOP-FINAL-20260921.status=PassedWithDocumentedBoundaries`时抛JsonException，未完成覆盖门禁或重新生成派生目录。此问题不归因于本次产球修复，不伪造Passed状态。本轮不提升版本、不打包或发布；不宣称完整战斗、实机选牌部署或其他Mod组合已验收。
+
 ## PR #143 合并上游 0.47.1（2026-09-27）
 
 - 合并基线为上游 `7d9b4bed`，包含 `a59d319d`。手工解决 Opening、Phases 和两份记录文档冲突，保留上游终局／边界候选门禁、前缀异常清理及准备阶段整体补充审计旁路，同时保留本分支选择时点估值、终局前缀统计和七表／缓存校验。代码审阅未发现阻断问题。
