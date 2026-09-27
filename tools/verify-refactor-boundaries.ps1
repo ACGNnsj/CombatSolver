@@ -2002,6 +2002,12 @@ foreach ($rule in @(
 }
 
 # Contextual estimates remain pure intermediate ordering; never a bound or final policy.
+if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot 'tools/CheckpointTool/StrategySessionRunner.cs') -SimpleMatch 'timeout-progress.json' -Quiet)) {
+    $violations.Add('Strategy session timeout must preserve its last progress snapshot')
+}
+if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot 'src/Testing/DevelopmentMonitorPublisher.cs') -SimpleMatch '["memberMaxNodes"] = progress?.MaxNodes' -Quiet)) {
+    $violations.Add('Timeout progress must include the active member node limit')
+}
 foreach ($boundary in @(
     @('src/Search/CombatSearchCoordinator.PotionChain.cs', 'FrontierContinuationScheduler'),
     @('src/Search/CombatBeamSolver.Expansion.Opening.cs', 'BuildFreeEntropicPotionActionsAfterPrefix'),
