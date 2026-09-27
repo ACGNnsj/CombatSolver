@@ -9,6 +9,7 @@
 - 请求管线现统一派发后处理 Pass。只检查 Release 编译、Windows 结构门禁和原调用顺序；游戏实例未启动，完整结果、接管时机与工作量的逐位对照仍待执行。
 - 主 Pass 六处固定前缀成员预算切片改走账本窗口，保留原采样顺序与常数；仅做 Release 编译及 Windows 结构门禁，实际成员派发与结果对照合并到 P2 收口。
 - 夜魇开局成员改走 `ProfileWindow`，仍使用配置时间帽和请求剩余节点；仅做 Release 编译及 Windows 结构门禁，实际路线对照留到 P2 收口。
+- P2 收口：`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/after-p2-20260928` 运行一次，#24、#37、#81、#89 与两个生成场景均为 `comparable`，无头实例已清理。`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p2/baseline-0471 --right .local/strategy-refactor-p2/after-p2-20260928 --out .local/strategy-refactor-p2/compare-p2-20260928` 报告六根逐位相同。最终行为源码的 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=219`；Linux 门禁按用户要求未运行。
 
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 
