@@ -8,6 +8,9 @@ violations=()
 for corpus_input in tools/StrategyCorpus/run.py tools/StrategyCorpus/compare.py coverage/strategy-refactor-p0/corpus.json; do
     [[ -f "$repository_root/$corpus_input" ]] || violations+=("Strategy corpus input missing: $corpus_input")
 done
+for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs; do
+    [[ -f "$repository_root/$quality_input" ]] || violations+=("Route quality model missing: $quality_input")
+done
 
 usage() {
     cat <<'EOF'

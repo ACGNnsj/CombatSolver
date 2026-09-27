@@ -33,6 +33,11 @@ foreach ($relative in @('tools/StrategyCorpus/run.py', 'tools/StrategyCorpus/com
         $violations.Add("Strategy corpus input missing: $relative")
     }
 }
+foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPolicy.cs')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
+        $violations.Add("Route quality model missing: $relative")
+    }
+}
 $strategySearch = Join-Path $searchRoot 'DevelopmentSearchStrategy.cs'
 $strategyLoader = Join-Path $repositoryRoot 'src/Testing/DevelopmentStrategyLoader.cs'
 $monitorPublisher = Join-Path $repositoryRoot 'src/Testing/DevelopmentMonitorPublisher.cs'
