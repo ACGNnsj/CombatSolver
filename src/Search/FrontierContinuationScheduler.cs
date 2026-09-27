@@ -12,6 +12,8 @@ internal enum ContinuationPurpose
     TurnBoundaryRescue,
     TurnBoundaryFreeOpening,
     TurnBoundaryDefensiveFollowUp,
+    ForcedPotionOpening,
+    ForcedPotionTurnOrder,
 }
 
 internal interface IFrontierContinuationSource

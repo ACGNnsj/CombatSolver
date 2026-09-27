@@ -87,6 +87,10 @@ if rg -Fq 'fixedPrefixActions: combinedPrefix,' "$repository_root/src/Search/Com
    rg -Fq 'fixedPrefixActions: [.. nextTurnPrefix, nextAttack,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Turn-boundary follow-up bypasses fixed-prefix request dispatch")
 fi
+if rg -Fq 'fixedPrefixActions: focusedOpening,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   rg -Fq 'fixedPrefixActions: reordered,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Forced potion opening bypasses fixed-prefix request dispatch")
+fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then

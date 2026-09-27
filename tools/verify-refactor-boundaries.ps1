@@ -137,6 +137,10 @@ if ($postSearchSource.Contains('fixedPrefixActions: combinedPrefix,') -or
     $postSearchSource.Contains('fixedPrefixActions: [.. nextTurnPrefix, nextAttack,')) {
     $violations.Add('Turn-boundary follow-up bypasses fixed-prefix request dispatch')
 }
+if ($postSearchSource.Contains('fixedPrefixActions: focusedOpening,') -or
+    $postSearchSource.Contains('fixedPrefixActions: reordered,')) {
+    $violations.Add('Forced potion opening bypasses fixed-prefix request dispatch')
+}
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);')) {

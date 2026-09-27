@@ -87,6 +87,7 @@ internal static partial class CombatSearchCoordinator
                 DeathSaveUseCount = selected.Snapshot.ProjectedDeathSaveUseCount,
             };
             HashSet<string> attemptedOpenings = [];
+            FrontierContinuationScheduler scheduler = new(context);
             for (int variant = 0; variant < 3; variant++)
             {
                 SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);
@@ -132,20 +133,19 @@ internal static partial class CombatSearchCoordinator
                     SolverResult continuation;
                     try
                     {
-                        continuation = new CombatBeamSolver(root, displayNames,
-                            battleDamage, policy, cancellationToken,
-                            progressCallback, continuationProfile,
-                            potionPolicyOverride: potionCount > forcedPotionCount
+                        continuation = scheduler.Dispatch(new ContinuationSearchRequest(
+                            context, ContinuationPurpose.ForcedPotionOpening,
+                            focusedOpening, continuationProfile,
+                            potionCount > forcedPotionCount
                                 ? SolverPotionPolicy.RequireAtLeastOne : null,
-                            potionFreePolicyBaseline: forcedBaseline,
-                            maximumPotionUses: potionCount,
-                            fixedPrefixActions: focusedOpening,
-                            resetFixedPrefixSchedulingBaseline: true,
-                            minimumPotionUses: potionCount,
-                            earliestPotionTurn: root.EncounterRoomType == RoomType.Boss
+                            potionCount, potionCount)
+                        {
+                            PotionFreePolicyBaseline = forcedBaseline,
+                            EarliestPotionTurn = root.EncounterRoomType == RoomType.Boss
                                 ? root.StartTurnNumber
                                     + SolverWeights.BossEnemyStrengthSuppressionHorizon / 2 + 1
-                                : null).Solve();
+                                : null,
+                        });
                     }
                     catch (PotionPolicyUnsatisfiedException)
                     {
@@ -185,20 +185,19 @@ internal static partial class CombatSearchCoordinator
                     SolverResult reorderedResult;
                     try
                     {
-                        reorderedResult = new CombatBeamSolver(root, displayNames,
-                            battleDamage, policy, cancellationToken,
-                            progressCallback, reorderedProfile,
-                            potionPolicyOverride: potionCount > forcedPotionCount
+                        reorderedResult = scheduler.Dispatch(new ContinuationSearchRequest(
+                            context, ContinuationPurpose.ForcedPotionTurnOrder,
+                            reordered, reorderedProfile,
+                            potionCount > forcedPotionCount
                                 ? SolverPotionPolicy.RequireAtLeastOne : null,
-                            potionFreePolicyBaseline: forcedBaseline,
-                            maximumPotionUses: potionCount,
-                            fixedPrefixActions: reordered,
-                            resetFixedPrefixSchedulingBaseline: true,
-                            minimumPotionUses: potionCount,
-                            earliestPotionTurn: root.EncounterRoomType == RoomType.Boss
+                            potionCount, potionCount)
+                        {
+                            PotionFreePolicyBaseline = forcedBaseline,
+                            EarliestPotionTurn = root.EncounterRoomType == RoomType.Boss
                                 ? root.StartTurnNumber
                                     + SolverWeights.BossEnemyStrengthSuppressionHorizon / 2 + 1
-                                : null).Solve();
+                                : null,
+                        });
                     }
                     catch (PotionPolicyUnsatisfiedException)
                     {
