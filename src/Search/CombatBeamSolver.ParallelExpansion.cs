@@ -533,39 +533,12 @@ internal sealed partial class CombatBeamSolver
         IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches,
         ExpansionBatch batch)
     {
-        SimulationSnapshot snapshot = node.Snapshot;
         foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
         {
             bool published = false;
             try
             {
-                bool forcedTurnEnd = finalSnapshot.Turn > node.Turn;
-                PlanAction nodeAction = finalAction with { EndsPlayerTurn = forcedTurnEnd };
-                bool terminal = finalSnapshot.PlayerDead
-                    || finalSnapshot.AllEnemiesDead
-                    || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
-                SearchNode child = new(
-                    nodeAction,
-                    node.ActionCount + 1,
-                    finalSnapshot.PotionUseCount,
-                    finalSnapshot.PotionStrategicCost,
-                    forcedTurnEnd ? node.Turn + 1 : node.Turn,
-                    node.Traits,
-                    node.FutureSoldHp,
-                    ApplySoldHpPenalty(finalSnapshot.Score, node.FutureSoldHp),
-                    finalSnapshot.StateKey,
-                    finalSnapshot.HasRisk,
-                    finalSnapshot.BoundaryReason,
-                    terminal,
-                    node,
-                    finalSnapshot,
-                    forcedTurnEnd
-                        ? node.CombatProgress.Advance(finalSnapshot)
-                        : node.CombatProgress)
-                {
-                    CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
-                };
-                child = AttachCycleSchedulingEvidence(child);
+                SearchNode child = CreatePlannedCardChild(node, finalAction, finalSnapshot);
                 batch.Add(new RawCardCandidate(
                     child,
                     action.CardType,
@@ -758,32 +731,9 @@ internal sealed partial class CombatBeamSolver
         IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches,
         ExpansionBatch batch)
     {
-        SimulationSnapshot snapshot = node.Snapshot;
         foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
         {
-            bool terminal = finalSnapshot.PlayerDead
-                || finalSnapshot.AllEnemiesDead
-                || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
-            SearchNode child = new(
-                finalAction,
-                node.ActionCount + 1,
-                finalSnapshot.PotionUseCount,
-                finalSnapshot.PotionStrategicCost,
-                node.Turn,
-                ClassifyPotionTraits(node.Traits, snapshot, finalSnapshot),
-                node.FutureSoldHp,
-                ApplySoldHpPenalty(finalSnapshot.Score, node.FutureSoldHp),
-                finalSnapshot.StateKey,
-                finalSnapshot.HasRisk,
-                finalSnapshot.BoundaryReason,
-                terminal,
-                node,
-                finalSnapshot,
-                node.CombatProgress)
-            {
-                CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
-            };
-            child = AttachCycleSchedulingEvidence(child);
+            SearchNode child = CreatePlannedPotionChild(node, finalAction, finalSnapshot);
             batch.AddPotion(child);
         }
     }

@@ -81,6 +81,12 @@ if (-not $serialExpansionSource.Contains('EnumeratePlannedCardActions(') -or
     -not $parallelExpansionSource.Contains('EnumeratePlannedPotionActions(')) {
     $violations.Add('Serial and parallel card/potion paths do not share the expansion plan')
 }
+if (-not $serialExpansionSource.Contains('CreatePlannedCardChild(') -or
+    -not $serialExpansionSource.Contains('CreatePlannedPotionChild(') -or
+    -not $parallelExpansionSource.Contains('CreatePlannedCardChild(') -or
+    -not $parallelExpansionSource.Contains('CreatePlannedPotionChild(')) {
+    $violations.Add('Serial and parallel paths duplicate card/potion child construction')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }

@@ -89,36 +89,7 @@ internal sealed partial class CombatBeamSolver
                 resolvedBranches = WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches);
                 foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
                 {
-                    bool forcedTurnEnd = finalSnapshot.Turn > node.Turn;
-                    PlanAction nodeAction = finalAction with { EndsPlayerTurn = forcedTurnEnd };
-                    bool terminal = finalSnapshot.PlayerDead
-                        || finalSnapshot.AllEnemiesDead
-                        || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
-                    double score = ApplySoldHpPenalty(
-                        finalSnapshot.Score,
-                        node.FutureSoldHp);
-                    SearchNode child = new(
-                        nodeAction,
-                        node.ActionCount + 1,
-                        finalSnapshot.PotionUseCount,
-                        finalSnapshot.PotionStrategicCost,
-                        forcedTurnEnd ? node.Turn + 1 : node.Turn,
-                        node.Traits,
-                        node.FutureSoldHp,
-                        score,
-                        finalSnapshot.StateKey,
-                        finalSnapshot.HasRisk,
-                        finalSnapshot.BoundaryReason,
-                        terminal,
-                        node,
-                        finalSnapshot,
-                        forcedTurnEnd
-                            ? node.CombatProgress.Advance(finalSnapshot)
-                            : node.CombatProgress)
-                    {
-                        CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
-                    };
-                    child = AttachCycleSchedulingEvidence(child);
+                    SearchNode child = CreatePlannedCardChild(node, finalAction, finalSnapshot);
                     PromoteOrderedMutationProgressTail(child);
                     CommitCycleExitObservation(child);
                     if (ShouldPruneCrossTurnNoProgress(child))
@@ -273,31 +244,7 @@ internal sealed partial class CombatBeamSolver
                          WithPotionChoiceCheckpoint(checkpoint, ResolveExplicitCardChoiceBranches(
                              node, baseAction, probeSnapshot, choices, choiceSpec)))
                 {
-                    bool terminal = finalSnapshot.PlayerDead
-                        || finalSnapshot.AllEnemiesDead
-                        || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
-                    SearchNode child = new(
-                        finalAction,
-                        node.ActionCount + 1,
-                        finalSnapshot.PotionUseCount,
-                        finalSnapshot.PotionStrategicCost,
-                        node.Turn,
-                        ClassifyPotionTraits(node.Traits, snapshot, finalSnapshot),
-                        node.FutureSoldHp,
-                        ApplySoldHpPenalty(
-                            finalSnapshot.Score,
-                            node.FutureSoldHp),
-                        finalSnapshot.StateKey,
-                        finalSnapshot.HasRisk,
-                        finalSnapshot.BoundaryReason,
-                        terminal,
-                        node,
-                        finalSnapshot,
-                        node.CombatProgress)
-                    {
-                        CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
-                    };
-                    child = AttachCycleSchedulingEvidence(child);
+                    SearchNode child = CreatePlannedPotionChild(node, finalAction, finalSnapshot);
                     PromoteOrderedMutationProgressTail(child);
                     CommitCycleExitObservation(child);
                     EnsureBoundedCycleProbeLease(child);

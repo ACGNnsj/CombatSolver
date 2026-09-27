@@ -152,4 +152,69 @@ internal sealed partial class CombatBeamSolver
             }
         }
     }
+
+    private SearchNode CreatePlannedCardChild(
+        SearchNode node,
+        PlanAction finalAction,
+        SimulationSnapshot finalSnapshot)
+    {
+        bool forcedTurnEnd = finalSnapshot.Turn > node.Turn;
+        PlanAction nodeAction = finalAction with { EndsPlayerTurn = forcedTurnEnd };
+        bool terminal = finalSnapshot.PlayerDead
+            || finalSnapshot.AllEnemiesDead
+            || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
+        double score = ApplySoldHpPenalty(finalSnapshot.Score, node.FutureSoldHp);
+        SearchNode child = new(
+            nodeAction,
+            node.ActionCount + 1,
+            finalSnapshot.PotionUseCount,
+            finalSnapshot.PotionStrategicCost,
+            forcedTurnEnd ? node.Turn + 1 : node.Turn,
+            node.Traits,
+            node.FutureSoldHp,
+            score,
+            finalSnapshot.StateKey,
+            finalSnapshot.HasRisk,
+            finalSnapshot.BoundaryReason,
+            terminal,
+            node,
+            finalSnapshot,
+            forcedTurnEnd
+                ? node.CombatProgress.Advance(finalSnapshot)
+                : node.CombatProgress)
+        {
+            CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
+        };
+        return AttachCycleSchedulingEvidence(child);
+    }
+
+    private SearchNode CreatePlannedPotionChild(
+        SearchNode node,
+        PlanAction finalAction,
+        SimulationSnapshot finalSnapshot)
+    {
+        bool terminal = finalSnapshot.PlayerDead
+            || finalSnapshot.AllEnemiesDead
+            || finalSnapshot.BoundaryReason != SearchBoundaryReason.None;
+        SearchNode child = new(
+            finalAction,
+            node.ActionCount + 1,
+            finalSnapshot.PotionUseCount,
+            finalSnapshot.PotionStrategicCost,
+            node.Turn,
+            ClassifyPotionTraits(node.Traits, node.Snapshot, finalSnapshot),
+            node.FutureSoldHp,
+            ApplySoldHpPenalty(finalSnapshot.Score, node.FutureSoldHp),
+            finalSnapshot.StateKey,
+            finalSnapshot.HasRisk,
+            finalSnapshot.BoundaryReason,
+            terminal,
+            node,
+            finalSnapshot,
+            node.CombatProgress)
+        {
+            CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, finalSnapshot),
+        };
+        return AttachCycleSchedulingEvidence(child);
+    }
 }

@@ -41,6 +41,12 @@ if ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBe
    ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card/potion paths do not share the expansion plan")
 fi
+for child_method in CreatePlannedCardChild CreatePlannedPotionChild; do
+    if ! rg -Fq "$child_method(" "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+       ! rg -Fq "$child_method(" "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+        violations+=("Serial and parallel paths duplicate card/potion child construction: $child_method")
+    fi
+done
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then
