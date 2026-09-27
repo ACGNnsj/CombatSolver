@@ -55,6 +55,11 @@ if ! rg -Fq 'ledger.RequestWindow(policy.Profile)' "$repository_root/src/Search/
    rg -Fq 'MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Early potion pair rescue bypasses the request budget window")
 fi
+if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Forced potion opening rescue bypasses the request budget window")
+fi
 for pass in RunForcedPotionOpeningRescue RunTurnBoundaryRescue \
     RunZeroCostOpeningRescue RunMidCombatRefinement \
     RunTurnEndChoicePosterior RunEarlierCopyDelayedDamage; do

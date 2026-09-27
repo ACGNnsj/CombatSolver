@@ -90,14 +90,13 @@ internal static partial class CombatSearchCoordinator
             HashSet<string> attemptedOpenings = [];
             for (int variant = 0; variant < 3; variant++)
             {
-                int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                if (remainingMilliseconds <= 30_000 || remainingNodes <= 0)
+                SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);
+                if (!discoveryWindow.CanStart(30_000))
                     break;
-                SolverSearchProfile discoveryProfile = policy.Profile with
+                SolverSearchProfile discoveryProfile = discoveryWindow.Limit(policy.Profile,
+                    maximumNodes: 40_000, maximumMilliseconds: 12_000,
+                    reserveMilliseconds: 2_000) with
                 {
-                    MaxExpandedNodes = (int)Math.Min(40_000, remainingNodes),
-                    SoftTimeBudgetMilliseconds = Math.Min(12_000, remainingMilliseconds - 2_000),
                     SecondRankBand = variant == 1,
                     BaseScoreOnly = variant == 2,
                     AggressivePowerCommitment = variant == 0,
@@ -120,17 +119,14 @@ internal static partial class CombatSearchCoordinator
                 foreach (PlanAction[] focusedOpening in new[] { opening }
                              .Concat(targetVariants))
                 {
-                    if (!attemptedOpenings.Add(PowerPrefixKey(focusedOpening)))
-                        continue;
-                    remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                    remainingNodes = ledger.RemainingNodes(policy.Profile);
-                    if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
-                        break;
-                    SolverSearchProfile continuationProfile = policy.Profile with
-                    {
-                        MaxExpandedNodes = (int)Math.Min(60_000, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
-                    };
+                        if (!attemptedOpenings.Add(PowerPrefixKey(focusedOpening)))
+                            continue;
+                        SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);
+                        if (!continuationWindow.CanStart(20_000))
+                            break;
+                        SolverSearchProfile continuationProfile = continuationWindow.Limit(
+                            policy.Profile, maximumNodes: 60_000, maximumMilliseconds: 18_000,
+                            reserveMilliseconds: 2_000);
                     int forcedPotionCount = policy.PotionStrategy.ForcedDirectiveCount;
                     int potionCount = Math.Min(root.SearchablePotionCount,
                         forcedPotionCount + 1);
@@ -178,18 +174,15 @@ internal static partial class CombatSearchCoordinator
                     if (nextTurn.Length != 2
                         || nextTurn.Any(action => action.Kind != PlanActionKind.PlayCard))
                         continue;
-                    PlanAction[] reordered = [.. focusedOpening, nextTurn[1], nextTurn[0]];
-                    if (!targetBuilder.CanReplayOpeningPrefix(reordered))
-                        continue;
-                    remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                    remainingNodes = ledger.RemainingNodes(policy.Profile);
-                    if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
-                        break;
-                    SolverSearchProfile reorderedProfile = continuationProfile with
-                    {
-                        MaxExpandedNodes = (int)Math.Min(60_000, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
-                    };
+                        PlanAction[] reordered = [.. focusedOpening, nextTurn[1], nextTurn[0]];
+                        if (!targetBuilder.CanReplayOpeningPrefix(reordered))
+                            continue;
+                        SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);
+                        if (!reorderedWindow.CanStart(20_000))
+                            break;
+                        SolverSearchProfile reorderedProfile = reorderedWindow.Limit(
+                            continuationProfile, maximumNodes: 60_000, maximumMilliseconds: 18_000,
+                            reserveMilliseconds: 2_000);
                     SolverResult reorderedResult;
                     try
                     {

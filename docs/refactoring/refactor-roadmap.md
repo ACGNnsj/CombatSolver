@@ -120,3 +120,5 @@ P0 建立六个严格恢复的玩家开战根与两个生成场景的固定预�
 ### P2 外层补搜 Pass 抽取（2026-09-27 续）
 
 把外层 `Solve` 里剩余的补搜块全部抽为 `CombatSearchCoordinator.PostSearch.cs` 中的具体 Pass：`RunForcedPotionOpeningRescue`、`RunTurnBoundaryRescue`、`RunZeroCostOpeningRescue`、`RunMidCombatRefinement`、`RunTurnEndChoicePosterior`、`RunEarlierCopyDelayedDamage`，并把 `RunEarlyTurnExploration` 从散参数收敛为接收 `SearchPassContext`。均为纯移动：方法体、分支条件、派发顺序、诊断标签与预算读取时点不变。`CombatSearchCoordinator.cs` 约 3,032 → 2,596 行。本轮按用户要求不启动实例，只通过 Release 编译与 Windows 结构门禁；行为等价与剩余阶段验证见[待测清单](strategy-refactor-test-backlog-20260927.md)，尚未取得基线逐位对照证据。
+
+强制用药开局补搜的三个成员已用请求账本的 `SearchBudgetWindow` 生成原有预算切片；准入阈值与读取时点保持原位。行为对照并入 P2 收口时的一次固定语料运行。
