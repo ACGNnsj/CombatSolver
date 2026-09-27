@@ -22,6 +22,8 @@ P3 前沿续搜首先迁移双药开局模式：`OpeningPotionPairContinuationSo
 
 回合边界锚点来源沿用原 `PowerPrefixKey` 去重、最多八个原序锚点和 EndTurn 过滤；调度器只对该模式的 `PotionPolicyUnsatisfiedException` 保留原诊断并继续下一候选，其他异常仍传播。
 
+`ContinuationSearchRequest` 明确携带原有政策、回调、药水基线、用药上下界及最早用药回合覆盖；`FrontierContinuationScheduler.Dispatch` 是固定前缀求解器的构造入口。各模式的预算采样与结果取优仍留在原语义位置，迁移期允许已算好的成员 profile 直接提交给调度器。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。

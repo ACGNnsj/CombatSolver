@@ -112,6 +112,11 @@ if (-not $postSearchSource.Contains('new FrontierContinuationScheduler(context).
     -not $continuationSchedulerSource.Contains('fixedPrefixActions: request.Prefix')) {
     $violations.Add('Early potion pair rescue bypasses the frontier continuation scheduler')
 }
+if (-not $continuationSchedulerSource.Contains('SolverResult Dispatch(ContinuationSearchRequest request)') -or
+    -not $continuationSchedulerSource.Contains('result = Dispatch(request);') -or
+    -not $continuationSchedulerSource.Contains('CombatBeamSolver CreateSolver(ContinuationSearchRequest request)')) {
+    $violations.Add('Frontier continuation request does not own solver construction')
+}
 if (-not $postSearchSource.Contains('new EarlierCopyDelayedDamageContinuationSource(') -or
     -not $postSearchSource.Contains('context, selected.BestNode.Actions)')) {
     $violations.Add('Earlier copy potion rescue bypasses the frontier continuation scheduler')

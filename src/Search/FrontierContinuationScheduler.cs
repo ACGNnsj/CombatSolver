@@ -28,7 +28,15 @@ internal sealed record ContinuationSearchRequest(
     SolverSearchProfile Profile,
     SolverPotionPolicy? PotionPolicyOverride,
     int? MaximumPotionUses,
-    int? MinimumPotionUses);
+    int? MinimumPotionUses)
+{
+    internal SearchPolicySnapshot? PolicyOverride { get; init; }
+    internal Action<SolverProgress>? ProgressCallbackOverride { get; init; }
+    internal PotionFreePolicyBaseline? PotionFreePolicyBaseline { get; init; }
+    internal PrimarySearchIncumbent? PrimaryIncumbent { get; init; }
+    internal int? EarliestPotionTurn { get; init; }
+    internal bool ResetFixedPrefixSchedulingBaseline { get; init; } = true;
+}
 
 internal sealed record ContinuationSearchOutcome(
     ContinuationSearchRequest Request,
@@ -37,6 +45,45 @@ internal sealed record ContinuationSearchOutcome(
 internal sealed class FrontierContinuationScheduler(SearchPassContext context)
 {
     private readonly HashSet<(ContinuationPurpose Purpose, string Prefix)> _seen = [];
+
+    private static CombatBeamSolver CreateSolver(ContinuationSearchRequest request)
+    {
+        SearchPassContext input = request.Context;
+        return new CombatBeamSolver(
+            input.Root, input.DisplayNames, input.BattleDamage,
+            request.PolicyOverride ?? input.Policy,
+            input.CancellationToken,
+            request.ProgressCallbackOverride ?? input.ProgressCallback,
+            request.Profile,
+            potionPolicyOverride: request.PotionPolicyOverride,
+            potionFreePolicyBaseline: request.PotionFreePolicyBaseline,
+            maximumPotionUses: request.MaximumPotionUses,
+            fixedPrefixActions: request.Prefix,
+            resetFixedPrefixSchedulingBaseline: request.ResetFixedPrefixSchedulingBaseline,
+            minimumPotionUses: request.MinimumPotionUses,
+            primaryIncumbent: request.PrimaryIncumbent,
+            earliestPotionTurn: request.EarliestPotionTurn);
+    }
+
+    internal SolverResult Dispatch(ContinuationSearchRequest request)
+        => CreateSolver(request).Solve();
+
+    private static SolverResult? DispatchOptional(
+        ContinuationSearchRequest request,
+        string diagnostic)
+    {
+        CombatBeamSolver solver = CreateSolver(request);
+        try
+        {
+            return solver.Solve();
+        }
+        catch (PotionPolicyUnsatisfiedException)
+        {
+            request.Context.Policy.Diagnostics.Info(
+                $"[CombatSolver/Test] {diagnostic} qualified=false");
+            return null;
+        }
+    }
 
     internal IEnumerable<ContinuationSearchOutcome> Run(
         IFrontierContinuationSource source,
@@ -64,25 +111,13 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
                 window.Limit(context.Policy.Profile, maximumNodes, maximumMilliseconds,
                     reserveMilliseconds), potionPolicyOverride, maximumPotionUses,
                 minimumPotionUses);
-            CombatBeamSolver solver = new(
-                context.Root, context.DisplayNames, context.BattleDamage,
-                context.Policy, context.CancellationToken, context.ProgressCallback,
-                request.Profile, potionPolicyOverride: request.PotionPolicyOverride,
-                maximumPotionUses: request.MaximumPotionUses,
-                fixedPrefixActions: request.Prefix,
-                resetFixedPrefixSchedulingBaseline: true,
-                minimumPotionUses: request.MinimumPotionUses);
-            SolverResult result;
-            try
-            {
-                result = solver.Solve();
-            }
-            catch (PotionPolicyUnsatisfiedException) when (optionalPotionDiagnostic != null)
-            {
-                context.Policy.Diagnostics.Info(
-                    $"[CombatSolver/Test] {optionalPotionDiagnostic} qualified=false");
+            SolverResult? result;
+            if (optionalPotionDiagnostic == null)
+                result = Dispatch(request);
+            else
+                result = DispatchOptional(request, optionalPotionDiagnostic);
+            if (result == null)
                 continue;
-            }
             yield return new(request, result);
         }
     }

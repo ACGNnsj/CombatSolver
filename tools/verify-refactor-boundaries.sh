@@ -62,6 +62,11 @@ if ! rg -Fq 'new FrontierContinuationScheduler(context).Run(' "$repository_root/
    ! rg -Fq 'fixedPrefixActions: request.Prefix' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
     violations+=("Early potion pair rescue bypasses the frontier continuation scheduler")
 fi
+if ! rg -Fq 'SolverResult Dispatch(ContinuationSearchRequest request)' "$repository_root/src/Search/FrontierContinuationScheduler.cs" ||
+   ! rg -Fq 'result = Dispatch(request);' "$repository_root/src/Search/FrontierContinuationScheduler.cs" ||
+   ! rg -Fq 'CombatBeamSolver CreateSolver(ContinuationSearchRequest request)' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
+    violations+=("Frontier continuation request does not own solver construction")
+fi
 if ! rg -Fq 'new EarlierCopyDelayedDamageContinuationSource(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'context, selected.BestNode.Actions)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Earlier copy potion rescue bypasses the frontier continuation scheduler")
