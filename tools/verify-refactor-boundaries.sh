@@ -13,6 +13,7 @@ for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs
 done
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 [[ -f "$repository_root/src/Search/SearchPassContext.cs" ]] || violations+=("Search pass context missing")
+[[ -f "$repository_root/src/Search/SearchPassResult.cs" ]] || violations+=("Search pass result missing")
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi
@@ -21,6 +22,9 @@ if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/
 fi
 if ! rg -Fq 'RunSupplementalAudits(auditContext,' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Supplemental audits do not consume the search pass context")
+fi
+if ! rg -Fq 'SearchPassResult RunSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Search pass does not return its termination state")
 fi
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \

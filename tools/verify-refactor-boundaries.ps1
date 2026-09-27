@@ -44,6 +44,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBu
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassContext.cs') -PathType Leaf)) {
     $violations.Add('Search pass context missing')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassResult.cs') -PathType Leaf)) {
+    $violations.Add('Search pass result missing')
+}
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
@@ -53,6 +56,9 @@ if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new
 }
 if (-not $coordinatorSource.Contains('RunSupplementalAudits(auditContext,')) {
     $violations.Add('Supplemental audits do not consume the search pass context')
+}
+if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(')) {
+    $violations.Add('Search pass does not return its termination state')
 }
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'

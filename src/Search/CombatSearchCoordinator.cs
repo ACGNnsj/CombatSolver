@@ -891,9 +891,7 @@ internal static partial class CombatSearchCoordinator
         }
         // 一轮完整的深化搜索：主搜索（Smart 时先按无主动用药跑）＋补充审计。抬节点上限重搜时
         // 原样再走一遍，所以抽成一个本地函数；每一轮自带一只秒表，补充审计那边算剩余预算靠它。
-        SolverResult? takeoverResult = null;
-        bool passSettled = false;
-        SolverResult RunSearchPass(SolverSearchProfile passProfile, Stopwatch passClock)
+        SearchPassResult RunSearchPass(SolverSearchProfile passProfile, Stopwatch passClock)
         {
             long passAllocatedAtStart = GC.GetTotalAllocatedBytes(precise: false);
             long passTransitionsAtStart = policy.RequestWorkTotals?.Snapshot().TransitionCount ?? 0;
@@ -1216,12 +1214,9 @@ internal static partial class CombatSearchCoordinator
             if (!ReferenceEquals(passResult, publishedBaseline))
                 interimResultCallback?.Invoke(passResult);
             if (ResolveTakeoverResult(passResult, policy.Interaction) is { } passTakeover)
-            {
-                takeoverResult = passTakeover;
-                return passResult;
-            }
+                return new(passResult, passTakeover, false);
             if (policy.IncludeTurnSetup)
-                return passResult;
+                return new(passResult, null, false);
             SearchPassContext auditContext = new(root, displayNames, battleDamage,
                 policy, passProfile, passClock, ledger, cancellationToken,
                 progressCallback, interimResultCallback);
@@ -1236,22 +1231,19 @@ internal static partial class CombatSearchCoordinator
                     battleDamage, potionFreePolicy, cancellationToken, progressCallback,
                     passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled).Solve();
                 if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
-                    return potionFree;
+                    return new(potionFree, null, false);
                 SolverResult audited = RunSupplementalAudits(auditContext,
                     potionFree, memoryForecast);
                 if (audited.ResultScope != SolverResultScope.SearchCompletion)
-                    return audited;
+                    return new(audited, null, false);
                 if (IsBetterSmartPotionAuditResult(root, policy, audited, passResult))
                     passResult = audited;
-                return passResult;
+                return new(passResult, null, false);
             }
             if (!policy.PotionStrategy.HasForcedDirectives || hasForcedBaseline)
             {
                 if (!hasForcedBaseline && HasReachedAcceptableBattleHpLoss(policy, passResult))
-                {
-                    passSettled = true;
-                    return passResult;
-                }
+                    return new(passResult, null, true);
                 passResult = RunSupplementalAudits(
                     policy.NoveltySearch == null
                         ? auditContext
@@ -1262,14 +1254,15 @@ internal static partial class CombatSearchCoordinator
                 // primary-pass observations alongside the request's final outcome.
                 passResult.NoveltyPortfolio = noveltyPass;
             }
-            return passResult;
+            return new(passResult, null, false);
         }
 
-        SolverResult result = RunSearchPass(profile, requestClock);
-        if (takeoverResult != null)
-            return takeoverResult;
+        SearchPassResult lastPass = RunSearchPass(profile, requestClock);
+        SolverResult result = lastPass.Result;
+        if (lastPass.TakeoverResult != null)
+            return lastPass.TakeoverResult;
         // 打到可接受战损就收手那一条和改动之前一样直接返回，连 SEARCH_SESSION 都不打。
-        if (passSettled || policy.FixedBudget)
+        if (lastPass.Settled || policy.FixedBudget)
             return result;
         result = EscalateSearchWhenNoVictory(
             root,
@@ -1277,14 +1270,18 @@ internal static partial class CombatSearchCoordinator
             profile,
             requestClock,
             result,
-            RunSearchPass,
-            () => takeoverResult != null
-                || passSettled
+            (passProfile, passClock) =>
+            {
+                lastPass = RunSearchPass(passProfile, passClock);
+                return lastPass.Result;
+            },
+            () => lastPass.TakeoverResult != null
+                || lastPass.Settled
                 || cancellationToken.IsCancellationRequested
                 || policy.Interaction?.CurrentTakeoverRequest != null);
-        if (takeoverResult != null)
-            return takeoverResult;
-        if (passSettled)
+        if (lastPass.TakeoverResult != null)
+            return lastPass.TakeoverResult;
+        if (lastPass.Settled)
             return result;
         policy.Diagnostics.Info(
             $"[CombatSolver/Test] SEARCH_SESSION mode=single_anytime " +
