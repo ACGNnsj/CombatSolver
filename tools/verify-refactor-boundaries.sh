@@ -46,6 +46,12 @@ for purpose in EarlyDiscardBeforeGeneration OpeningTargetVariant \
         violations+=("Primary pass fixed-prefix request missing: $purpose")
     fi
 done
+for purpose in OpeningResourceDefense PotionResourcePosterior \
+    PotionPowerPosterior PotionPowerDefensivePosterior; do
+    if ! rg -Fq "ContinuationPurpose.$purpose" "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+        violations+=("Opening audit fixed-prefix request missing: $purpose")
+    fi
+done
 if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator creates request work totals outside the budget ledger")
 fi

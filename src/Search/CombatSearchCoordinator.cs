@@ -1168,6 +1168,7 @@ internal static partial class CombatSearchCoordinator
 
         List<SolverResult> searches = [primary];
         SolverResult selected = primary;
+        FrontierContinuationScheduler continuationScheduler = new(context);
         foreach (PlanAction openingResource in openingResources)
         {
             PlanAction? defensiveFollowUp = new CombatBeamSolver(
@@ -1182,15 +1183,10 @@ internal static partial class CombatSearchCoordinator
             if (defensiveFollowUp == null)
                 continue;
 
-            SolverResult resourceDefensePosterior = new CombatBeamSolver(
-                root,
-                displayNames,
-                battleDamage,
-                policy,
-                cancellationToken,
-                progressCallback,
-                profile,
-                fixedPrefixActions: [openingResource, defensiveFollowUp]).Solve();
+            SolverResult resourceDefensePosterior = continuationScheduler.Dispatch(
+                new ContinuationSearchRequest(context, ContinuationPurpose.OpeningResourceDefense,
+                    [openingResource, defensiveFollowUp], profile, null, null, null)
+                { ResetFixedPrefixSchedulingBaseline = false });
             if (resourceDefensePosterior.ResultScope != SolverResultScope.SearchCompletion)
                 return resourceDefensePosterior;
 
@@ -1215,19 +1211,10 @@ internal static partial class CombatSearchCoordinator
 
         foreach (PlanAction openingPotion in generatedCardPotions)
         {
-            SolverResult? resourcePosterior = SolveOptionalPotionPosterior(
-                new CombatBeamSolver(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    cancellationToken,
-                    progressCallback,
-                    profile,
-                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                    maximumPotionUses: 1,
-                    fixedPrefixActions: [openingPotion]),
-                policy,
+            SolverResult? resourcePosterior = continuationScheduler.DispatchOptional(
+                new ContinuationSearchRequest(context, ContinuationPurpose.PotionResourcePosterior,
+                    [openingPotion], profile, SolverPotionPolicy.RequireAtLeastOne, 1, null)
+                { ResetFixedPrefixSchedulingBaseline = false },
                 $"POTION_RESOURCE_POSTERIOR potion={openingPotion.PotionId}");
             if (resourcePosterior == null)
                 continue;
@@ -1268,19 +1255,11 @@ internal static partial class CombatSearchCoordinator
         foreach ((PlanAction openingPotion, PlanAction postPotionPower) in potionPowerPairs)
         {
             PlanAction[] jointPrefix = [openingPotion, postPotionPower];
-            SolverResult? jointPosterior = SolveOptionalPotionPosterior(
-                new CombatBeamSolver(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    cancellationToken,
-                    progressCallback,
-                    profile,
-                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                    maximumPotionUses: maximumSmartPotionUses,
-                    fixedPrefixActions: jointPrefix),
-                policy,
+            SolverResult? jointPosterior = continuationScheduler.DispatchOptional(
+                new ContinuationSearchRequest(context, ContinuationPurpose.PotionPowerPosterior,
+                    jointPrefix, profile, SolverPotionPolicy.RequireAtLeastOne,
+                    maximumSmartPotionUses, null)
+                { ResetFixedPrefixSchedulingBaseline = false },
                 $"POTION_POWER_POSTERIOR potion={openingPotion.PotionId} power={postPotionPower.CardId}");
             if (jointPosterior == null)
                 continue;
@@ -1332,19 +1311,12 @@ internal static partial class CombatSearchCoordinator
             if (defensiveFollowUp == null)
                 continue;
 
-            SolverResult? defensivePosterior = SolveOptionalPotionPosterior(
-                new CombatBeamSolver(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    cancellationToken,
-                    progressCallback,
-                    profile,
-                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                    maximumPotionUses: maximumSmartPotionUses,
-                    fixedPrefixActions: [openingPotion, postPotionPower, defensiveFollowUp]),
-                policy,
+            SolverResult? defensivePosterior = continuationScheduler.DispatchOptional(
+                new ContinuationSearchRequest(context,
+                    ContinuationPurpose.PotionPowerDefensivePosterior,
+                    [openingPotion, postPotionPower, defensiveFollowUp], profile,
+                    SolverPotionPolicy.RequireAtLeastOne, maximumSmartPotionUses, null)
+                { ResetFixedPrefixSchedulingBaseline = false },
                 $"POTION_POWER_DEFENSIVE_POSTERIOR potion={openingPotion.PotionId} " +
                 $"power={postPotionPower.CardId} follow_up={defensiveFollowUp.CardId}");
             if (defensivePosterior == null)

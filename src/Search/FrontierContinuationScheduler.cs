@@ -22,6 +22,10 @@ internal enum ContinuationPurpose
     OpeningTargetPowerDefensiveVariant,
     DeferredOpeningPower,
     FreeAttackHandSetup,
+    OpeningResourceDefense,
+    PotionResourcePosterior,
+    PotionPowerPosterior,
+    PotionPowerDefensivePosterior,
 }
 
 internal interface IFrontierContinuationSource

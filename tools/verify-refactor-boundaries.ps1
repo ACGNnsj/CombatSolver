@@ -94,6 +94,12 @@ foreach ($purpose in @('EarlyDiscardBeforeGeneration', 'OpeningTargetVariant',
         $violations.Add("Primary pass fixed-prefix request missing: $purpose")
     }
 }
+foreach ($purpose in @('OpeningResourceDefense', 'PotionResourcePosterior',
+        'PotionPowerPosterior', 'PotionPowerDefensivePosterior')) {
+    if (-not $coordinatorSource.Contains("ContinuationPurpose.$purpose")) {
+        $violations.Add("Opening audit fixed-prefix request missing: $purpose")
+    }
+}
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
 }
