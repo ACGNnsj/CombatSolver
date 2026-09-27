@@ -16,7 +16,8 @@ internal static partial class CombatSearchCoordinator
     {
         Stopwatch requestClock = Stopwatch.StartNew();
         List<PlanAction[]> firstTurnAnchors = [];
-        SearchRequestWorkTotals requestWorkTotals = new();
+        SearchBudgetLedger ledger = new(requestClock, policy);
+        SearchRequestWorkTotals requestWorkTotals = ledger.WorkTotals;
         BeamWidthPortfolioTelemetry portfolioTelemetry = new();
         policy = policy with
         {
@@ -176,11 +177,8 @@ internal static partial class CombatSearchCoordinator
                                  [openingPotions[1], openingPotions[0]],
                              })
                     {
-                        int remainingMilliseconds = (policy.BudgetOverrideMilliseconds
-                            ?? policy.Profile.SoftTimeBudgetMilliseconds)
-                            - (int)requestClock.ElapsedMilliseconds;
-                        long remainingNodes = policy.Profile.MaxExpandedNodes
-                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                        long remainingNodes = ledger.RemainingNodes(policy.Profile);
                         if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                             break;
                         if (!builder.CanReplayOpeningPrefix(prefix))
@@ -216,8 +214,6 @@ internal static partial class CombatSearchCoordinator
                     .Where(directive => directive.Directive == SolverPotionDirective.Force)
                     .All(directive => !PotionUsePolicy.RequiresOpeningUse(directive.PotionId)))
             {
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
                 PotionFreePolicyBaseline forcedBaseline = new(
                     false, StrategicHpDeficit(root, policy, selected),
                     selected.Snapshot.PlayerHp, selected.CombatEndedTurn)
@@ -227,9 +223,8 @@ internal static partial class CombatSearchCoordinator
                 HashSet<string> attemptedOpenings = [];
                 for (int variant = 0; variant < 3; variant++)
                 {
-                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                    long remainingNodes = policy.Profile.MaxExpandedNodes
-                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
                     if (remainingMilliseconds <= 30_000 || remainingNodes <= 0)
                         break;
                     SolverSearchProfile discoveryProfile = policy.Profile with
@@ -260,9 +255,8 @@ internal static partial class CombatSearchCoordinator
                     {
                         if (!attemptedOpenings.Add(PowerPrefixKey(focusedOpening)))
                             continue;
-                        remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                        remainingNodes = policy.Profile.MaxExpandedNodes
-                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                        remainingNodes = ledger.RemainingNodes(policy.Profile);
                         if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile continuationProfile = policy.Profile with
@@ -320,9 +314,8 @@ internal static partial class CombatSearchCoordinator
                         PlanAction[] reordered = [.. focusedOpening, nextTurn[1], nextTurn[0]];
                         if (!targetBuilder.CanReplayOpeningPrefix(reordered))
                             continue;
-                        remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                        remainingNodes = policy.Profile.MaxExpandedNodes
-                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                        remainingNodes = ledger.RemainingNodes(policy.Profile);
                         if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile reorderedProfile = continuationProfile with
@@ -379,16 +372,13 @@ internal static partial class CombatSearchCoordinator
                 && (rescueAfterDeath || refineNearZeroLoss))
             {
                 // Revisit distinct first-turn states while the shared request still has time and nodes.
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
                 foreach (PlanAction[] firstTurn in firstTurnAnchors
                              .DistinctBy(PowerPrefixKey).Take(8))
                 {
                     if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
                         continue;
-                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                    long remainingNodes = policy.Profile.MaxExpandedNodes
-                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
                     if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                         break;
                     SolverSearchProfile rescueProfile = policy.Profile with
@@ -431,9 +421,8 @@ internal static partial class CombatSearchCoordinator
                         {
                             if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
                                 continue;
-                            int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                            long remainingNodes = policy.Profile.MaxExpandedNodes
-                                - requestWorkTotals.Snapshot().ExpandedNodes;
+                            int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                            long remainingNodes = ledger.RemainingNodes(policy.Profile);
                             if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                                 break;
                             PlanAction[] combinedPrefix = [freeAction, .. firstTurn];
@@ -466,9 +455,8 @@ internal static partial class CombatSearchCoordinator
                                 foreach (PlanAction nextAttack in NewPrefixBuilder()
                                              .BuildOpeningOffensiveCardVariantsAfterPrefix(nextTurnPrefix).Take(3))
                                 {
-                                    remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                                    remainingNodes = policy.Profile.MaxExpandedNodes
-                                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                                    remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                                    remainingNodes = ledger.RemainingNodes(policy.Profile);
                                     if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                                         break;
                                     SolverSearchProfile continuationProfile = prefixProfile with
@@ -514,16 +502,13 @@ internal static partial class CombatSearchCoordinator
                 CombatBeamSolver builder = new(root, displayNames, battleDamage,
                     policy, cancellationToken, enrichedProgressCallback, policy.Profile,
                     potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
                 int attempts = 0;
-                if (requestLimit - requestClock.ElapsedMilliseconds > 5_000)
+                if (ledger.RemainingRequestMillisecondsLong > 5_000)
                 {
                     foreach (PlanAction[] prefix in builder.BuildOpeningNoCostPrefixes())
                     {
-                        int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                        long remainingNodes = policy.Profile.MaxExpandedNodes
-                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                        long remainingNodes = ledger.RemainingNodes(policy.Profile);
                         if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile prefixProfile = policy.Profile with
@@ -559,11 +544,8 @@ internal static partial class CombatSearchCoordinator
                 PlanAction[] prefix = selected.BestNode.Actions
                     .TakeWhile(action => action.Turn < root.StartTurnNumber + 3)
                     .ToArray();
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
-                int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                long remainingNodes = policy.Profile.MaxExpandedNodes
-                    - requestWorkTotals.Snapshot().ExpandedNodes;
+                int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                long remainingNodes = ledger.RemainingNodes(policy.Profile);
                 if (prefix.LastOrDefault()?.Kind == PlanActionKind.EndTurn
                     && prefix.All(action => action.Kind != PlanActionKind.UsePotion)
                     && remainingMilliseconds > 20_000 && remainingNodes > 0)
@@ -600,9 +582,8 @@ internal static partial class CombatSearchCoordinator
                     PlanAction[] fourthTurn = selected.BestNode.Actions
                         .TakeWhile(action => action.Turn <= root.StartTurnNumber + 3)
                         .ToArray();
-                    remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                    remainingNodes = policy.Profile.MaxExpandedNodes
-                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                    remainingNodes = ledger.RemainingNodes(policy.Profile);
                     if (fourthTurn.Length > prefix.Length + 1
                         && fourthTurn.Last().Kind == PlanActionKind.EndTurn
                         && fourthTurn.All(action => action.Kind != PlanActionKind.UsePotion)
@@ -616,9 +597,8 @@ internal static partial class CombatSearchCoordinator
                         if (followUp != null)
                         {
                             PlanAction[] freePrefix = [.. beforeEndTurn, followUp, fourthTurn[^1]];
-                            remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                            remainingNodes = policy.Profile.MaxExpandedNodes
-                                - requestWorkTotals.Snapshot().ExpandedNodes;
+                            remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                            remainingNodes = ledger.RemainingNodes(policy.Profile);
                             if (remainingMilliseconds > 18_000 && remainingNodes > 0
                                 && prefixBuilder.CanReplayOpeningPrefix(freePrefix))
                             {
@@ -661,11 +641,9 @@ internal static partial class CombatSearchCoordinator
                 PlanAction[] firstTurn = selected.BestNode.Actions
                     .TakeWhile(action => action.Turn == root.StartTurnNumber)
                     .ToArray();
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
                 if (firstTurn.LastOrDefault() is
                     { Kind: PlanActionKind.EndTurn, TurnStartChoices: { Count: > 0 } } chosenEndTurn
-                    && requestLimit - requestClock.ElapsedMilliseconds > 25_000)
+                    && ledger.RemainingRequestMillisecondsLong > 25_000)
                 {
                     CombatBeamSolver choiceBuilder = new(root, displayNames, battleDamage,
                         policy, cancellationToken, enrichedProgressCallback, policy.Profile,
@@ -678,9 +656,8 @@ internal static partial class CombatSearchCoordinator
                                  .Where(action => CombatBeamSolver.TurnEndChoiceKey(action) != chosenKey)
                                  .Take(2))
                     {
-                        int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                        long remainingNodes = policy.Profile.MaxExpandedNodes
-                            - requestWorkTotals.Snapshot().ExpandedNodes;
+                        int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                        long remainingNodes = ledger.RemainingNodes(policy.Profile);
                         if (remainingMilliseconds <= 25_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile choiceProfile = policy.Profile with
@@ -721,7 +698,7 @@ internal static partial class CombatSearchCoordinator
                                 || !choice.Cards.Any(card => card.CardId == followUp.CardId))
                                 continue;
                             PlanAction[] shorter = [.. played[..index], .. played[(index + 2)..]];
-                            if (requestLimit - requestClock.ElapsedMilliseconds <= 25_000)
+                            if (ledger.RemainingRequestMillisecondsLong <= 25_000)
                                 break;
                             PlanAction? endTurn = choiceBuilder
                                 .BuildTurnEndChoiceActionsAfterPrefix(shorter)
@@ -729,9 +706,8 @@ internal static partial class CombatSearchCoordinator
                                     == CombatBeamSolver.TurnEndChoiceKey(selectedEndTurn));
                             if (endTurn == null)
                                 continue;
-                            int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                            long remainingNodes = policy.Profile.MaxExpandedNodes
-                                - requestWorkTotals.Snapshot().ExpandedNodes;
+                            int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                            long remainingNodes = ledger.RemainingNodes(policy.Profile);
                             if (remainingMilliseconds <= 25_000 || remainingNodes <= 0)
                                 break;
                             SolverSearchProfile shorterProfile = policy.Profile with
@@ -768,14 +744,11 @@ internal static partial class CombatSearchCoordinator
             {
                 CombatBeamSolver copyBuilder = new(root, displayNames, battleDamage,
                     policy, cancellationToken, enrichedProgressCallback, policy.Profile);
-                int requestLimit = policy.BudgetOverrideMilliseconds
-                    ?? policy.Profile.SoftTimeBudgetMilliseconds;
                 foreach (PlanAction[] prefix in copyBuilder
                              .BuildEarlierCopyPotionDelayedDamagePrefixes(selected.BestNode.Actions))
                 {
-                    int remainingMilliseconds = requestLimit - (int)requestClock.ElapsedMilliseconds;
-                    long remainingNodes = policy.Profile.MaxExpandedNodes
-                        - requestWorkTotals.Snapshot().ExpandedNodes;
+                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
+                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
                     if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
                         break;
                     SolverSearchProfile copyProfile = policy.Profile with

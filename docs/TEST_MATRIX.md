@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 策略重构 P2 请求级预算所有权（2026-09-27）
+
+- 合入 0.47.1 后，`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/baseline-0471` 一次采集 #24、#37、#81、#89 与两个生成场景，六根均为 `comparable`。原始包与完整证据留在 `.local`，实例由启动器清理。
+- `python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/ledger-outer` 后，`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p2/baseline-0471 --right .local/strategy-refactor-p2/ledger-outer --out .local/strategy-refactor-p2/compare-ledger-outer`：六根动作、续用、结果、expanded、transitions、choice branches 和剪枝计数逐位相同。
+- 运行器修复后 `python -m py_compile tools/StrategyCorpus/run.py tools/StrategyCorpus/compare.py tools/StrategyCorpus/test_compare.py` 通过；本次 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=215`。按用户要求未运行 Linux 门禁；未做完整自动战斗或大批量回归。
+
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 
 - P0 对六个 `combat_start` 玩家根及两个生成场景各运行一次 VeryHigh / 每 solver 25,000 节点 / DOP 1 基线；P1 最终源码对同八根各运行一次。六个玩家根的严格恢复、continuation 与原生状态均通过。两轮原始动作及完整证据留在 `.local/strategy-refactor-p0/`；启动器清理无头实例。

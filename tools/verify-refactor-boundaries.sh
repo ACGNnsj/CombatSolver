@@ -11,6 +11,13 @@ done
 for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs; do
     [[ -f "$repository_root/$quality_input" ]] || violations+=("Route quality model missing: $quality_input")
 done
+[[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
+if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Search coordinator does not own a request budget ledger")
+fi
+if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Search coordinator creates request work totals outside the budget ledger")
+fi
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
     'src/Search/CombatSearchCoordinator.cs|RouteQualityProjection.PotionPolicy' \

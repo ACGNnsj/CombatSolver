@@ -38,6 +38,16 @@ foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPo
         $violations.Add("Route quality model missing: $relative")
     }
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
+    $violations.Add('Search budget ledger missing')
+}
+$coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
+if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
+    $violations.Add('Search coordinator does not own a request budget ledger')
+}
+if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
+    $violations.Add('Search coordinator creates request work totals outside the budget ledger')
+}
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
     'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'
