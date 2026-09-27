@@ -175,6 +175,29 @@ internal sealed partial class UnattendedTestRunner
                 {
                     actions = result.BestNode.Actions,
                     snapshot = result.Snapshot,
+                    comparisonQuality = result.ComparisonQuality,
+                    rootContinuationStamp = result.ComparisonRootState,
+                    continuations = result.Continuations.Select(continuation => new
+                    {
+                        continuation.StartTurnNumber,
+                        continuation.ForecastOffset,
+                        state = continuation.ExpectedState.StateText,
+                    }).ToArray(),
+                    pruneCounters = new
+                    {
+                        result.DominatedActionsPruned,
+                        result.TopQueueActionsDropped,
+                        result.ActionAdmissionRepresentativesProtected,
+                        result.DuplicateCardBranchesPruned,
+                        result.ShuffleBranchesPruned,
+                        result.SoldHpBranchesPruned,
+                        result.TranspositionBranchesPruned,
+                        result.RepeatableNoProgressBranchesPruned,
+                        result.PrimaryIncumbentBranchesPruned,
+                        result.CycleRegionsDetected,
+                        result.CycleRegionCandidatesDropped,
+                        result.CrossTurnCandidatesProtected,
+                    },
                     result.ResultScope,
                     result.BoundaryReason,
                     policy = CombatBugReportExporter.LatestEffectivePolicy,

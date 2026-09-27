@@ -1410,6 +1410,8 @@ internal sealed record CachedContinuation(
 
 internal sealed class SolverResult
 {
+    public SolverInterimResult? ComparisonQuality { get; internal set; }
+    public string? ComparisonRootState { get; internal set; }
     public bool WasRestoredFromCache { get; internal set; }
     public SolverResultScope ResultScope { get; internal set; } = SolverResultScope.SearchCompletion;
     public bool DeterministicBlockPotionInserted { get; internal set; }

@@ -170,6 +170,7 @@ internal static class Program
                 // 宿主自己从 SolverResult 读的剪枝/复用计数（游戏内 result.json 没有这些字段）。
                 payload["pruneCounters"] = outcome.LegacyMetrics;
                 payload["searchPolicy"] = outcome.Policy;
+                payload["comparisonQuality"] = outcome.Result.ComparisonQuality;
                 payload["phasePerformance"] = ModRuntime.LastPhasePerformance;
                 File.WriteAllText(
                     Path.Combine(options.OutputDirectory, "search-policy.json"),
@@ -245,6 +246,7 @@ internal static class Program
                 ["rootContinuationStamp"] = payload.GetValueOrDefault("search") is Dictionary<string, object?> s
                     ? s.GetValueOrDefault("rootContinuationStamp")
                     : null,
+                ["comparisonQuality"] = payload.GetValueOrDefault("comparisonQuality"),
                 ["continuations"] = payload.GetValueOrDefault("search") is Dictionary<string, object?> search
                     ? search.GetValueOrDefault("continuations")
                     : null,

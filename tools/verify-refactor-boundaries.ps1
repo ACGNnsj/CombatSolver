@@ -28,6 +28,11 @@ $forbiddenSearchReferences = @(
 )
 
 $violations = [System.Collections.Generic.List[string]]::new()
+foreach ($relative in @('tools/StrategyCorpus/run.py', 'tools/StrategyCorpus/compare.py', 'coverage/strategy-refactor-p0/corpus.json')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
+        $violations.Add("Strategy corpus input missing: $relative")
+    }
+}
 $strategySearch = Join-Path $searchRoot 'DevelopmentSearchStrategy.cs'
 $strategyLoader = Join-Path $repositoryRoot 'src/Testing/DevelopmentStrategyLoader.cs'
 $monitorPublisher = Join-Path $repositoryRoot 'src/Testing/DevelopmentMonitorPublisher.cs'

@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 策略重构 P0 固定根语料（2026-09-27）
+
+- 当前源码完成一次 VeryHigh / 固定每 solver 25,000 节点 / DOP 1 的 `combat_start` 基线：#24、#37、#79、#81、#85、#89 的严格恢复、continuation 与原生状态均通过，两个仓库生成场景也完成。8 根均未触及搜索时间边界，原始动作及完整证据在 `.local/strategy-refactor-p0/baseline/`；无头实例 `strategy-refactor-p0` 已由启动器清理。
+- 基线的战损／用药依次为 #24 0/1、#37 1/0、#79 50/0、#81 31/0、#85 74/0、#89 9/0；生成场景 `GA-IRONCLAD-ELITE-00` 74/1、`GA-SILENT-BOSS-00` 44/0。这是固定短搜口径，不能与历史 180 秒策略成果直接比较。
+- `python tools/StrategyCorpus/test_compare.py` 的 3 个质量与根身份合同通过；对照器读取同一份基线的 8 根均为逐位相同。P0 Release 构建 0 警告、0 错误，Windows 结构门禁通过；Linux 门禁仍待本机提供 `rg` 后执行。尚未运行 P1 后对照。
+
 ## 0.47.0 前两回合实验开关（2026-09-27）
 
 - `NOVELTY-PORTFOLIO-SETTINGS` / `9b087e2edcc54785aeb3922bd80dbb5d` Passed：新安装默认关闭，设置页第三个实验开关、持久化和请求冻结通过；开启时深度 2、整次探索期限 2400000 ms，关闭时深度 0。

@@ -805,6 +805,8 @@ internal static partial class CombatSearchCoordinator
                 policy, cancellationToken, enrichedProgressCallback, requestClock, selected);
             PopulateRequestWorkTotals(selected, requestWorkTotals);
             selected.PortfolioTelemetry = portfolioTelemetry;
+            selected.ComparisonQuality = BuildInterimResult(root, policy, selected);
+            selected.ComparisonRootState = root.ContinuationStamp.StateText;
             return selected;
         }
         catch (OperationCanceledException)
