@@ -6,6 +6,8 @@
 
 `PotionValuationRegistry` 保存内置药水的成本档位和开局使用类型登记；`PotionUsePolicy` 消费登记结果并保留药水自由基线、奖励抵扣与资格比较。未登记药水继续使用原普通成本；Token 与可再生药水石仍按原零成本政策处理。
 
+`OpeningActionRegistry` 拥有特殊开局候选的卡牌／药水身份及触发匹配；`CombatBeamSolver.Expansion.Opening` 继续负责模拟事实判断、候选排序与保路。新增特殊开局入口时先登记其身份，不能在开局扩展文件内增加 ID 字面量。
+
 `RouteQuality` 保存路线比较共用的胜负、生存、战损、成长、药水和回合字段；`RouteQualityPolicy.Compare` 按现有请求、终局与保路投影比较。不同投影保留原有键次序，强制用药等硬准入仍在比较前执行。
 
 `SearchBudgetLedger` 是请求级时钟与工作量账本的所有者；`SearchRequestWorkTotals` 仍独占实际搜索工作量的线程安全累计。主 Pass 的前缀补搜经上下文从账本读取轮次剩余时间和请求剩余节点；迁移期各搜索成员、审计和升级保持既有派发与预算切片顺序，逐入口把剩余量查询移入账本。

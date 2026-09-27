@@ -17,6 +17,11 @@ if ! rg -Fq 'PotionValuationRegistry.Default' "$repository_root/src/Search/Potio
    rg -Fq 'ElevatedValuePotionIds' "$repository_root/src/Search/PotionUsePolicy.cs"; then
     violations+=("Potion valuation classifications remain outside the registry")
 fi
+[[ -f "$repository_root/src/Search/OpeningActionRegistry.cs" ]] || violations+=("Opening action registry missing")
+if ! rg -Fq 'OpeningActionRegistry.Default' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs" ||
+   rg -q '"(WHITE_NOISE|NIGHTMARE|DUPLICATOR)"' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
+    violations+=("Opening action IDs remain outside the registry")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

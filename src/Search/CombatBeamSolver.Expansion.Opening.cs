@@ -174,7 +174,8 @@ internal sealed partial class CombatBeamSolver
             {
                 PredictedCard card = hand[handIndex];
                 if ((card.Preview.Type != CardType.Power
-                     && !(includeWhiteNoise && card.Preview.Id.Entry == "WHITE_NOISE"))
+                     && !(includeWhiteNoise && OpeningActionRegistry.Default.MatchesId(
+                         OpeningCandidatePurpose.GeneratedPowerCard, card.Preview.Id.Entry)))
                     || !combat.CanPlayCard(simulator, card))
                     continue;
 
@@ -248,12 +249,9 @@ internal sealed partial class CombatBeamSolver
                 PersistentPowerSupport.GetModifiedMaxEnergy(
                     (SimulatedCombatState)simulator.State.CombatState, _player));
             var candidates = children
-                .Where(node => node.Action is
-                {
-                    Kind: PlanActionKind.PlayCard,
-                    CardId: "NIGHTMARE",
-                    Choice: { Cards.Count: 1 },
-                })
+                .Where(node => node.Action is { Choice: { Cards.Count: 1 } } action
+                    && OpeningActionRegistry.Default.Matches(
+                        OpeningCandidatePurpose.NightmareCopyCard, action))
                 .Select(node => (Node: node, Token: node.Action!.Choice!.Cards[0]))
                 .Select(item => (item.Node, item.Token,
                     Card: player.Hand.Cards.First(card => CardChoiceSupport.MatchesToken(card, item.Token))))
@@ -435,7 +433,8 @@ internal sealed partial class CombatBeamSolver
         int copyIndex = -1;
         for (int index = 0; index < route.Count; index++)
         {
-            if (route[index] is { Kind: PlanActionKind.UsePotion, PotionId: "DUPLICATOR" })
+            if (OpeningActionRegistry.Default.Matches(
+                    OpeningCandidatePurpose.DelayedDamageCopyPotion, route[index]))
             {
                 copyIndex = index;
                 break;
@@ -461,7 +460,8 @@ internal sealed partial class CombatBeamSolver
                 continue;
 
             PlanAction? copyPotion = BuildPotionActionsAfterPrefix(before)
-                .FirstOrDefault(candidate => candidate.PotionId == "DUPLICATOR");
+                .FirstOrDefault(candidate => OpeningActionRegistry.Default.Matches(
+                    OpeningCandidatePurpose.DelayedDamageCopyPotion, candidate));
             if (copyPotion == null)
                 continue;
             PlanAction[] prefix = [.. before, copyPotion, action];
