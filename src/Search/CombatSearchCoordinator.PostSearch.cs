@@ -34,18 +34,14 @@ internal static partial class CombatSearchCoordinator
                              [openingPotions[1], openingPotions[0]],
                          })
                 {
-                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                    if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                    SearchBudgetWindow window = ledger.RequestWindow(policy.Profile);
+                    if (!window.CanStart(5_000))
                         break;
                     if (!builder.CanReplayOpeningPrefix(prefix))
                         continue;
-                    SolverSearchProfile pairProfile = policy.Profile with
-                    {
-                        MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(30_000,
-                            remainingMilliseconds - 2_000),
-                    };
+                    SolverSearchProfile pairProfile = window.Limit(policy.Profile,
+                        maximumNodes: 100_000, maximumMilliseconds: 30_000,
+                        reserveMilliseconds: 2_000);
                     SolverResult pair = new CombatBeamSolver(root, displayNames,
                         battleDamage, policy, cancellationToken, progressCallback,
                         pairProfile, potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,

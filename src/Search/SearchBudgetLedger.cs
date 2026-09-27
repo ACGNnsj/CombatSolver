@@ -2,6 +2,24 @@ using System.Diagnostics;
 
 namespace CombatSolver;
 
+internal readonly record struct SearchBudgetWindow(int RemainingMilliseconds, long RemainingNodes)
+{
+    internal bool CanStart(int minimumMilliseconds)
+        => RemainingMilliseconds > minimumMilliseconds && RemainingNodes > 0;
+
+    internal SolverSearchProfile Limit(
+        SolverSearchProfile profile,
+        int maximumNodes,
+        int maximumMilliseconds,
+        int reserveMilliseconds)
+        => profile with
+        {
+            MaxExpandedNodes = (int)Math.Min(maximumNodes, RemainingNodes),
+            SoftTimeBudgetMilliseconds = Math.Min(
+                maximumMilliseconds, RemainingMilliseconds - reserveMilliseconds),
+        };
+}
+
 internal sealed class SearchBudgetLedger
 {
     private readonly Stopwatch _requestClock;
@@ -24,6 +42,13 @@ internal sealed class SearchBudgetLedger
 
     internal long RemainingNodes(SolverSearchProfile profile)
         => profile.MaxExpandedNodes - WorkTotals.Snapshot().ExpandedNodes;
+
+    internal SearchBudgetWindow RequestWindow(SolverSearchProfile profile)
+    {
+        int remainingMilliseconds = RemainingRequestMilliseconds;
+        long remainingNodes = RemainingNodes(profile);
+        return new(remainingMilliseconds, remainingNodes);
+    }
 
     internal long RemainingMilliseconds(SolverSearchProfile profile, Stopwatch clock)
         => profile.SoftTimeBudgetMilliseconds - clock.ElapsedMilliseconds;

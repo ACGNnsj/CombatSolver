@@ -41,6 +41,11 @@ foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPo
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
+$budgetSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -Raw
+if (-not $budgetSource.Contains('internal readonly record struct SearchBudgetWindow') -or
+    -not $budgetSource.Contains('internal SearchBudgetWindow RequestWindow(')) {
+    $violations.Add('Request budget window missing')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassContext.cs') -PathType Leaf)) {
     $violations.Add('Search pass context missing')
 }
@@ -79,6 +84,10 @@ if (-not $coordinatorSource.Contains('RunEarlyPotionPairRescue(postContext, sele
     -not $postSearchSource.Contains('RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)') -or
     $coordinatorSource.Contains('EARLY_POTION_PAIR prefix=')) {
     $violations.Add('Early potion pair rescue is not a post-search pass')
+}
+if (-not $postSearchSource.Contains('ledger.RequestWindow(policy.Profile)') -or
+    $postSearchSource.Contains('MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)')) {
+    $violations.Add('Early potion pair rescue bypasses the request budget window')
 }
 $pipelineSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -Raw
 if (-not $pipelineSource.Contains('CombatSearchCoordinator.EscalateSearchWhenNoVictory(') -or

@@ -12,6 +12,10 @@ for quality_input in src/Search/RouteQuality.cs src/Search/RouteQualityPolicy.cs
     [[ -f "$repository_root/$quality_input" ]] || violations+=("Route quality model missing: $quality_input")
 done
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
+if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
+   ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then
+    violations+=("Request budget window missing")
+fi
 [[ -f "$repository_root/src/Search/SearchPassContext.cs" ]] || violations+=("Search pass context missing")
 [[ -f "$repository_root/src/Search/SearchPassResult.cs" ]] || violations+=("Search pass result missing")
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
@@ -40,6 +44,10 @@ if ! rg -Fq 'RunEarlyPotionPairRescue(postContext, selected)' "$repository_root/
    ! rg -Fq 'RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    rg -Fq 'EARLY_POTION_PAIR prefix=' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Early potion pair rescue is not a post-search pass")
+fi
+if ! rg -Fq 'ledger.RequestWindow(policy.Profile)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   rg -Fq 'MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Early potion pair rescue bypasses the request budget window")
 fi
 if ! rg -Fq 'CombatSearchCoordinator.EscalateSearchWhenNoVictory(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
    ! rg -Fq '_context,' "$repository_root/src/Search/SearchRequestPipeline.cs"; then
