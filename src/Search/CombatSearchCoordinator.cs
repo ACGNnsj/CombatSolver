@@ -1248,28 +1248,7 @@ internal static partial class CombatSearchCoordinator
         SearchPassContext requestContext = new(root, displayNames, battleDamage,
             policy, profile, requestClock, ledger, cancellationToken,
             progressCallback, interimResultCallback);
-        SearchPassResult lastPass = RunSearchPass(requestContext);
-        SolverResult result = lastPass.Result;
-        if (lastPass.TakeoverResult != null)
-            return lastPass.TakeoverResult;
-        // 打到可接受战损就收手那一条和改动之前一样直接返回，连 SEARCH_SESSION 都不打。
-        if (lastPass.Settled || policy.FixedBudget)
-            return result;
-        lastPass = EscalateSearchWhenNoVictory(
-            requestContext,
-            lastPass,
-            RunSearchPass,
-            () => cancellationToken.IsCancellationRequested
-                || policy.Interaction?.CurrentTakeoverRequest != null);
-        result = lastPass.Result;
-        if (lastPass.TakeoverResult != null)
-            return lastPass.TakeoverResult;
-        if (lastPass.Settled)
-            return result;
-        policy.Diagnostics.Info(
-            $"[CombatSolver/Test] SEARCH_SESSION mode=single_anytime " +
-            $"total_budget_ms={profile.SoftTimeBudgetMilliseconds}");
-        return result;
+        return new SearchRequestPipeline(requestContext, RunSearchPass).Run();
     }
 
     /// <summary>

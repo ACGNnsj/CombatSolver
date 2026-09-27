@@ -12,6 +12,8 @@
 
 `SearchPassResult` 显式交还一轮搜索的路线、接管结果与达标停止信号；无胜利升级直接消费并返回这份合同，所选旧路线与最近一轮停止状态分别保留。终局排序与失败传播不在这个返回合同中重写。
 
+`SearchRequestPipeline` 按原顺序运行首轮 Pass、检查接管／达标／固定预算，再决定是否交给无胜利升级；`SEARCH_SESSION` 仍仅在原有最终路径发布。协调器保留具体搜索成员与补充审计的实现。
+
 本文描述当前源码的所有权边界。它面向维护者和 coding agent；玩家功能说明见根目录 `README.md`，历史重构证据见 `docs/refactoring/`。
 
 职责迁移时优先更新本文，并同步更新 Windows 的 `tools/verify-refactor-boundaries.ps1` 与 Linux 的 `tools/verify-refactor-boundaries.sh`。历史审计记录保留当时结论，不承担当前导航职责。

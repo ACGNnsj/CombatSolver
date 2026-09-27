@@ -14,6 +14,7 @@ done
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 [[ -f "$repository_root/src/Search/SearchPassContext.cs" ]] || violations+=("Search pass context missing")
 [[ -f "$repository_root/src/Search/SearchPassResult.cs" ]] || violations+=("Search pass result missing")
+[[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi
@@ -31,10 +32,11 @@ if ! rg -Fq 'SearchPassResult RunSearchPass(' "$repository_root/src/Search/Comba
     violations+=("Search pass does not return its termination state")
 fi
 if ! rg -Fq 'SearchPassResult RunSearchPass(SearchPassContext passContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
-   ! rg -Fq 'RunSearchPass(requestContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+   ! rg -Fq 'new SearchRequestPipeline(requestContext, RunSearchPass).Run()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary search pass does not consume the search pass context")
 fi
-if ! rg -Fq 'requestContext,' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+if ! rg -Fq 'CombatSearchCoordinator.EscalateSearchWhenNoVictory(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
+   ! rg -Fq '_context,' "$repository_root/src/Search/SearchRequestPipeline.cs"; then
     violations+=("No-victory escalation does not consume the search request context")
 fi
 if ! rg -Fq 'internal static SearchPassResult EscalateSearchWhenNoVictory(' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
