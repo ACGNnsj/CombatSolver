@@ -359,12 +359,7 @@ internal static partial class CombatSearchCoordinator
 
     private static SolverResult RunZeroCostOpeningRescue(SearchPassContext context, SolverResult selected)
     {
-        CombatRootSnapshot root = context.Root;
-        SolverDisplayNames displayNames = context.DisplayNames;
-        BattleDamageSnapshot battleDamage = context.BattleDamage;
         SearchPolicySnapshot policy = context.Policy;
-        CancellationToken cancellationToken = context.CancellationToken;
-        Action<SolverProgress>? progressCallback = context.ProgressCallback;
         SearchBudgetLedger ledger = context.Budget;
         if (selected.ResultScope == SolverResultScope.SearchCompletion
             && policy.PotionPolicy == SolverPotionPolicy.Smart
@@ -375,27 +370,24 @@ internal static partial class CombatSearchCoordinator
             && selected.ProjectedBattleHpLost > 0
             && selected.BestNode.Actions.FirstOrDefault()?.Kind == PlanActionKind.EndTurn)
         {
-            CombatBeamSolver builder = new(root, displayNames, battleDamage,
-                policy, cancellationToken, progressCallback, policy.Profile,
-                potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
+            OpeningNoCostContinuationSource source = new(context);
             int attempts = 0;
             if (ledger.RemainingRequestMillisecondsLong > 5_000)
             {
-                foreach (PlanAction[] prefix in builder.BuildOpeningNoCostPrefixes())
+                foreach (ContinuationSearchOutcome outcome in
+                         new FrontierContinuationScheduler(context).Run(
+                             source, ContinuationPurpose.NoCostOpening,
+                             minimumRemainingMilliseconds: 5_000,
+                             maximumNodes: 40_000,
+                             maximumMilliseconds: 12_000,
+                             reserveMilliseconds: 2_000,
+                             potionPolicyOverride: SolverPotionPolicy.Disabled,
+                             potionBounds: () => (0, null)))
                 {
-                    SearchBudgetWindow prefixWindow = ledger.RequestWindow(policy.Profile);
-                    if (!prefixWindow.CanStart(5_000))
-                        break;
-                    SolverSearchProfile prefixProfile = prefixWindow.Limit(policy.Profile,
-                        maximumNodes: 40_000, maximumMilliseconds: 12_000,
-                        reserveMilliseconds: 2_000);
-                    SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                        battleDamage, policy, cancellationToken, progressCallback,
-                        prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                        maximumPotionUses: 0, fixedPrefixActions: prefix,
-                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                    PlanAction[] prefix = outcome.Request.Prefix;
+                    SolverResult candidate = outcome.Result;
                     bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
-                        && IsBetterPotionPolicyResult(root, policy, candidate, selected);
+                        && IsBetterPotionPolicyResult(context.Root, policy, candidate, selected);
                     if (improved)
                         selected = candidate;
                     policy.Diagnostics.Info($"[CombatSolver/Test] NO_COST_OPENING " +

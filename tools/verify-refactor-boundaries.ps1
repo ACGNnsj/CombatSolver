@@ -67,7 +67,8 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSe
 }
 foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
         'src/Search/OpeningPotionPairContinuationSource.cs',
-        'src/Search/EarlierCopyDelayedDamageContinuationSource.cs')) {
+        'src/Search/EarlierCopyDelayedDamageContinuationSource.cs',
+        'src/Search/OpeningNoCostContinuationSource.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Frontier continuation component missing: $relative")
     }
@@ -111,6 +112,10 @@ if (-not $postSearchSource.Contains('new FrontierContinuationScheduler(context).
 if (-not $postSearchSource.Contains('new EarlierCopyDelayedDamageContinuationSource(') -or
     -not $postSearchSource.Contains('context, selected.BestNode.Actions)')) {
     $violations.Add('Earlier copy potion rescue bypasses the frontier continuation scheduler')
+}
+if (-not $postSearchSource.Contains('OpeningNoCostContinuationSource source = new(context);') -or
+    -not $continuationSchedulerSource.Contains('source.DeduplicatePrefixes')) {
+    $violations.Add('No-cost opening rescue bypasses source-specific continuation identity')
 }
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or

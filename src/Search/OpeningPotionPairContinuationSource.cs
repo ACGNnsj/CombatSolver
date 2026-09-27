@@ -4,6 +4,8 @@ internal sealed class OpeningPotionPairContinuationSource : IFrontierContinuatio
 {
     private readonly CombatBeamSolver _builder;
 
+    public bool DeduplicatePrefixes => true;
+
     internal OpeningPotionPairContinuationSource(SearchPassContext context)
     {
         _builder = new CombatBeamSolver(context.Root, context.DisplayNames,

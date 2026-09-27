@@ -5,6 +5,8 @@ internal sealed class EarlierCopyDelayedDamageContinuationSource : IFrontierCont
     private readonly CombatBeamSolver _builder;
     private readonly IReadOnlyList<PlanAction> _route;
 
+    public bool DeduplicatePrefixes => true;
+
     internal EarlierCopyDelayedDamageContinuationSource(
         SearchPassContext context,
         IReadOnlyList<PlanAction> route)

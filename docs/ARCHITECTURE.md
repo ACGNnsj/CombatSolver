@@ -16,6 +16,8 @@ P3 前沿续搜首先迁移双药开局模式：`OpeningPotionPairContinuationSo
 
 提前复制药水补搜从原路线不同位置产出最多三个前缀，现由 `EarlierCopyDelayedDamageContinuationSource` 交给同一调度器；该模式的用药数、请求额度与结果比较保持原规则。
 
+零费开局候选由 `OpeningNoCostContinuationSource` 产出，沿用原候选上限和原序；来源显式声明不做额外去重，避免把旧路径可能重复的候选合并。调度器仍在原时间／节点检查点派发，模式继续负责改善判定和八次尝试上限。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。

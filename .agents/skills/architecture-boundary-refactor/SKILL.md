@@ -38,6 +38,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - 夜魇开局成员通过 `SearchBudgetLedger.ProfileWindow` 取得请求剩余节点和配置 profile 的原时间帽，不把它改成轮次剩余时间。
 - P3 固定前缀迁移按模式逐个进行。双药开局的两种药水槽顺序由 `OpeningPotionPairContinuationSource` 产出，`FrontierContinuationScheduler` 负责用途／完整前缀去重、请求窗口、前缀合法性及求解器派发；模式仍负责原结果比较和诊断标签。
 - 提前复制药水补搜由独立前缀来源产出。该模式的最低／最多用药数要在每条前缀派发时从当前 `selected` 读取，不能在枚举开始前冻结，因为前一条候选可能更新 `selected`。
+- 零费开局来源沿用生成器原候选序列和八次尝试上限；该旧模式未去重，`DeduplicatePrefixes=false`，不能因迁入共享调度器而省略重复候选。
 - `SearchPassResult` 同时记录所选路线质量与实际最后一轮的范围／边界及请求累计工作量；升级未改善时只把所选路线和质量换回旧值，不能把最后一轮终止原因误写成旧路线的原因。
 - 本地策略脚本由 CheckpointTool 单独编译、Testing 请求宿主加载和卸载；Search 只读冻结的策略接口与分支数值特征，不承担脚本文件读取或程序集加载。无脚本请求保持生产排序及预算路径。
 - 常驻会话的开发监控由 Testing 最多每秒发布一次纯标量快照，独立窗口进程只读会话文件；Search 不引用监控窗口或文件。关闭窗口不取消请求，stop 由工具层按进程身份清理。

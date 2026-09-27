@@ -6,10 +6,13 @@ internal enum ContinuationPurpose
 {
     EarlyPotionPair,
     EarlierCopyDelayedDamage,
+    NoCostOpening,
 }
 
 internal interface IFrontierContinuationSource
 {
+    bool DeduplicatePrefixes { get; }
+
     IEnumerable<PlanAction[]> Enumerate();
 
     bool CanReplay(PlanAction[] prefix);
@@ -49,7 +52,8 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
                 yield break;
             if (!source.CanReplay(prefix))
                 continue;
-            if (!_seen.Add((purpose, JsonSerializer.Serialize(prefix))))
+            if (source.DeduplicatePrefixes
+                && !_seen.Add((purpose, JsonSerializer.Serialize(prefix))))
                 continue;
             (int? maximumPotionUses, int? minimumPotionUses) = potionBounds();
             ContinuationSearchRequest request = new(context, purpose, prefix,
