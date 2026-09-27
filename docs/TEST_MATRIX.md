@@ -1,5 +1,12 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：最终续用单次回放（2026-09-27）
+
+- 基线 `72e0f799`，所有搜索DOP1。抽弃牌／故障机器人两根各四次独立进程ABBA，固定预算且无时间边界，完整根／政策、动作含嵌套选牌、续用文本、非时序指标与剪枝计数一致。根回放计数按真实工作分别4→2、8→2单独断言；展开／转移维持1564／34802及2000／7783。计时区间重叠，不称稳定整体提速。
+- `OFFLINE_HARNESS_FIXED_PREFIX_CONTINUATIONS=1` 的最终单牌输入：4／8／17回合固定终局前缀，四个独立进程ABBA，每case预热一次＋测量三次。36份计时结果、完整输出跨版本对账及计时外独立前缀oracle通过；核对完整StateText、回合、offset、数量、顺序和live根不变。17回合18.052→6.899ms只属于人工固定前缀Solve，实际搜索展开0。原始／汇总见 `.local/fixed-dop-20260927/long-prefix-final/` 与[报告](performance/fixed-dop-20260927.md)。早期多牌误注入批次作废，不计最终证据。
+- 原生 `FIXED-PREFIX-TURN-OUTCOMES` 已补充同一独立oracle和三个长路线case，原三回合actual/predicted验证保留。**本轮未执行**：`linear-replay-prefix` 启动前检测到玩家 `SlayTheSpire2.exe` 会话，120秒准入超时；没有停止其他进程或扩大超时，启动器输出 `UNATTENDED_INSTANCE_REMOVED`。forced-end／setup／adoption路径仅静态审阅，未称原生通过。
+- Windows Release构建0警告0错误，两端结构门禁均 `REFACTOR_BOUNDARIES_OK search_files=212`；Bash门禁在Windows Git Bash运行，不是Linux游戏验收。只改离线helper输入后重编该宿主，生产DLL未变，因此复用已有普通搜索及构建证据。不运行完整自动部署、可见性能或发布门禁。
+
 ## 下一版本（开发中）：注能核心首回合产球（2026-09-27）
 
 - 失败来源为0.47.1／`36372d40`的问题包 `0762b1da246243f1936a1e8750be8588`，工具箱选牌完成后第一次差异是预测0球／原生3个闪电球（4/9）。同版本游戏的 `InfusedCore.AfterSideTurnStart` IL核对了参与者、首回合条件及3次产球；原包未恢复。

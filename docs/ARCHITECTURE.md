@@ -255,7 +255,7 @@ Smart 层间使用 `SmartLayerMemoryForecast` 的同窗分配和转移高水位�
 
 `Expansion.Candidates` 在准入与展开两处让 `Transpositions` 和 `ExpandedTranspositions` 共用每次 solver 默认 1,000,000 条的预算：旧状态仍按原支配标签更新，额度满后只对新状态停止记账并放行。它改变超长搜索的剪枝，不约束一个请求里多个成员的总字节数；实验用关闭剪枝、状态键盐与牌堆顺序商均由默认零值隔离。
 
-回合前沿不再为每个候选构造续用戳；`Terminal.BuildContinuations` 从最终选中路线的动作前缀重放并生成戳记，释放重放快照后只保存纯值 `CachedContinuation`。`SearchPerformanceMetrics` 在显式阶段度量启用时按后进先出收口并记排他时间/分配；失败 lane 排空但不合并未完成的指标，保留首因异常。普通生产搜索不启用逐阶段度量。
+回合前沿不再为每个候选构造续用戳；`Terminal.PrepareContinuationCapture` 在最终选中路线确定后冻结有后续动作的稳定回合边界，只保存动作索引与回合号。既有遗物／击杀标注完整回放在动作作用域退出后，由 `Terminal.ContinuationCapture` 当场生成纯值 `CachedContinuation`；不再逐回合从根重放动作前缀，也不保留中间模拟器。回放结尾必须消费全部预期边界，并继续核对最终状态。`SearchPerformanceMetrics` 在显式阶段度量启用时按后进先出收口并记排他时间/分配；失败 lane 排空但不合并未完成的指标，保留首因异常。普通生产搜索不启用逐阶段度量。
 
 固定前缀在跨回合／终局节点记录 `TurnOutcome`，与普通候选共用 `Terminal` 的纯统计公式；投影未标注边界后备时只读取父链标量，不改变候选分数或剪枝。`SolverResult` 按已结束的动作回合校验七张回合结果表，终局发生于下一准备阶段时仍归发起动作的回合。磁盘缓存缺项按未命中处理，生成结果和内存续用缺项显式失败；结束回合保护要求明确的预计战损项，不能把缺项解释为零。
 

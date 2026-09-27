@@ -154,6 +154,12 @@ forbid_fixed "$search_root/CombatBeamSolver.Phases.cs" 'CaptureContinuation(node
     'only the selected route may build continuation stamps'
 require_fixed "$search_root/CombatBeamSolver.Terminal.cs" 'ContinuationStamp.CapturePredicted(' \
     'Terminal must build the selected route continuation stamp'
+for required in 'PrepareContinuationCapture(best)' 'continuationCapture: continuationCapture' 'continuationCapture.Complete()'; do
+    require_fixed "$search_root/CombatBeamSolver.Phases.cs" "$required" \
+        'selected route must capture continuations in its annotation replay'
+done
+forbid_fixed "$search_root/CombatBeamSolver.Terminal.cs" 'Replay(node.Actions' \
+    'continuation capture must not replay every selected turn prefix'
 
 for relative_path in \
     src/Search/CombatBeamSolver.Expansion.cs \

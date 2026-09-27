@@ -115,7 +115,14 @@ internal sealed partial class UnattendedTestRunner
         Check(partial.HpLostByTurn.Count == 4 && partial.ActualBlockByTurn[firstTurn + 3] == 5,
             "partial final prefix annotated once after suffix");
         Check(partial.EnergyLeftByTurn[firstTurn + 3] == 1, "partial prefix and suffix energy");
-        Check((await Task.Run(() => Solve([]))).HpLostByTurn.ContainsKey(firstTurn), "empty-prefix ordinary search");
+        SolverResult empty = await Task.Run(() => Solve([]));
+        Check(empty.HpLostByTurn.ContainsKey(firstTurn), "empty-prefix ordinary search");
+        foreach (var (candidate, label) in new[]
+                 { (result, "searched-tail"), (terminal, "terminal-prefix"), (partial, "partial-tail"), (empty, "empty-prefix") })
+        {
+            await Task.Run(() => AssertIndependentPrefixContinuations(root, names, damage, policy, candidate, label));
+        }
+        _completedChecks.Add("FixedPrefixContinuations:IndependentPrefixOracle:FullStateText:Turn:ForecastOffset:Order");
         await Task.Run(() => Reject(() => Solve([.. turns, strike, new PlanAction(PlanActionKind.EndTurn, firstTurn + 3)]),
             "回放包含已锁定战斗终局之后的动作"));
         await Task.Run(() => Reject(() => Solve([new PlanAction(PlanActionKind.EndTurn, firstTurn + 1)]), "固定搜索前缀动作无效"));
@@ -183,5 +190,152 @@ internal sealed partial class UnattendedTestRunner
             Check(display.ProjectedLoss == result.Snapshot.CumulativePlayerHpLost, "display includes prefix loss");
         }
         _completedChecks.Add("FixedPrefixOutcomes:NativeThreeTurnContinuation:LiveEndTurnRiskMatches:ReuseAndDisplayTotals");
+        await AssertLongFixedPrefixContinuationsAsync(combat, player);
+    }
+
+    // Deliberately retain the old independent-prefix algorithm only in this test oracle.
+    // No selected-path capture or intermediate snapshot from Solve is used as the expected value.
+    private static void AssertIndependentPrefixContinuations(
+        CombatRootSnapshot root, SolverDisplayNames names, BattleDamageSnapshot damage,
+        SearchPolicySnapshot policy, SolverResult result, string label,
+        CancellationToken cancellationToken = default)
+    {
+        CombatBeamSolver oracle = new(root, names, damage, policy, cancellationToken,
+            searchProfile: policy.Profile);
+        IReadOnlyList<PlanAction> actions = result.BestNode.Actions;
+        List<CachedContinuation> expected = [];
+        for (int index = 0; index < actions.Count; index++)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            PlanAction action = actions[index];
+            if (action.Kind != PlanActionKind.EndTurn && !action.EndsPlayerTurn)
+                continue;
+            SimulationSnapshot? setup = null;
+            SimulationSnapshot? replayed = null;
+            try
+            {
+                if (policy.IncludeTurnSetup)
+                    setup = (SimulationSnapshot)InvokeForcedTerminalMethod(oracle, "ReplayTurnSetup",
+                        [result.TurnSetupChoices, true])!;
+                replayed = InvokeForcedTerminalReplay(oracle, actions.Take(index + 1).ToArray(),
+                    setup, root.StartTurnNumber, null);
+                if (replayed.PlayerDead || replayed.AllEnemiesDead
+                    || replayed.BoundaryReason != SearchBoundaryReason.None
+                    || !actions.Skip(index + 1).Any(later => later.Turn == replayed.Turn))
+                    continue;
+                expected.Add(new CachedContinuation(ContinuationStamp.CapturePredicted(
+                    root.PlayerIdentity, replayed.Simulator, replayed.Turn, root.Forecast, root.StartTurnNumber),
+                    replayed.Turn, replayed.Turn - root.StartTurnNumber));
+            }
+            finally
+            {
+                replayed?.ReleaseSimulator();
+                setup?.ReleaseSimulator();
+            }
+        }
+        if (result.Continuations.Count != expected.Count)
+            throw new InvalidOperationException($"Fixed-prefix continuations {label}: count "
+                + $"expected={expected.Count} actual={result.Continuations.Count}.");
+        for (int index = 0; index < expected.Count; index++)
+        {
+            CachedContinuation reference = expected[index];
+            CachedContinuation actual = result.Continuations[index];
+            if (reference.StartTurnNumber != actual.StartTurnNumber
+                || reference.ForecastOffset != actual.ForecastOffset
+                || !string.Equals(reference.ExpectedState.StateText, actual.ExpectedState.StateText, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException($"Fixed-prefix continuations {label}[{index}]: "
+                    + $"turn={reference.StartTurnNumber}/{actual.StartTurnNumber} "
+                    + $"offset={reference.ForecastOffset}/{actual.ForecastOffset} "
+                    + reference.ExpectedState.DescribeFirstDifference(actual.ExpectedState));
+            }
+        }
+    }
+
+    private async Task AssertLongFixedPrefixContinuationsAsync(CombatState combat, Player player)
+    {
+        // Same deterministic hidden-Buffer construction as the existing v0.111 fixture.
+        // The fixed prefix reaches the kill directly, so no long search or incremental timing is needed.
+        using CancellationTokenSource deadline = new(TimeSpan.FromSeconds(60));
+        foreach (int turns in new[] { 4, 8, 17 })
+        {
+            EnsureWithinDeadline();
+            deadline.Token.ThrowIfCancellationRequested();
+            await ClearPlayerPilesAsync(player);
+            ClearRunDeck((RunState)combat.RunState, player);
+            foreach (var power in combat.Creatures.SelectMany(creature => creature.Powers).ToArray())
+                await PowerCmd.Remove(power);
+            await CreatureCmd.SetMaxHp(player.Creature, 999);
+            await CreatureCmd.SetCurrentHp(player.Creature, 999);
+            await SetBlockAsync(player.Creature, 0);
+            await CreatureCmd.SetCurrentHp(combat.Enemies.Single(), 6);
+            await SetBlockAsync(combat.Enemies.Single(), 0);
+            await InjectCardAsync(combat, player, new UnattendedCardInjection
+            {
+                CardId = "STRIKE_IRONCLAD", Pile = "Hand", TreatAsDeckCard = true,
+            });
+            await InjectPowerAsync(combat, player, new UnattendedPowerInjection
+            {
+                PowerId = "BUFFER_POWER", Target = "Player", Amount = 64,
+            });
+            await InjectPowerAsync(combat, player, new UnattendedPowerInjection
+            {
+                PowerId = "BUFFER_POWER", Target = "Enemy", TargetIndex = 0, Amount = turns - 1,
+            });
+            SetEnergy(player, 3);
+            string liveBefore = ContinuationStamp.CaptureLive(combat).StateText;
+            CombatRootSnapshot root = CombatRootSnapshot.Capture(combat);
+            SolverDisplayNames names = SolverDisplayNames.Capture(combat);
+            BattleDamageSnapshot damage = BattleDamageTracker.Observe(combat);
+            SearchPolicySnapshot policy = SolverController.CaptureSearchPolicy(
+                SolverSettings.Capture(), combat, false, null) with
+            {
+                FixedBudget = true, VerifyIncrementalSearch = false, DetailedDiagnostics = false,
+                MeasurePhasePerformance = false, MaxDegreeOfParallelism = 1, BudgetOverrideMilliseconds = 5000,
+                PotionPolicy = SolverPotionPolicy.Disabled,
+                PotionStrategy = new PotionStrategySnapshot(SolverPotionPolicy.Disabled, []),
+                Profile = SolverSearchProfile.Default with
+                {
+                    BeamWidth = 8, MaxExpandedNodes = 100, SoftTimeBudgetMilliseconds = 5000,
+                },
+            };
+            List<PlanAction> prefix = [];
+            for (int offset = 0; offset < turns; offset++)
+            {
+                int turn = root.StartTurnNumber + offset;
+                prefix.Add(new PlanAction(PlanActionKind.PlayCard, turn,
+                    CardId: "STRIKE_IRONCLAD", TargetCombatId: combat.Enemies.Single().CombatId));
+                if (offset + 1 < turns)
+                    prefix.Add(new PlanAction(PlanActionKind.EndTurn, turn));
+            }
+            SolverResult result = await Task.Run(() => new CombatBeamSolver(
+                root, names, damage, policy, deadline.Token, searchProfile: policy.Profile,
+                fixedPrefixActions: prefix).Solve());
+            if (!result.Snapshot.AllEnemiesDead || result.Snapshot.PlayerDead
+                || result.Snapshot.CumulativePlayerHpLost != 0
+                || result.CombatEndedTurn != root.StartTurnNumber + turns - 1
+                || result.BestNode.Actions.Count != prefix.Count
+                || result.Continuations.Count != turns - 1 || !result.TryValidateTurnOutcomes(out _))
+                throw new InvalidOperationException($"Fixed-prefix continuations N{turns}: incomplete deterministic kill.");
+            for (int index = 0; index < prefix.Count; index++)
+            {
+                PlanAction expected = prefix[index], actual = result.BestNode.Actions[index];
+                if (actual.Kind != expected.Kind || actual.Turn != expected.Turn
+                    || actual.CardId != expected.CardId || actual.TargetCombatId != expected.TargetCombatId)
+                    throw new InvalidOperationException($"Fixed-prefix continuations N{turns}: changed action {index}.");
+            }
+            for (int index = 0; index < result.Continuations.Count; index++)
+            {
+                CachedContinuation continuation = result.Continuations[index];
+                if (continuation.StartTurnNumber != root.StartTurnNumber + index + 1
+                    || continuation.ForecastOffset != index + 1)
+                    throw new InvalidOperationException($"Fixed-prefix continuations N{turns}: missing turn {index + 1}.");
+            }
+            await Task.Run(() => AssertIndependentPrefixContinuations(
+                root, names, damage, policy, result, $"N{turns}", deadline.Token));
+            if (ContinuationStamp.CaptureLive(combat).StateText != liveBefore)
+                throw new InvalidOperationException($"Fixed-prefix continuations N{turns}: search/oracle changed live root.");
+            _completedChecks.Add($"FixedPrefixContinuations:N{turns}:IndependentPrefixOracle:FullStateText:Turn:ForecastOffset:RootUnchanged");
+        }
     }
 }

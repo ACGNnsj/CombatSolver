@@ -512,7 +512,7 @@ internal sealed partial class CombatBeamSolver
 
             SimulationSnapshot finalSnapshot = selectedCandidate.Snapshot;
             RouteAnnotations annotations = materializedAnnotations;
-            IReadOnlyList<CachedContinuation> continuations = BuildContinuations(best);
+            ContinuationCapture continuationCapture = PrepareContinuationCapture(best);
             int searchedTurns = Math.Max(1, best.Actions
                 .Select(action => action.Turn)
                 .DefaultIfEmpty(_startTurnNumber)
@@ -549,7 +549,8 @@ internal sealed partial class CombatBeamSolver
             try
             {
                 annotationReplay = Replay(best.Actions, annotationRoot, _startTurnNumber,
-                    priorActionCount: 0, triggerRecorder: relicTriggerRecorder, replayEvidence: replayEvidence);
+                    priorActionCount: 0, triggerRecorder: relicTriggerRecorder, replayEvidence: replayEvidence,
+                    continuationCapture: continuationCapture);
                 replayFailed = false;
             }
             finally
@@ -598,6 +599,7 @@ internal sealed partial class CombatBeamSolver
                 throw new InvalidOperationException("路线用药数量与回放药水身份不一致。");
             }
             annotationReplay.ReleaseSimulator();
+            IReadOnlyList<CachedContinuation> continuations = continuationCapture.Complete();
             IReadOnlyList<PlanAction> annotatedActions = resultScope == SolverResultScope.RouteAdoption
                 && routeAdoptionActions != null
                     ? routeAdoptionActions

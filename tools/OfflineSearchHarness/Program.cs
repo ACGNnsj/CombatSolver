@@ -136,7 +136,16 @@ internal static class Program
             File.WriteAllText(Path.Combine(options.OutputDirectory, "root-diagnostics.txt"), diagnostics);
             WriteProgress(options, "M1", "ok", "已到达玩家第一回合");
 
-            if (options.Milestone != "M1")
+            if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_FIXED_PREFIX_CONTINUATIONS") == "1")
+            {
+                Step(steps, "M2 固定长前缀续用测量", () =>
+                {
+                    payload["fixedPrefixContinuations"] = FixedPrefixContinuationBenchmark.Run(combat!, options, loop);
+                    return "N4/N8/N17; fixed-prefix-continuations.json";
+                });
+                reached = "M2";
+            }
+            else if (options.Milestone != "M1")
             {
                 ModRuntime.SearchOutcome? outcome = null;
                 using MemorySampler memory = new(TimeSpan.FromMilliseconds(100));
