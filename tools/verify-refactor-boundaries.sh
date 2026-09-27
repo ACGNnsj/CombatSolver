@@ -60,6 +60,11 @@ if ! rg -Fq 'ProcessExpandedCardCandidate(' "$repository_root/src/Search/CombatB
    rg -Fq 'AddNonDominatedParallelCandidate(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card admission remains duplicated")
 fi
+if ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
+   ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Serial and parallel potion admission remains duplicated")
+fi
 for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
     [[ -f "$repository_root/$plan_source" ]] || violations+=("Plan search boundary missing: $plan_source")
 done

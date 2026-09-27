@@ -179,13 +179,12 @@ internal sealed partial class CombatBeamSolver
                     SearchNode child = CreatePlannedPotionChild(node, finalAction, finalSnapshot);
                     PromoteOrderedMutationProgressTail(child);
                     CommitCycleExitObservation(child);
-                    EnsureBoundedCycleProbeLease(child);
-                    if (ShouldRejectCycleCandidate(child))
+                    bool accepted = TryAdmitPlannedPotionChild(child, out bool rejectedByCycle);
+                    if (rejectedByCycle)
                     {
                         finalSnapshot.ReleaseSimulator();
                         continue;
                     }
-                    bool accepted = TryAcceptTransposition(child);
                     if (_detailedDiagnostics && node.ActionCount == 0)
                     {
                         PlanCardChoice? resolvedChoice = finalAction.Choice;

@@ -282,6 +282,13 @@ internal sealed partial class CombatBeamSolver
         return AttachCycleSchedulingEvidence(child);
     }
 
+    private bool TryAdmitPlannedPotionChild(SearchNode child, out bool rejectedByCycle)
+    {
+        EnsureBoundedCycleProbeLease(child);
+        rejectedByCycle = ShouldRejectCycleCandidate(child);
+        return !rejectedByCycle && TryAcceptTransposition(child);
+    }
+
     private void ProcessExpandedCardCandidate(
         SearchNode parent,
         RawCardCandidate raw,

@@ -927,9 +927,7 @@ internal sealed partial class CombatBeamSolver
 
         foreach (SearchNode child in batch.Potions)
         {
-            EnsureBoundedCycleProbeLease(child);
-            if (ShouldRejectCycleCandidate(child)
-                || !TryAcceptTransposition(child))
+            if (!TryAdmitPlannedPotionChild(child, out _))
             {
                 batch.Release(child.Snapshot);
                 continue;

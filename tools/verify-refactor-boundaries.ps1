@@ -100,6 +100,12 @@ if (-not $serialExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
     $parallelExpansionSource.Contains('AddNonDominatedParallelCandidate(')) {
     $violations.Add('Serial and parallel card admission remains duplicated')
 }
+$expansionPlanSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionPlan.cs') -Raw
+if (-not $expansionPlanSource.Contains('TryAdmitPlannedPotionChild(') -or
+    -not $serialExpansionSource.Contains('TryAdmitPlannedPotionChild(') -or
+    -not $parallelExpansionSource.Contains('TryAdmitPlannedPotionChild(')) {
+    $violations.Add('Serial and parallel potion admission remains duplicated')
+}
 foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Plan search boundary missing: $relative")
