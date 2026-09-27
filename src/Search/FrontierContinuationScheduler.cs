@@ -16,6 +16,12 @@ internal enum ContinuationPurpose
     ForcedPotionTurnOrder,
     MidCombatRefinement,
     MidCombatFreeFollowUp,
+    EarlyDiscardBeforeGeneration,
+    OpeningTargetVariant,
+    OpeningTargetPowerVariant,
+    OpeningTargetPowerDefensiveVariant,
+    DeferredOpeningPower,
+    FreeAttackHandSetup,
 }
 
 internal interface IFrontierContinuationSource

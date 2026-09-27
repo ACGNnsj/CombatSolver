@@ -87,6 +87,13 @@ if ($coordinatorSource.Contains('- (int)passClock.ElapsedMilliseconds') -or
 if ($coordinatorSource.Contains('MaxExpandedNodes = (int)Math.Min(')) {
     $violations.Add('Primary pass member budget bypasses the pass budget window')
 }
+foreach ($purpose in @('EarlyDiscardBeforeGeneration', 'OpeningTargetVariant',
+        'OpeningTargetPowerVariant', 'OpeningTargetPowerDefensiveVariant',
+        'DeferredOpeningPower', 'FreeAttackHandSetup')) {
+    if (-not $coordinatorSource.Contains("ContinuationPurpose.$purpose")) {
+        $violations.Add("Primary pass fixed-prefix request missing: $purpose")
+    }
+}
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
 }

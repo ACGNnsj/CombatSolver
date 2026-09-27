@@ -281,6 +281,7 @@ internal static partial class CombatSearchCoordinator
         {
             SolverSearchProfile passProfile = passContext.Profile;
             Stopwatch passClock = passContext.Clock;
+            FrontierContinuationScheduler continuationScheduler = new(passContext);
             SearchPassResult CapturePassResult(
                 SolverResult selected,
                 SolverResult? takeover,
@@ -398,11 +399,11 @@ internal static partial class CombatSearchCoordinator
                         SolverSearchProfile reorderedProfile = reorderedWindow.Limit(passProfile,
                             maximumNodes: 100_000, maximumMilliseconds: 30_000,
                             reserveMilliseconds: 2_000);
-                        SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                            battleDamage, beamPolicy, cancellationToken, progressCallback,
-                            reorderedProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0, fixedPrefixActions: prefix,
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        SolverResult candidate = continuationScheduler.Dispatch(
+                            new ContinuationSearchRequest(passContext,
+                                ContinuationPurpose.EarlyDiscardBeforeGeneration,
+                                prefix, reorderedProfile, SolverPotionPolicy.Disabled, 0, null)
+                            { PolicyOverride = beamPolicy });
                         bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
                             && IsBetterPotionPolicyResult(root, policy, candidate, passResult);
                         if (improved)
@@ -435,11 +436,11 @@ internal static partial class CombatSearchCoordinator
                     {
                         AggressivePowerCommitment = true,
                     };
-                    SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                        battleDamage, beamPolicy, cancellationToken, progressCallback,
-                        targetProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                        maximumPotionUses: 0, fixedPrefixActions: prefix,
-                        resetFixedPrefixSchedulingBaseline: true).Solve();
+                    SolverResult candidate = continuationScheduler.Dispatch(
+                        new ContinuationSearchRequest(passContext,
+                            ContinuationPurpose.OpeningTargetVariant,
+                            prefix, targetProfile, SolverPotionPolicy.Disabled, 0, null)
+                        { PolicyOverride = beamPolicy });
                     if (candidate.ResultScope == SolverResultScope.SearchCompletion
                         && IsBetterPotionPolicyResult(root, policy, candidate, passResult))
                         passResult = candidate;
@@ -462,11 +463,12 @@ internal static partial class CombatSearchCoordinator
                             BaseScoreOnly = true,
                             AggressivePowerCommitment = false,
                         };
-                        SolverResult powered = new CombatBeamSolver(root, displayNames,
-                            battleDamage, beamPolicy, cancellationToken, progressCallback,
-                            powerProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0, fixedPrefixActions: [.. prefix, power],
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        SolverResult powered = continuationScheduler.Dispatch(
+                            new ContinuationSearchRequest(passContext,
+                                ContinuationPurpose.OpeningTargetPowerVariant,
+                                [.. prefix, power], powerProfile,
+                                SolverPotionPolicy.Disabled, 0, null)
+                            { PolicyOverride = beamPolicy });
                         if (powered.ResultScope == SolverResultScope.SearchCompletion
                             && IsBetterPotionPolicyResult(root, policy, powered, passResult))
                             passResult = powered;
@@ -481,11 +483,12 @@ internal static partial class CombatSearchCoordinator
                             SolverSearchProfile defensiveProfile = defensiveWindow.Limit(
                                 powerProfile, maximumNodes: 40_000, maximumMilliseconds: 15_000,
                                 reserveMilliseconds: 2_000);
-                            SolverResult defended = new CombatBeamSolver(root, displayNames,
-                                battleDamage, beamPolicy, cancellationToken, progressCallback,
-                                defensiveProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                                maximumPotionUses: 0, fixedPrefixActions: [.. prefix, power, defensive],
-                                resetFixedPrefixSchedulingBaseline: true).Solve();
+                            SolverResult defended = continuationScheduler.Dispatch(
+                                new ContinuationSearchRequest(passContext,
+                                    ContinuationPurpose.OpeningTargetPowerDefensiveVariant,
+                                    [.. prefix, power, defensive], defensiveProfile,
+                                    SolverPotionPolicy.Disabled, 0, null)
+                                { PolicyOverride = beamPolicy });
                             if (defended.ResultScope == SolverResultScope.SearchCompletion
                                 && IsBetterPotionPolicyResult(root, policy, defended, passResult))
                                 passResult = defended;
@@ -520,11 +523,12 @@ internal static partial class CombatSearchCoordinator
                         SolverSearchProfile deferredProfile = deferredWindow.Limit(passProfile,
                             maximumNodes: 50_000, maximumMilliseconds: 20_000,
                             reserveMilliseconds: 2_000);
-                        SolverResult deferred = new CombatBeamSolver(root, displayNames,
-                            battleDamage, beamPolicy, cancellationToken, progressCallback,
-                            deferredProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0, fixedPrefixActions: [endTurn, power],
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        SolverResult deferred = continuationScheduler.Dispatch(
+                            new ContinuationSearchRequest(passContext,
+                                ContinuationPurpose.DeferredOpeningPower,
+                                [endTurn, power], deferredProfile,
+                                SolverPotionPolicy.Disabled, 0, null)
+                            { PolicyOverride = beamPolicy });
                         if (deferred.ResultScope == SolverResultScope.SearchCompletion
                             && IsBetterPotionPolicyResult(root, policy, deferred, passResult))
                             passResult = deferred;
@@ -559,11 +563,11 @@ internal static partial class CombatSearchCoordinator
                         {
                             BaseScoreOnly = true,
                         };
-                        SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                            battleDamage, beamPolicy, cancellationToken, progressCallback,
-                            openingProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0, fixedPrefixActions: prefix,
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        SolverResult candidate = continuationScheduler.Dispatch(
+                            new ContinuationSearchRequest(passContext,
+                                ContinuationPurpose.FreeAttackHandSetup,
+                                prefix, openingProfile, SolverPotionPolicy.Disabled, 0, null)
+                            { PolicyOverride = beamPolicy });
                         if (candidate.ResultScope == SolverResultScope.SearchCompletion
                             && IsBetterPotionPolicyResult(root, policy, candidate, passResult))
                             passResult = candidate;

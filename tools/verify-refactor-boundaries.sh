@@ -39,6 +39,13 @@ fi
 if rg -Fq 'MaxExpandedNodes = (int)Math.Min(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary pass member budget bypasses the pass budget window")
 fi
+for purpose in EarlyDiscardBeforeGeneration OpeningTargetVariant \
+    OpeningTargetPowerVariant OpeningTargetPowerDefensiveVariant \
+    DeferredOpeningPower FreeAttackHandSetup; do
+    if ! rg -Fq "ContinuationPurpose.$purpose" "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+        violations+=("Primary pass fixed-prefix request missing: $purpose")
+    fi
+done
 if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator creates request work totals outside the budget ledger")
 fi

@@ -30,6 +30,8 @@ P3 前沿续搜首先迁移双药开局模式：`OpeningPotionPairContinuationSo
 
 战斗中精炼和免费追击的两个固定前缀走调度器的可选后验入口，求解器构造仍在业务异常捕获之外；未满足用药政策时保留原诊断及空结果，其后的改善判定和二次候选构造顺序不变。`PostSearch` 不再直接构造固定前缀求解器。
 
+主 Pass 的提前弃牌、开局目标与能力变体、延后能力及免费攻击换手六种固定前缀成员使用同一 `FrontierContinuationScheduler.Dispatch` 构造求解器；各成员仍从原 `SliceWindow` 取得预算，保留 `beamPolicy` 覆盖、原 profile 变体和取优时机。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。
