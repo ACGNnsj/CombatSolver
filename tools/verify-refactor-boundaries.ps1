@@ -133,6 +133,10 @@ if (-not $postSearchSource.Contains('new TurnBoundaryContinuationSource(') -or
     -not $continuationSchedulerSource.Contains('optionalPotionDiagnostic')) {
     $violations.Add('Turn-boundary rescue bypasses the frontier continuation scheduler')
 }
+if ($postSearchSource.Contains('fixedPrefixActions: combinedPrefix,') -or
+    $postSearchSource.Contains('fixedPrefixActions: [.. nextTurnPrefix, nextAttack,')) {
+    $violations.Add('Turn-boundary follow-up bypasses fixed-prefix request dispatch')
+}
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);')) {

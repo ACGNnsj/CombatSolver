@@ -83,6 +83,10 @@ if ! rg -Fq 'new TurnBoundaryContinuationSource(' "$repository_root/src/Search/C
    ! rg -Fq 'optionalPotionDiagnostic' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
     violations+=("Turn-boundary rescue bypasses the frontier continuation scheduler")
 fi
+if rg -Fq 'fixedPrefixActions: combinedPrefix,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   rg -Fq 'fixedPrefixActions: [.. nextTurnPrefix, nextAttack,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Turn-boundary follow-up bypasses fixed-prefix request dispatch")
+fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then

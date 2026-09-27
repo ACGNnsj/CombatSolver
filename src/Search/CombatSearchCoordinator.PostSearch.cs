@@ -245,9 +245,10 @@ internal static partial class CombatSearchCoordinator
             && !policy.PotionStrategy.HasForcedDirectives
             && (rescueAfterDeath || refineNearZeroLoss))
         {
+            FrontierContinuationScheduler scheduler = new(context);
             // Revisit distinct first-turn states while the shared request still has time and nodes.
             foreach (ContinuationSearchOutcome outcome in
-                     new FrontierContinuationScheduler(context).Run(
+                     scheduler.Run(
                          new TurnBoundaryContinuationSource(firstTurnAnchors, PowerPrefixKey),
                          ContinuationPurpose.TurnBoundaryRescue,
                          minimumRemainingMilliseconds: 5_000,
@@ -294,12 +295,9 @@ internal static partial class CombatSearchCoordinator
                         SolverSearchProfile prefixProfile = prefixWindow.Limit(policy.Profile,
                             maximumNodes: 30_000, maximumMilliseconds: 10_000,
                             reserveMilliseconds: 2_000);
-                        SolverResult freeRescue = new CombatBeamSolver(root, displayNames,
-                            battleDamage, policy, cancellationToken, progressCallback,
-                            prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                            maximumPotionUses: 0,
-                            fixedPrefixActions: combinedPrefix,
-                            resetFixedPrefixSchedulingBaseline: true).Solve();
+                        SolverResult freeRescue = scheduler.Dispatch(new ContinuationSearchRequest(
+                            context, ContinuationPurpose.TurnBoundaryFreeOpening,
+                            combinedPrefix, prefixProfile, SolverPotionPolicy.Disabled, 0, null));
                         if (freeRescue.ResultScope == SolverResultScope.SearchCompletion
                             && IsBetterPotionPolicyResult(root, policy, freeRescue, selected))
                             selected = freeRescue;
@@ -322,13 +320,11 @@ internal static partial class CombatSearchCoordinator
                                 SolverSearchProfile continuationProfile = continuationWindow.Limit(
                                     prefixProfile, maximumNodes: 30_000, maximumMilliseconds: 10_000,
                                     reserveMilliseconds: 2_000);
-                                SolverResult continuation = new CombatBeamSolver(root, displayNames,
-                                    battleDamage, policy, cancellationToken, progressCallback,
-                                    continuationProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                                    maximumPotionUses: 0,
-                                    fixedPrefixActions: [.. nextTurnPrefix, nextAttack,
+                                SolverResult continuation = scheduler.Dispatch(new ContinuationSearchRequest(
+                                    context, ContinuationPurpose.TurnBoundaryDefensiveFollowUp,
+                                    [.. nextTurnPrefix, nextAttack,
                                         new PlanAction(PlanActionKind.EndTurn, root.StartTurnNumber + 1)],
-                                    resetFixedPrefixSchedulingBaseline: true).Solve();
+                                    continuationProfile, SolverPotionPolicy.Disabled, 0, null));
                                 if (continuation.ResultScope == SolverResultScope.SearchCompletion
                                     && IsBetterPotionPolicyResult(root, policy, continuation, selected))
                                     selected = continuation;

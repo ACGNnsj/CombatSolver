@@ -10,6 +10,8 @@ internal enum ContinuationPurpose
     TurnEndChoice,
     TurnEndChoiceShorterOpening,
     TurnBoundaryRescue,
+    TurnBoundaryFreeOpening,
+    TurnBoundaryDefensiveFollowUp,
 }
 
 internal interface IFrontierContinuationSource
