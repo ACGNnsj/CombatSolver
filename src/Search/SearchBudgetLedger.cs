@@ -50,6 +50,13 @@ internal sealed class SearchBudgetLedger
         return new(remainingMilliseconds, remainingNodes);
     }
 
+    internal SearchBudgetWindow PassWindow(SolverSearchProfile profile, Stopwatch clock)
+    {
+        int remainingMilliseconds = RemainingPassMillisecondsForSlice(profile, clock);
+        long remainingNodes = RemainingNodes(profile);
+        return new(remainingMilliseconds, remainingNodes);
+    }
+
     internal long RemainingMilliseconds(SolverSearchProfile profile, Stopwatch clock)
         => profile.SoftTimeBudgetMilliseconds - clock.ElapsedMilliseconds;
 

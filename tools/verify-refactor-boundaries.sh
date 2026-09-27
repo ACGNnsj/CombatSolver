@@ -33,6 +33,9 @@ if rg -Fq 'policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L' "$repositor
    rg -Fq -- '- (int)passClock.ElapsedMilliseconds' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary pass prefix budgets bypass the request budget ledger")
 fi
+if rg -Fq 'MaxExpandedNodes = (int)Math.Min(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Primary pass member budget bypasses the pass budget window")
+fi
 if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator creates request work totals outside the budget ledger")
 fi

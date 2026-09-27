@@ -73,6 +73,9 @@ if ($coordinatorSource.Contains('- (int)passClock.ElapsedMilliseconds') -or
     $coordinatorSource.Contains('policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L')) {
     $violations.Add('Primary pass prefix budgets bypass the request budget ledger')
 }
+if ($coordinatorSource.Contains('MaxExpandedNodes = (int)Math.Min(')) {
+    $violations.Add('Primary pass member budget bypasses the pass budget window')
+}
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
 }
