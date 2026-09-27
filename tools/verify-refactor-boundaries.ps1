@@ -65,6 +65,12 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRe
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -PathType Leaf)) {
     $violations.Add('Post-search passes missing')
 }
+foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
+        'src/Search/OpeningPotionPairContinuationSource.cs')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
+        $violations.Add("Frontier continuation component missing: $relative")
+    }
+}
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
@@ -95,9 +101,11 @@ if (-not $postSearchSource.Contains('RunEarlyPotionPairRescue(context, selected)
     $coordinatorSource.Contains('EARLY_POTION_PAIR prefix=')) {
     $violations.Add('Early potion pair rescue is not a post-search pass')
 }
-if (-not $postSearchSource.Contains('ledger.RequestWindow(policy.Profile)') -or
-    $postSearchSource.Contains('MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)')) {
-    $violations.Add('Early potion pair rescue bypasses the request budget window')
+$continuationSchedulerSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/FrontierContinuationScheduler.cs') -Raw
+if (-not $postSearchSource.Contains('new FrontierContinuationScheduler(context).Run(') -or
+    -not $continuationSchedulerSource.Contains('RequestWindow(') -or
+    -not $continuationSchedulerSource.Contains('fixedPrefixActions: request.Prefix')) {
+    $violations.Add('Early potion pair rescue bypasses the frontier continuation scheduler')
 }
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or

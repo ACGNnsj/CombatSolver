@@ -26,6 +26,9 @@ for pass_field in 'RouteQuality? Quality' 'SearchRequestWorkSnapshot WorkTotals'
 done
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 [[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
+for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs; do
+    [[ -f "$repository_root/$continuation_input" ]] || violations+=("Frontier continuation component missing: $continuation_input")
+done
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi
@@ -54,9 +57,10 @@ if ! rg -Fq 'RunEarlyPotionPairRescue(context, selected)' "$repository_root/src/
    rg -Fq 'EARLY_POTION_PAIR prefix=' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Early potion pair rescue is not a post-search pass")
 fi
-if ! rg -Fq 'ledger.RequestWindow(policy.Profile)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
-   rg -Fq 'MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
-    violations+=("Early potion pair rescue bypasses the request budget window")
+if ! rg -Fq 'new FrontierContinuationScheduler(context).Run(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'RequestWindow(' "$repository_root/src/Search/FrontierContinuationScheduler.cs" ||
+   ! rg -Fq 'fixedPrefixActions: request.Prefix' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
+    violations+=("Early potion pair rescue bypasses the frontier continuation scheduler")
 fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
