@@ -81,6 +81,10 @@ if ! rg -Fq 'AdmitPlanCommitmentRepresentatives(' "$repository_root/src/Search/C
    ! rg -Fq '_planCommitment' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs"; then
     violations+=("Plan commitment has no protected retention representatives")
 fi
+if [[ ! -f "$repository_root/src/Search/PlanHorizonPolicy.cs" ]] ||
+   ! rg -Fq 'PlanHorizonPolicy.ShouldExtend(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
+    violations+=("Realized plans have no bounded horizon extension")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

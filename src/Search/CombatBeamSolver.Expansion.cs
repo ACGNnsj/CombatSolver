@@ -264,6 +264,14 @@ internal sealed partial class CombatBeamSolver
             return false;
         if (node.CrossTurnProbe != null)
             return false;
+        if (_planCommitment is { } plan
+            && node.Turn > plan.OpenedTurn
+            && PlanHorizonPolicy.ShouldExtend(
+                node.CombatProgress.TurnsWithoutProgress,
+                noProgressLimit,
+                deckCycleTurns,
+                plan.CountRealizedPayoffPlays(node) > 0))
+            return false;
         return true;
     }
 

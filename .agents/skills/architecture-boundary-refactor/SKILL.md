@@ -36,6 +36,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - `SearchBudgetWindow` 只冻结一次请求余量并套用既有成员上限，模式专用准入与候选合法性仍在对应 Pass；迁移预算读取时保持时钟和工作量采样顺序。
 - P6 的 `PlanCommitment` 由模拟后的开局动作发现，经 `FrontierContinuationScheduler` 与同一请求账本有界续搜；Smart 无主动用药梯度先于计划成员完成，终局仍交给既有质量与药水政策。计划专属 Beam 代表不进入状态键或普通搜索。
 - 首回合计划发现数量由请求级 `SearchPlanDiscoveryState` 在审计与 `PostSearch` 间共享；常规后验结束后才探测第二回合可打能力并用剩余账本续搜，未改善时保留先前完整结果。不得把该成员提前到 Smart 无药基线之前。
+- `PlanHorizonPolicy` 只延长已实际打出收益牌的显式计划成员，最多一个当前牌堆周期；普通、未兑现计划及战斗状态键不变。阈值合同不能代替长线请求的实际触发证据。
 - 主 Pass 的固定前缀成员从 `SearchPassContext.SliceWindow` 取得轮次时间与请求节点；窗口仍按原顺序先读时间、后读节点。具体模式保留原准入阈值、profile 变体和候选顺序。
 - 夜魇开局成员通过 `SearchBudgetLedger.ProfileWindow` 取得请求剩余节点和配置 profile 的原时间帽，不把它改成轮次剩余时间。
 - P3 固定前缀迁移按模式逐个进行。双药开局的两种药水槽顺序由 `OpeningPotionPairContinuationSource` 产出，`FrontierContinuationScheduler` 负责用途／完整前缀去重、请求窗口、前缀合法性及求解器派发；模式仍负责原结果比较和诊断标签。

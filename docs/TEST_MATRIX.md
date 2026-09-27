@@ -2,6 +2,7 @@
 
 ## 策略重构 P6 首回合计划（2026-09-28）
 
+- 计划地平线：`dotnet run --project tools/PowerCardValuationChecks/PowerCardValuationChecks.csproj -c Release` 通过，覆盖未兑现计划不续期、兑现后在第 16 至 20 个无进展回合续期及第 21 回合结束续期（普通上限 16、牌堆周期 5）。Release 编译及 Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=235` 通过。#101 与 #100 最终源码同根复测均 Passed，战损／用药／最终 HP 与接入前相同，请求总 expanded／transitions／choice branches 也相同；证据 `.local/strategy-refactor-p6/horizon-101` 与 `horizon-100`。这两根未直接触发续期，长线搜索触发效果尚未有实战样本；Linux 门禁未运行。
 - 跨回合能力计划：#100 `88619c63f91b48998737d7a9d623e2df` 的 `combat_start`、VeryHigh／180 秒／DOP 8，修改前完整胜利 41 战损／2 药、最终 29 HP；修改后完整胜利 22 战损／2 药、最终 48 HP。`PLAN_SEARCH_DISCOVERY count=0` 后，末段 `DEFERRED_POWER_PLAN` 选中第二回合飞刀扇前缀，成员展开 53,316。证据 `.local/strategy-refactor-p6/baseline-100` 与 `.local/strategy-refactor-p6/deferred-100-final-pass`。
 - 已达标哨兵 GA-SILENT-BOSS-00：DOP8、VeryHigh、25,000 节点／110 秒，修改前后 121 个非时序字段全同，完整胜利 44 战损／0 药；证据 `.local/strategy-refactor-p5/potion-admission-dop8` 与 `.local/strategy-refactor-p6/deferred-sentinel-dop8`。P6 尚需计划驱动地平线，不能据此宣称阶段全部完成。
 - #101 `a422c1c56022446c85f6ce00962019c4`：同一 `combat_start`、VeryHigh／180 秒／DOP 8，基线死亡、预计战损 70／0 药；计划成员完整胜利、战损 58／1 药、最终 12 HP。完整证据在 `.local/strategy-refactor-p6/baseline-101` 与 `.local/strategy-refactor-p6/plan-101-after-gradient`。

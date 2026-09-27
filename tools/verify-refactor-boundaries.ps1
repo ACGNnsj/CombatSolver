@@ -127,6 +127,11 @@ if (-not $planRetentionSource.Contains('AdmitPlanCommitmentRepresentatives(') -o
     -not $planRetentionSource.Contains('_planCommitment')) {
     $violations.Add('Plan commitment has no protected retention representatives')
 }
+$crossTurnSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Expansion.cs') -Raw
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/PlanHorizonPolicy.cs') -PathType Leaf) -or
+    -not $crossTurnSource.Contains('PlanHorizonPolicy.ShouldExtend(')) {
+    $violations.Add('Realized plans have no bounded horizon extension')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
