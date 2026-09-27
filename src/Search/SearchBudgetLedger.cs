@@ -24,4 +24,7 @@ internal sealed class SearchBudgetLedger
 
     internal long RemainingNodes(SolverSearchProfile profile)
         => profile.MaxExpandedNodes - WorkTotals.Snapshot().ExpandedNodes;
+
+    internal long RemainingMilliseconds(SolverSearchProfile profile, Stopwatch clock)
+        => profile.SoftTimeBudgetMilliseconds - clock.ElapsedMilliseconds;
 }

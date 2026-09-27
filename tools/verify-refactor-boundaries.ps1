@@ -41,12 +41,18 @@ foreach ($relative in @('src/Search/RouteQuality.cs', 'src/Search/RouteQualityPo
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassContext.cs') -PathType Leaf)) {
+    $violations.Add('Search pass context missing')
+}
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
 }
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
+}
+if (-not $coordinatorSource.Contains('RunSupplementalAudits(auditContext,')) {
+    $violations.Add('Supplemental audits do not consume the search pass context')
 }
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'

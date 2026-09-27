@@ -8,6 +8,8 @@
 
 `SearchBudgetLedger` 是请求级时钟与工作量账本的所有者；`SearchRequestWorkTotals` 仍独占实际搜索工作量的线程安全累计。迁移期各搜索成员、审计和升级保持既有派发与预算切片顺序，逐入口把剩余量查询移入账本。
 
+`SearchPassContext` 冻结单轮审计所需的根、显示名、战损、政策、profile、取消与回调，关联该轮秒表和请求级账本。补充审计从上下文取得输入与剩余时间；它仍沿原调用顺序返回 `SolverResult`，不额外保存战斗分支。
+
 本文描述当前源码的所有权边界。它面向维护者和 coding agent；玩家功能说明见根目录 `README.md`，历史重构证据见 `docs/refactoring/`。
 
 职责迁移时优先更新本文，并同步更新 Windows 的 `tools/verify-refactor-boundaries.ps1` 与 Linux 的 `tools/verify-refactor-boundaries.sh`。历史审计记录保留当时结论，不承担当前导航职责。

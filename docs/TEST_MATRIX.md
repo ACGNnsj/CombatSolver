@@ -5,6 +5,7 @@
 - 合入 0.47.1 后，`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/baseline-0471` 一次采集 #24、#37、#81、#89 与两个生成场景，六根均为 `comparable`。原始包与完整证据留在 `.local`，实例由启动器清理。
 - `python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/ledger-outer` 后，`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p2/baseline-0471 --right .local/strategy-refactor-p2/ledger-outer --out .local/strategy-refactor-p2/compare-ledger-outer`：六根动作、续用、结果、expanded、transitions、choice branches 和剪枝计数逐位相同。
 - 运行器修复后 `python -m py_compile tools/StrategyCorpus/run.py tools/StrategyCorpus/compare.py tools/StrategyCorpus/test_compare.py` 通过；本次 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=215`。按用户要求未运行 Linux 门禁；未做完整自动战斗或大批量回归。
+- 补充审计改用 `SearchPassContext` 后，#24 `start` 严格恢复与 15 秒配置的 SearchOnly 请求 `286768afb4d14118863cdf5e79239cdd` Passed，实例已清理。此请求只验证上下文边界可执行，不与 110 秒固定语料比较，也不声明整场质量等价。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=216`；未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

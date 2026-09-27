@@ -143,6 +143,7 @@ internal static partial class CombatSearchCoordinator
                 displayNames,
                 battleDamage,
                 policy,
+                ledger,
                 cancellationToken,
                 enrichedProgressCallback,
                 interaction == null ? null : PublishAdoptableResult,
@@ -833,6 +834,7 @@ internal static partial class CombatSearchCoordinator
         SolverDisplayNames displayNames,
         BattleDamageSnapshot battleDamage,
         SearchPolicySnapshot policy,
+        SearchBudgetLedger ledger,
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback,
         Action<SolverResult>? interimResultCallback,
@@ -1220,6 +1222,9 @@ internal static partial class CombatSearchCoordinator
             }
             if (policy.IncludeTurnSetup)
                 return passResult;
+            SearchPassContext auditContext = new(root, displayNames, battleDamage,
+                policy, passProfile, passClock, ledger, cancellationToken,
+                progressCallback, interimResultCallback);
             if (passResult.DeterministicBlockPotionInserted)
             {
                 SearchPolicySnapshot potionFreePolicy = beamPolicy with
@@ -1232,10 +1237,8 @@ internal static partial class CombatSearchCoordinator
                     passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled).Solve();
                 if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
                     return potionFree;
-                SolverResult audited = RunSupplementalAudits(root, displayNames,
-                    battleDamage, policy, cancellationToken, progressCallback,
-                    passProfile, passClock, potionFree, memoryForecast,
-                    interimResultCallback);
+                SolverResult audited = RunSupplementalAudits(auditContext,
+                    potionFree, memoryForecast);
                 if (audited.ResultScope != SolverResultScope.SearchCompletion)
                     return audited;
                 if (IsBetterSmartPotionAuditResult(root, policy, audited, passResult))
@@ -1250,18 +1253,11 @@ internal static partial class CombatSearchCoordinator
                     return passResult;
                 }
                 passResult = RunSupplementalAudits(
-                    root,
-                    displayNames,
-                    battleDamage,
                     policy.NoveltySearch == null
-                        ? policy : policy with { NoveltySearch = null },
-                    cancellationToken,
-                    progressCallback,
-                    passProfile,
-                    passClock,
+                        ? auditContext
+                        : auditContext with { Policy = policy with { NoveltySearch = null } },
                     passResult,
-                    memoryForecast,
-                    interimResultCallback);
+                    memoryForecast);
                 // The final potion audit may return another result object. Keep the
                 // primary-pass observations alongside the request's final outcome.
                 passResult.NoveltyPortfolio = noveltyPass;
@@ -1669,19 +1665,20 @@ internal static partial class CombatSearchCoordinator
             && result.Snapshot.PlayerHp >= result.Snapshot.PlayerMaxHp;
 
     private static SolverResult RunSupplementalAudits(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
-        Stopwatch requestClock,
+        SearchPassContext context,
         SolverResult primary,
-        SmartLayerMemoryForecast memoryForecast,
-        Action<SolverResult>? interimResultCallback)
+        SmartLayerMemoryForecast memoryForecast)
     {
-        long remainingMilliseconds = profile.SoftTimeBudgetMilliseconds - requestClock.ElapsedMilliseconds;
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
+        Stopwatch requestClock = context.Clock;
+        Action<SolverResult>? interimResultCallback = context.InterimResultCallback;
+        long remainingMilliseconds = context.RemainingMilliseconds;
         if (remainingMilliseconds <= 0)
         {
             policy.Diagnostics.Info(
