@@ -65,6 +65,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRe
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -PathType Leaf)) {
     $violations.Add('Post-search passes missing')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.BeamPortfolio.cs') -PathType Leaf)) {
+    $violations.Add('Beam portfolio owner missing')
+}
 foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
         'src/Search/OpeningPotionPairContinuationSource.cs',
         'src/Search/EarlierCopyDelayedDamageContinuationSource.cs',
@@ -228,8 +231,9 @@ if (-not $noveltySource.Contains('RunNoveltyPortfolioPass(') -or
     $noveltySource.Contains('policy.RequestWorkTotals')) {
     $violations.Add('Novelty portfolio bypasses the search pass context or budget ledger')
 }
+$beamPortfolioSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.BeamPortfolio.cs') -Raw
 if (-not $coordinatorSource.Contains('RunBeamWidthPortfolioPass(') -or
-    -not $coordinatorSource.Contains('SearchRequestWorkTotals totals = context.Budget.WorkTotals;')) {
+    -not $beamPortfolioSource.Contains('SearchRequestWorkTotals totals = context.Budget.WorkTotals;')) {
     $violations.Add('Beam portfolio bypasses the search pass budget ledger')
 }
 foreach ($audit in @('AuditRequiredPotionUse', 'AuditSmartPotionUse', 'AuditOpeningPowerUse')) {

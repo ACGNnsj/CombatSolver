@@ -60,6 +60,8 @@ Smart 开局药水的有序候选仍按原 `PowerPrefixKey` 去重并限制 8／
 
 宽度与新颖性组合成员也从对应 Pass 上下文接线；宽度组合的成员时钟和新颖性组合的工作量快照共用该上下文关联的请求账本，现有组合准入与成员顺序保持独立。
 
+`CombatSearchCoordinator.BeamPortfolio.cs` 独占宽度组合成员的运行、成员记录和单成员结果包装；`CombatSearchCoordinator.cs` 只在主 Pass 调用它。迁移不改变成员顺序、计时、预览与诊断。
+
 补充审计的强制用药、智能用药和开局能力审计通过同一 Pass 上下文取得冻结输入；审计截止令牌由原补充审计作用域派生并传入，药水梯度搜索仍沿既有顺序运行。
 
 Smart 药水梯度的层前后转移采样及协调器回收开销归入上下文的 `SearchBudgetLedger.WorkTotals`；`SmartLayerMemoryForecast` 继续独占预测与回收判断。

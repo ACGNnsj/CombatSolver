@@ -26,6 +26,7 @@ for pass_field in 'RouteQuality? Quality' 'SearchRequestWorkSnapshot WorkTotals'
 done
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 [[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
+[[ -f "$repository_root/src/Search/CombatSearchCoordinator.BeamPortfolio.cs" ]] || violations+=("Beam portfolio owner missing")
 for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs src/Search/EarlierCopyDelayedDamageContinuationSource.cs src/Search/OpeningNoCostContinuationSource.cs src/Search/TurnEndChoiceContinuationSource.cs src/Search/SinglePrefixContinuationSource.cs src/Search/TurnBoundaryContinuationSource.cs; do
     [[ -f "$repository_root/$continuation_input" ]] || violations+=("Frontier continuation component missing: $continuation_input")
 done
@@ -174,7 +175,7 @@ if ! rg -Fq 'RunNoveltyPortfolioPass(' "$repository_root/src/Search/CombatSearch
     violations+=("Novelty portfolio bypasses the search pass context or budget ledger")
 fi
 if ! rg -Fq 'RunBeamWidthPortfolioPass(' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
-   ! rg -Fq 'SearchRequestWorkTotals totals = context.Budget.WorkTotals;' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+   ! rg -Fq 'SearchRequestWorkTotals totals = context.Budget.WorkTotals;' "$repository_root/src/Search/CombatSearchCoordinator.BeamPortfolio.cs"; then
     violations+=("Beam portfolio bypasses the search pass budget ledger")
 fi
 for audit in AuditRequiredPotionUse AuditSmartPotionUse AuditOpeningPowerUse; do
