@@ -26,6 +26,8 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 `PlanCommitment` 保存从固定根可回放的开局计划及收益牌；`CombatSearchCoordinator.PlanSearch` 从模拟动作识别夜魇复制和开局能力过牌，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标牌可达性筛选药水和过牌分支，不改变普通开局候选上限。
 
+P7a 的单项 Beam 权重敏感度由无人测试请求显式指定，`ProtocolHost` 验证并持有本次扰动，`SolverController.CaptureSearchPolicy` 将其冻结进 `SolverSearchProfile`。Search 只读该 profile；普通请求不注入扰动，终局政策、状态键和转置准入不消费它。
+
 复制能力的计划成员使用既有能力承诺档位，并按后续实际打出收益牌的次数保护少量 Beam 代表。这些代表只影响该成员的中途保留，不改变状态键与终局排序。首回合计划的发现数量保存在同一请求的 `SearchPlanDiscoveryState` 中，供末段跨回合入口决定是否启用。
 
 首回合计划发现未找到候选时，`PostSearch` 的常规审计完成后可用剩余请求额度探测一次首回合结束边界，从实际下一回合手牌提名一条可打能力前缀并完整续搜。该成员排在常规后验之后，未改善时保留原结果；它与首回合计划共用账本、调度和终局比较。

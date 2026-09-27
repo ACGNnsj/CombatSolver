@@ -260,6 +260,8 @@ internal sealed class UnattendedTestRequest
     public SolverPerformancePreset? PerformancePresetForTest { get; init; }
     public int? SearchBeamWidthForTest { get; init; }
     public int? SearchMaxExpandedNodesForTest { get; init; }
+    public BeamWeightTerm? BeamWeightTermForTest { get; init; }
+    public double? BeamWeightScaleForTest { get; init; }
     public int? ShortMaxCardBranchesPerNodeForTest { get; init; }
     public int? DeepMaxCardBranchesPerNodeForTest { get; init; }
     public SolverPotionPolicy? PotionPolicyForTest { get; init; }

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P7a 权重敏感度（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=235`；Python 脚本语法检查通过。`run.py --case` 分别对 #24 玩家根与 GA-SILENT-BOSS-00 采集无扰动基线及 `CurrentEnergy:0.8`，四次均 `comparable`。`sensitivity.py` 接受两组同根对照且核对其余政策相同；#24 前后均胜利、0 战损／1 药／最终 57 HP，生成根前后均胜利、44 战损／0 药／最终 26 HP。两根动作与工作量有差异，质量分类均为不变。证据在 `.local/strategy-refactor-p7a/`；无头实例已由运行器清理。默认权重未调整；Linux 门禁依用户要求不运行。
+
 ## 策略重构 P6 首回合计划（2026-09-28）
 
 - 计划地平线：`dotnet run --project tools/PowerCardValuationChecks/PowerCardValuationChecks.csproj -c Release` 通过，覆盖未兑现计划不续期、兑现后在第 16 至 20 个无进展回合续期及第 21 回合结束续期（普通上限 16、牌堆周期 5）。Release 编译及 Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=235` 通过。#101 与 #100 最终源码同根复测均 Passed，战损／用药／最终 HP 与接入前相同，请求总 expanded／transitions／choice branches 也相同；证据 `.local/strategy-refactor-p6/horizon-101` 与 `horizon-100`。这两根未直接触发续期，长线搜索触发效果尚未有实战样本；Linux 门禁未运行。

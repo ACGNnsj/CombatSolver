@@ -507,7 +507,9 @@ internal static partial class SolverController
                 $"实际为 {maxDegreeOfParallelism}。");
         }
         SearchPolicySnapshot policy = new(
-            settings.Profile,
+            UnattendedTestRunner.BeamWeightPerturbationOverride is { } beamWeightPerturbation
+                ? settings.Profile with { BeamWeightPerturbation = beamWeightPerturbation }
+                : settings.Profile,
             settings.PotionPolicy,
             CapturePotionStrategy(state, settings.PotionPolicy),
             settings.EnableDetailedDiagnosticLogs,

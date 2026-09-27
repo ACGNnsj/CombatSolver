@@ -1591,6 +1591,8 @@ require_fixed "$repository_root/src/Search/CombatBeamSolver.Models.cs" 'Transpos
 require_fixed "$repository_root/src/Search/SearchPolicySnapshot.cs" 'DefaultTranspositionEntryLimit = 1_000_000' 'production transposition entry limit changed'
 
 # Contextual estimates may influence intermediate ordering only; loading stays outside workers.
+require_fixed "$repository_root/src/Testing/UnattendedTestRunner.ProtocolHost.cs" 'new BeamWeightPerturbation(' 'missing frozen Beam weight probe boundary'
+require_fixed "$repository_root/src/Runtime/SolverController.cs" 'UnattendedTestRunner.BeamWeightPerturbationOverride' 'missing frozen Beam weight probe boundary'
 require_fixed "$search_root/ContextualRankingModel.cs" 'stackalloc double[FeatureCount]' 'contextual ranking must keep its feature buffer local'
 require_fixed "$search_root/ContextualRankingModel.cs" 'ModuleVersionId' 'contextual model must validate assembly identity'
 for token in 'File.' 'SolverSettings.Current' 'SolverController' 'ComparePrimaryQuality'; do

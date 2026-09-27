@@ -4,6 +4,7 @@
 import argparse
 import hashlib
 import json
+import math
 import os
 from pathlib import Path
 import subprocess
@@ -53,7 +54,7 @@ def launch(command, directory):
                               check=False).returncode
 
 
-def headless_command(case, source, evidence, manifest, cleanup):
+def headless_command(case, source, evidence, manifest, cleanup, beam_weight):
     common = [
         "-CheckpointArchivePath", str(source), "-CheckpointSelector", "start",
         "-ReplayMode", "SearchOnly", "-EvidenceDirectory", str(evidence),
@@ -64,6 +65,9 @@ def headless_command(case, source, evidence, manifest, cleanup):
         "-SearchBudgetOverrideMilliseconds", str(manifest["searchBudgetMilliseconds"]),
         "-EnableNoGcRegionForTest", "0", "-TimeoutSeconds", "180",
     ]
+    if beam_weight:
+        term, scale = beam_weight
+        common.extend(["-BeamWeightTermForTest", term, "-BeamWeightScaleForTest", scale])
     if os.name == "nt":
         command = ["pwsh", "-NoProfile", "-File", str(LAUNCHER), *common]
         if cleanup:
@@ -79,15 +83,19 @@ def headless_command(case, source, evidence, manifest, cleanup):
         "--search-budget-override-milliseconds", str(manifest["searchBudgetMilliseconds"]),
         "--enable-no-gc-region-for-test", "false", "--timeout-seconds", "180",
     ]
+    if beam_weight:
+        term, scale = beam_weight
+        command.extend(["--beam-weight-term-for-test", term,
+                        "--beam-weight-scale-for-test", scale])
     if cleanup:
         command.append("--cleanup-instance-on-exit")
     return command
 
 
-def capture_report(case, source, directory, manifest, cleanup):
+def capture_report(case, source, directory, manifest, cleanup, beam_weight):
     evidence = directory / "evidence"
     evidence.mkdir()
-    code = launch(headless_command(case, source, evidence, manifest, cleanup), directory)
+    code = launch(headless_command(case, source, evidence, manifest, cleanup, beam_weight), directory)
     result_path = evidence / "result.json"
     result = read(result_path) if result_path.exists() else {}
     verification_path = evidence / "policy.json"
@@ -132,7 +140,7 @@ def capture_report(case, source, directory, manifest, cleanup):
     }
 
 
-def capture_generated(case, source, directory, manifest):
+def capture_generated(case, source, directory, manifest, beam_weight):
     if not HARNESS.is_file():
         raise FileNotFoundError(f"OfflineSearchHarness is not built: {HARNESS}")
     command = [
@@ -143,6 +151,8 @@ def capture_generated(case, source, directory, manifest):
         "--dop", str(manifest["maxDegreeOfParallelism"]),
         "--budget-ms", str(manifest["searchBudgetMilliseconds"]),
     ]
+    if beam_weight:
+        command.extend(["--beam-weight", ":".join(beam_weight)])
     (directory / "evidence").mkdir()
     code = launch(command, directory)
     evidence = directory / "evidence"
@@ -183,7 +193,22 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--out", type=Path, required=True)
+    parser.add_argument("--case", action="append", default=[], help="Run only this corpus label; repeatable")
+    parser.add_argument("--beam-weight", help="One Beam weight probe as Term:Scale (0..2)")
     args = parser.parse_args()
+    beam_weight = None
+    if args.beam_weight:
+        pieces = args.beam_weight.split(":")
+        if (len(pieces) != 2 or pieces[0] not in
+                {"CurrentEnergy", "PersistentBuffDelta", "EnemyHp"}):
+            parser.error("--beam-weight requires CurrentEnergy|PersistentBuffDelta|EnemyHp:Scale")
+        try:
+            scale = float(pieces[1])
+        except ValueError:
+            parser.error("--beam-weight scale must be a number")
+        if not math.isfinite(scale) or not 0 <= scale <= 2:
+            parser.error("--beam-weight scale must be finite and between 0 and 2")
+        beam_weight = (pieces[0], format(scale, ".17g"))
     manifest = read(args.manifest)
     if manifest.get("schemaVersion") != 1:
         raise ValueError("Unsupported corpus manifest")
@@ -195,6 +220,14 @@ def main():
     backups = [case for case in manifest["cases"] if case["kind"] == "report" and case.get("backup")]
     generated = [case for case in manifest["cases"] if case["kind"] == "generated"]
     selected = [*report_cases, *generated]
+    if args.case:
+        unknown = set(args.case) - {case["label"] for case in manifest["cases"]}
+        if unknown:
+            parser.error(f"Unknown corpus labels: {', '.join(sorted(unknown))}")
+        selected = [case for case in selected if case["label"] in args.case]
+        backups = [case for case in backups if case["label"] in args.case]
+        if backups and not selected:
+            selected, backups = backups, []
     results = {}
     report_failures = 0
     for case in selected:
@@ -207,9 +240,10 @@ def main():
             try:
                 if case["kind"] == "report":
                     remaining_reports = [item for item in selected if item["kind"] == "report" and item["label"] not in results]
-                    result = capture_report(case, source, directory, manifest, len(remaining_reports) == 1)
+                    result = capture_report(case, source, directory, manifest,
+                                            len(remaining_reports) == 1, beam_weight)
                 else:
-                    result = capture_generated(case, source, directory, manifest)
+                    result = capture_generated(case, source, directory, manifest, beam_weight)
             except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
                 result = {"status": "unavailable", "reason": f"{type(error).__name__}: {error}"}
         result["label"] = case["label"]
@@ -224,7 +258,7 @@ def main():
         directory = output / case["label"]
         directory.mkdir()
         try:
-            result = capture_report(case, source, directory, manifest, True)
+            result = capture_report(case, source, directory, manifest, True, beam_weight)
         except (OSError, ValueError, RuntimeError, subprocess.SubprocessError) as error:
             result = {"status": "unavailable", "reason": f"{type(error).__name__}: {error}"}
         result["label"] = case["label"]
@@ -233,6 +267,8 @@ def main():
         results[case["label"]] = result["status"]
         print(f"{case['label']}: {result['status']} {result.get('reason') or ''}", flush=True)
     (output / "summary.json").write_text(json.dumps(results, ensure_ascii=False, indent=2), encoding="utf-8")
+    if args.case:
+        return 0 if all(status == "comparable" for status in results.values()) else 1
     comparable_reports = sum(results.get(case["label"]) == "comparable"
                              for case in [*report_cases, *backups])
     comparable_generated = sum(results.get(case["label"]) == "comparable" for case in generated)

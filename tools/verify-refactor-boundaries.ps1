@@ -2002,6 +2002,14 @@ foreach ($rule in @(
 }
 
 # Contextual estimates remain pure intermediate ordering; never a bound or final policy.
+foreach ($boundary in @(
+    @('src/Testing/UnattendedTestRunner.ProtocolHost.cs', 'new BeamWeightPerturbation('),
+    @('src/Runtime/SolverController.cs', 'UnattendedTestRunner.BeamWeightPerturbationOverride')
+)) {
+    if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot $boundary[0]) -SimpleMatch $boundary[1] -Quiet)) {
+        $violations.Add("Missing frozen Beam weight probe boundary: $($boundary[0])")
+    }
+}
 $contextualPath = Join-Path $searchRoot 'ContextualRankingModel.cs'
 foreach ($text in @('stackalloc double[FeatureCount]', 'ModuleVersionId')) {
     if (-not (Select-String -LiteralPath $contextualPath -SimpleMatch $text -Quiet)) {
