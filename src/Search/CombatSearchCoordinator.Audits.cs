@@ -41,6 +41,10 @@ internal static partial class CombatSearchCoordinator
                 return selected;
             selected = AuditSmartPotionUse(
                 auditContext, cancellationToken, selected, memoryForecast);
+            if (selected.ResultScope == SolverResultScope.SearchCompletion)
+                selected = RunPlanSearchPass(auditContext, selected);
+            if (selected.ResultScope != SolverResultScope.SearchCompletion)
+                return selected;
             if (root.PlayerCardIds.Contains("NIGHTMARE")
                 && !IsProvenZeroDamageRoute(root, policy, selected))
             {

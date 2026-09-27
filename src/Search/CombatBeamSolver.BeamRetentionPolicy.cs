@@ -428,7 +428,8 @@ internal sealed partial class CombatBeamSolver
         SearchRunContext _run,
         Func<SearchNode, StandPatEvaluation> _evaluateStandPat,
         Action<IEnumerable<SearchNode>>? _prepareStandPat = null,
-        DevelopmentSearchStrategy? _developmentStrategy = null)
+        DevelopmentSearchStrategy? _developmentStrategy = null,
+        PlanCommitment? _planCommitment = null)
     {
         private void ForEachRetentionIndex(
             int count,
@@ -1693,6 +1694,7 @@ internal sealed partial class CombatBeamSolver
                 ranked[replaceIndex] = requiredNode;
             }
             AdmitPowerCommitmentRepresentatives(quotaPool, ranked, required, limit);
+            AdmitPlanCommitmentRepresentatives(quotaPool, ranked, required, limit);
             DiversifyOrdinaryBeamBoundary(
                 quotaPool,
                 ranked,
@@ -1801,6 +1803,51 @@ internal sealed partial class CombatBeamSolver
                     _run.PowerCommitmentSeatsPeak,
                     retained);
             }
+        }
+
+        private void AdmitPlanCommitmentRepresentatives(
+            IReadOnlyList<SearchNode> pool,
+            List<SearchNode> selected,
+            List<SearchNode> required,
+            int limit)
+        {
+            if (_planCommitment is not { Kind: PlanCommitmentKind.CopyPower } plan)
+                return;
+
+            SearchNode[] representatives = pool
+                .Select(node => (Node: node, Progress: CountPlanPayoffPlays(node, plan)))
+                .Where(item => item.Progress > 0)
+                .GroupBy(item => item.Progress)
+                .OrderByDescending(group => group.Key)
+                .Take(3)
+                .Select(group => group.MaxBy(item => BeamRankScore(item.Node)).Node)
+                .ToArray();
+            foreach (SearchNode candidate in representatives)
+            {
+                if (ContainsReference(selected, candidate))
+                    continue;
+                int candidateProgress = CountPlanPayoffPlays(candidate, plan);
+                int replaceIndex = selected.FindLastIndex(node =>
+                    !ContainsReference(required, node)
+                    && CountPlanPayoffPlays(node, plan) < candidateProgress);
+                if (replaceIndex < 0)
+                    continue;
+                selected[replaceIndex] = candidate;
+                AddRequired(required, candidate, limit);
+            }
+        }
+
+        private static int CountPlanPayoffPlays(SearchNode node, PlanCommitment plan)
+        {
+            int count = 0;
+            for (SearchNode? cursor = node; cursor != null; cursor = cursor.Parent)
+            {
+                if (cursor.Action is { Kind: PlanActionKind.PlayCard } action
+                    && action.Turn > plan.OpenedTurn
+                    && string.Equals(action.CardId, plan.PayoffCardId, StringComparison.Ordinal))
+                    count++;
+            }
+            return count;
         }
 
     }

@@ -100,6 +100,22 @@ if (-not $serialExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
     $parallelExpansionSource.Contains('AddNonDominatedParallelCandidate(')) {
     $violations.Add('Serial and parallel card admission remains duplicated')
 }
+foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
+    if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
+        $violations.Add("Plan search boundary missing: $relative")
+    }
+}
+$planSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PlanSearch.cs') -Raw
+if (-not $planSearchSource.Contains('context.Budget.RequestWindow(') -or
+    -not $planSearchSource.Contains('ContinuationPurpose.PlanCommitment') -or
+    -not $planSearchSource.Contains('IsBetterPotionPolicyResult(')) {
+    $violations.Add('Plan search bypasses shared budget, continuation or final quality policy')
+}
+$planRetentionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.BeamRetentionPolicy.cs') -Raw
+if (-not $planRetentionSource.Contains('AdmitPlanCommitmentRepresentatives(') -or
+    -not $planRetentionSource.Contains('_planCommitment')) {
+    $violations.Add('Plan commitment has no protected retention representatives')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }

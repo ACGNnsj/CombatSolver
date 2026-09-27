@@ -33,6 +33,7 @@ internal enum ContinuationPurpose
     NightmareCopyPosterior,
     OpeningPowerRouteMember,
     EarlyTurnContinuation,
+    PlanCommitment,
 }
 
 internal interface IFrontierContinuationSource
@@ -57,6 +58,7 @@ internal sealed record ContinuationSearchRequest(
     internal Action<SolverProgress>? ProgressCallbackOverride { get; init; }
     internal PotionFreePolicyBaseline? PotionFreePolicyBaseline { get; init; }
     internal PrimarySearchIncumbent? PrimaryIncumbent { get; init; }
+    internal PlanCommitment? Commitment { get; init; }
     internal int? EarliestPotionTurn { get; init; }
     internal bool ResetFixedPrefixSchedulingBaseline { get; init; } = true;
 }
@@ -85,7 +87,8 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
             resetFixedPrefixSchedulingBaseline: request.ResetFixedPrefixSchedulingBaseline,
             minimumPotionUses: request.MinimumPotionUses,
             primaryIncumbent: request.PrimaryIncumbent,
-            earliestPotionTurn: request.EarliestPotionTurn);
+            earliestPotionTurn: request.EarliestPotionTurn,
+            planCommitment: request.Commitment);
     }
 
     internal SolverResult Dispatch(ContinuationSearchRequest request)

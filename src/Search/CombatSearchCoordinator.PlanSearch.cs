@@ -1,0 +1,208 @@
+namespace CombatSolver;
+
+internal static partial class CombatSearchCoordinator
+{
+    private const int MaximumPlanCommitments = 4;
+    private const int MaximumDiscoveredPlanCommitments = 18;
+
+    private static SolverResult RunPlanSearchPass(SearchPassContext context, SolverResult baseline)
+    {
+        if (baseline.ResultScope != SolverResultScope.SearchCompletion
+            || context.Policy.PotionStrategy.HasForcedDirectives
+            || IsProvenZeroDamageRoute(context.Root, context.Policy, baseline)
+            || IsCompleteVictory(baseline)
+                && baseline.ProjectedBattleHpLost < SolverWeights.PotionMinimumHpSaved * 3)
+            return baseline;
+
+        IReadOnlyList<PlanCommitment> plans = DiscoverOpeningPlanCommitments(context);
+        if (plans.Count == 0)
+            return baseline;
+
+        SearchPolicySnapshot policy = context.Policy;
+        SolverSearchProfile profile = context.Profile;
+        SolverResult selected = baseline;
+        FrontierContinuationScheduler scheduler = new(context);
+        int attempted = 0;
+        List<PlanCommitment> scheduled = [];
+        foreach (int priority in plans.Select(plan => plan.Priority).Distinct()
+                     .OrderByDescending(priority => priority))
+        {
+            PlanCommitment[][] payoffGroups = plans.Where(plan => plan.Priority == priority)
+                .GroupBy(plan => plan.PayoffCardId)
+                .Select(group => group.ToArray())
+                .ToArray();
+            for (int rank = 0; scheduled.Count < MaximumPlanCommitments; rank++)
+            {
+                bool found = false;
+                foreach (PlanCommitment[] payoffGroup in payoffGroups)
+                {
+                    if (rank >= payoffGroup.Length)
+                        continue;
+                    found = true;
+                    scheduled.Add(payoffGroup[rank]);
+                    if (scheduled.Count == MaximumPlanCommitments)
+                        break;
+                }
+                if (!found)
+                    break;
+            }
+            if (scheduled.Count == MaximumPlanCommitments)
+                break;
+        }
+        foreach (PlanCommitment plan in scheduled)
+        {
+            SearchBudgetWindow window = context.Budget.RequestWindow(profile);
+            if (!window.CanStart(7_000))
+                break;
+            SolverSearchProfile memberProfile = window.Limit(profile,
+                maximumNodes: 60_000, maximumMilliseconds: 20_000,
+                reserveMilliseconds: 2_000) with
+            {
+                AggressivePowerCommitment = plan.Kind == PlanCommitmentKind.CopyPower,
+            };
+            SolverResult? candidate = scheduler.DispatchOptional(
+                new ContinuationSearchRequest(context,
+                    ContinuationPurpose.PlanCommitment,
+                    plan.Prefix,
+                    memberProfile,
+                    plan.UsesPotion ? SolverPotionPolicy.RequireAtLeastOne
+                        : SolverPotionPolicy.Disabled,
+                    plan.UsesPotion ? 1 : 0,
+                    null)
+                {
+                    Commitment = plan,
+                },
+                "PlanCommitment");
+            attempted++;
+            if (candidate == null)
+                continue;
+            if (candidate.ResultScope != SolverResultScope.SearchCompletion)
+                return candidate;
+            PopulateSingleSessionTotals(candidate);
+            bool improved = IsBetterPotionPolicyResult(context.Root, policy, candidate, selected);
+            if (improved)
+                selected = candidate;
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] PLAN_SEARCH_MEMBER kind={plan.Kind} " +
+                $"payoff={plan.PayoffCardId} potion={plan.UsesPotion} " +
+                $"prefix={string.Join(',', plan.Prefix.Select(action =>
+                    action.Kind == PlanActionKind.UsePotion
+                        ? $"P:{action.PotionId}" + (action.Choice is { Cards.Count: > 0 } potionChoice
+                            ? $"[{string.Join('+', potionChoice.Cards.Select(card => card.CardId))}]" : "")
+                        : $"C:{action.CardId}" + (action.Choice is { Cards.Count: > 0 } choice
+                            ? $"[{string.Join('+', choice.Cards.Select(card => card.CardId))}]" : "")))} " +
+                $"opening={string.Join(',', candidate.BestNode.Actions
+                    .TakeWhile(action => action.Turn <= context.Root.StartTurnNumber + 1)
+                    .Take(16).Select(action => action.Kind == PlanActionKind.UsePotion
+                        ? $"P:{action.PotionId}"
+                        : action.Kind == PlanActionKind.PlayCard ? $"C:{action.CardId}" : "E"))} " +
+                $"won={IsCompleteVictory(candidate)} hp_lost={candidate.ProjectedBattleHpLost} " +
+                $"expanded={candidate.ExpandedNodes} selected={improved}");
+            if (IsProvenZeroDamageRoute(context.Root, policy, selected))
+                break;
+        }
+        policy.Diagnostics.Info(
+            $"[CombatSolver/Test] PLAN_SEARCH result candidates={plans.Count} " +
+            $"attempted={attempted} selected_hp_lost={selected.ProjectedBattleHpLost}");
+        return selected;
+    }
+
+    private static IReadOnlyList<PlanCommitment> DiscoverOpeningPlanCommitments(
+        SearchPassContext context)
+    {
+        CombatRootSnapshot root = context.Root;
+        bool hasNightmare = root.PlayerCardIds.Any(cardId => OpeningActionRegistry.Default.MatchesId(
+            OpeningCandidatePurpose.NightmareCopyCard, cardId));
+        bool hasPower = root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId);
+        if (!hasNightmare && !hasPower)
+            return [];
+
+        List<PlanCommitment> plans = [];
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        Dictionary<(PlanCommitmentKind Kind, string Payoff), int> perPayoff = [];
+        void Add(PlanCommitmentKind kind, PlanAction[] prefix, string payoff, int priority)
+        {
+            if (plans.Count >= MaximumDiscoveredPlanCommitments
+                || perPayoff.GetValueOrDefault((kind, payoff)) >= 2
+                || !seen.Add(PowerPrefixKey(prefix)))
+                return;
+            bool usesPotion = prefix.Any(action => action.Kind == PlanActionKind.UsePotion);
+            plans.Add(new(kind, prefix, prefix[0].Turn, payoff, usesPotion, priority));
+            perPayoff[(kind, payoff)] = perPayoff.GetValueOrDefault((kind, payoff)) + 1;
+        }
+
+        CombatBeamSolver builder = new(root, context.DisplayNames, context.BattleDamage,
+            context.Policy, context.CancellationToken, context.ProgressCallback, context.Profile,
+            potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+            maximumPotionUses: 1);
+        int potionOpenings = 0;
+        int setupOpenings = 0;
+        int copyOptions = 0;
+        if (hasNightmare && context.Policy.PotionPolicy != SolverPotionPolicy.Disabled)
+        {
+            IReadOnlyList<PlanAction> selectedPotions = builder.BuildOpeningPlanPotionActions(
+                OpeningCandidatePurpose.NightmareCopyCard, maximumActions: 6);
+            foreach (PlanAction potion in selectedPotions)
+            {
+                potionOpenings++;
+                List<PlanAction[]> openings = [[potion]];
+                openings.AddRange(builder.BuildOpeningHandSetupActions([potion],
+                        maximumActions: 5,
+                        desiredFollowUp: OpeningCandidatePurpose.NightmareCopyCard)
+                    .Select(setup => new[] { potion, setup }));
+                setupOpenings += openings.Count - 1;
+                foreach (PlanAction[] opening in openings)
+                {
+                    foreach (PlanAction copy in builder.BuildOpeningNightmareActionsAfterPrefix(
+                                 opening, maximumPowerTargets: 3, maximumActions: 8))
+                    {
+                        copyOptions++;
+                        string copiedCardId = copy.Choice!.Cards[0].CardId;
+                        bool copiedPower = PowerCardValuationModels.Registry.ContainsCardId(copiedCardId);
+                        PlanAction[] copyPrefix = [.. opening, copy];
+                        if (copiedPower)
+                        {
+                            PlanAction? originalPower = builder.BuildPowerActionsAfterPrefix(copyPrefix)
+                                .FirstOrDefault(action => action.CardId == copiedCardId);
+                            if (originalPower != null)
+                                Add(PlanCommitmentKind.CopyPower,
+                                    [.. copyPrefix, originalPower], copiedCardId, priority: 4);
+                        }
+                        Add(copiedPower ? PlanCommitmentKind.CopyPower
+                                : PlanCommitmentKind.CopyCard,
+                            copyPrefix, copiedCardId, copiedPower ? 3 : 2);
+                        if (plans.Count >= MaximumDiscoveredPlanCommitments)
+                            break;
+                    }
+                    if (plans.Count >= MaximumDiscoveredPlanCommitments)
+                        break;
+                }
+                if (plans.Count >= MaximumDiscoveredPlanCommitments)
+                    break;
+            }
+        }
+        if (hasPower && plans.Count < MaximumDiscoveredPlanCommitments)
+        {
+            foreach (PlanAction power in builder.BuildOpeningPowerActions()
+                         .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                         .Take(2))
+            {
+                foreach (PlanAction setup in builder.BuildOpeningHandSetupActions([power]).Take(2))
+                    Add(PlanCommitmentKind.PowerCycle, [power, setup], power.CardId!, priority: 1);
+            }
+            foreach (PlanAction setup in builder.BuildOpeningHandSetupActions().Take(2))
+            {
+                foreach (PlanAction power in builder.BuildPowerActionsAfterPrefix([setup])
+                             .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
+                             .Take(1))
+                    Add(PlanCommitmentKind.PowerCycle, [setup, power], power.CardId!, priority: 1);
+            }
+        }
+        context.Policy.Diagnostics.Info(
+            $"[CombatSolver/Test] PLAN_SEARCH_DISCOVERY count={plans.Count} " +
+            $"potion_openings={potionOpenings} setup_openings={setupOpenings} copy_options={copyOptions} " +
+            $"copy={plans.Count(plan => plan.Kind is PlanCommitmentKind.CopyPower or PlanCommitmentKind.CopyCard)} " +
+            $"power_cycle={plans.Count(plan => plan.Kind == PlanCommitmentKind.PowerCycle)}");
+        return plans;
+    }
+}

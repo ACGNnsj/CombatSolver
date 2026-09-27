@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 首回合计划（2026-09-28）
+
+- #101 `a422c1c56022446c85f6ce00962019c4`：同一 `combat_start`、VeryHigh／180 秒／DOP 8，基线死亡、预计战损 70／0 药；计划成员完整胜利、战损 58／1 药、最终 12 HP。完整证据在 `.local/strategy-refactor-p6/baseline-101` 与 `.local/strategy-refactor-p6/plan-101-after-gradient`。
+- #100 `88619c63f91b48998737d7a9d623e2df`：正式首回合计划源码结果与基线同为胜利 41 战损／2 药、最终 29 HP；跨回合探测的 44 战损实验已撤回，证据分别在 `.local/strategy-refactor-p6/baseline-100`、`plan-100-v1`、`plan-100-target-payoffs`。第二个有效改善包未取得，P6 未达到退出标准。
+- 当前源码 Release 编译成功，Windows 结构门禁返回 `REFACTOR_BOUNDARIES_OK search_files=234`。未运行 Linux 门禁或整批语料；构造 P6 计划入口后的哨兵尚未重测。
+
 ## 策略重构 P5 共享候选准备（2026-09-28）
 
 - `ExpansionPlan` 同时供串行展开与并行准备读取卡牌、药水候选。`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 返回 `REFACTOR_BOUNDARIES_OK search_files=232`。尚未运行搜索语料或 DOP1／DOP8 对照，不能据此认定行为等价。Linux 门禁按用户要求不运行。

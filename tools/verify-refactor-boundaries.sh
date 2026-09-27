@@ -60,6 +60,18 @@ if ! rg -Fq 'ProcessExpandedCardCandidate(' "$repository_root/src/Search/CombatB
    rg -Fq 'AddNonDominatedParallelCandidate(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card admission remains duplicated")
 fi
+for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
+    [[ -f "$repository_root/$plan_source" ]] || violations+=("Plan search boundary missing: $plan_source")
+done
+if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'ContinuationPurpose.PlanCommitment' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'IsBetterPotionPolicyResult(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
+    violations+=("Plan search bypasses shared budget, continuation or final quality policy")
+fi
+if ! rg -Fq 'AdmitPlanCommitmentRepresentatives(' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs" ||
+   ! rg -Fq '_planCommitment' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs"; then
+    violations+=("Plan commitment has no protected retention representatives")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then

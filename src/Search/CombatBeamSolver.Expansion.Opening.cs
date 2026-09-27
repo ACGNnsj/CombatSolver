@@ -235,16 +235,99 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningPotionActions()
         => BuildPotionActionsAfterPrefix([]);
 
+    internal IReadOnlyList<PlanAction> BuildOpeningPlanPotionActions(
+        OpeningCandidatePurpose targetPurpose,
+        int maximumActions)
+    {
+        SimulationSnapshot rootSnapshot = Replay([]);
+        List<SearchNode> children = [];
+        try
+        {
+            SearchNode seed = CreateOpeningSearchSeed(rootSnapshot);
+            children.AddRange(ExpandOpeningSeed(seed));
+            var candidates = children
+                .Where(node => node.Action?.Kind == PlanActionKind.UsePotion)
+                .Select(node => (Node: node,
+                    Reach: OpeningPlanPotionReachability(node.Snapshot, targetPurpose)))
+                .ToArray();
+            var selected = candidates
+                .OrderByDescending(candidate => candidate.Reach.Rank)
+                .ThenByDescending(candidate => candidate.Reach.RetainedPowers)
+                .ThenBy(candidate => candidate.Reach.DrawDistance)
+                .ThenByDescending(candidate => candidate.Node.Score)
+                .GroupBy(candidate => candidate.Node.Action!.PotionSlot)
+                .SelectMany(group => group.Take(maximumActions))
+                .Take(maximumActions)
+                .Select(candidate => candidate.Node.Action!)
+                .ToArray();
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] PLAN_POTION_REACHABILITY candidates={candidates.Length} " +
+                $"direct={candidates.Count(candidate => candidate.Reach.Rank == 3)} " +
+                $"one_draw={candidates.Count(candidate => candidate.Reach.Rank == 2)} " +
+                $"chain_draw={candidates.Count(candidate => candidate.Reach.Rank == 1)} " +
+                $"selected={selected.Length}");
+            return selected;
+        }
+        finally
+        {
+            foreach (SearchNode child in children)
+                child.Snapshot.ReleaseSimulator();
+            rootSnapshot.ReleaseSimulator();
+        }
+    }
+
+    private (int Rank, int RetainedPowers, int DrawDistance) OpeningPlanPotionReachability(
+        SimulationSnapshot snapshot,
+        OpeningCandidatePurpose targetPurpose)
+    {
+        CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
+        SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
+        SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
+        int retainedPowers = player.Hand.Cards.Count(card =>
+            PowerCardValuationModels.Registry.ContainsCardId(card.Preview.Id.Entry));
+        if (HasPlayableOpeningCandidate(snapshot, targetPurpose))
+            return (3, retainedPowers, 0);
+
+        int drawDistance = int.MaxValue;
+        for (int index = 0; index < player.DrawPile.Cards.Count; index++)
+        {
+            if (!OpeningActionRegistry.Default.MatchesId(
+                    targetPurpose, player.DrawPile.Cards[index].Preview.Id.Entry))
+                continue;
+            drawDistance = index;
+            break;
+        }
+        int maximumSingleDraw = 0;
+        int totalDraw = 0;
+        foreach (PredictedCard card in player.Hand.Cards)
+        {
+            if (!combat.CanPlayCard(simulator, card))
+                continue;
+            int draw = Math.Max(0, (int)CardChoiceSupport.DynamicVarBaseValue(
+                card.Preview.DynamicVars, "Cards"));
+            maximumSingleDraw = Math.Max(maximumSingleDraw, draw);
+            totalDraw += draw;
+        }
+        int rank = drawDistance < maximumSingleDraw ? 2
+            : drawDistance < totalDraw ? 1 : 0;
+        return (rank, retainedPowers, drawDistance);
+    }
+
     internal IReadOnlyList<PlanAction> BuildOpeningNightmareActionsAfterPrefix(
-        IReadOnlyList<PlanAction> prefix)
+        IReadOnlyList<PlanAction> prefix,
+        int maximumPowerTargets = 1,
+        int maximumActions = 4)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
         List<SearchNode> children = [];
         try
         {
-            children.AddRange(ExpandOpeningSeed(seed));
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
             SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
+            if (!HasPlayableOpeningCandidate(seed.Snapshot,
+                    OpeningCandidatePurpose.NightmareCopyCard))
+                return [];
+            children.AddRange(ExpandOpeningSeed(seed));
             int nextTurnEnergy = Math.Max(0,
                 PersistentPowerSupport.GetModifiedMaxEnergy(
                     (SimulatedCombatState)simulator.State.CombatState, _player));
@@ -265,10 +348,17 @@ internal sealed partial class CombatBeamSolver
                 .OrderByDescending(item => item.Value)
                 .ThenByDescending(item => item.Node.Score)
                 .ToArray();
-            return candidates.Take(2)
-                .Concat(candidates.GroupBy(item => item.Type).Select(group => group.First()))
+            IEnumerable<(SearchNode Node, PlanCardToken Token, CardType Type, int Value)> selected =
+                candidates.Take(2)
+                    .Concat(candidates.GroupBy(item => item.Type).Select(group => group.First()));
+            if (maximumPowerTargets > 1)
+                selected = selected.Concat(candidates
+                    .Where(item => item.Type == CardType.Power)
+                    .DistinctBy(item => item.Token.CardId)
+                    .Take(maximumPowerTargets));
+            return selected
                 .DistinctBy(item => item.Token.StateKey)
-                .Take(4)
+                .Take(maximumActions)
                 .Select(item => item.Node.Action!)
                 .ToArray();
         }
@@ -281,14 +371,16 @@ internal sealed partial class CombatBeamSolver
     }
 
     internal IReadOnlyList<PlanAction> BuildOpeningHandSetupActions(
-        IReadOnlyList<PlanAction>? prefix = null)
+        IReadOnlyList<PlanAction>? prefix = null,
+        int maximumActions = 3,
+        OpeningCandidatePurpose? desiredFollowUp = null)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix ?? [], SearchRouteTraits.None);
         List<SearchNode> children = [];
         try
         {
             children.AddRange(ExpandOpeningSeed(seed));
-            return children
+            IEnumerable<SearchNode> ordered = children
                 .Where(node => node.Action is { Kind: PlanActionKind.PlayCard, EndsPlayerTurn: false }
                     && (node.Action.Choice?.Effect is PlanChoiceEffect.Discard
                         or PlanChoiceEffect.DiscardAndDraw
@@ -302,8 +394,12 @@ internal sealed partial class CombatBeamSolver
                 .ThenByDescending(node => node.Snapshot.ReachableHandValue)
                 .ThenByDescending(node => node.Score)
                 .DistinctBy(node => (node.Action!.CardId,
-                    node.Action.Choice?.Cards.FirstOrDefault()?.StateKey))
-                .Take(3)
+                    node.Action.Choice?.Cards.FirstOrDefault()?.StateKey));
+            if (desiredFollowUp is { } purpose)
+                ordered = ordered.OrderByDescending(node => HasPlayableOpeningCandidate(
+                    node.Snapshot, purpose));
+            return ordered
+                .Take(maximumActions)
                 .Select(node => node.Action!)
                 .ToArray();
         }
@@ -313,6 +409,17 @@ internal sealed partial class CombatBeamSolver
                 child.Snapshot.ReleaseSimulator();
             seed.Snapshot.ReleaseSimulator();
         }
+    }
+
+    private bool HasPlayableOpeningCandidate(
+        SimulationSnapshot snapshot,
+        OpeningCandidatePurpose purpose)
+    {
+        CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
+        SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
+        return simulator.State.GetPlayerCombatState(_player).Hand.Cards.Any(card =>
+            OpeningActionRegistry.Default.MatchesId(purpose, card.Preview.Id.Entry)
+            && combat.CanPlayCard(simulator, card));
     }
 
     internal IReadOnlyList<PlanAction> BuildOpeningHandCycleActionsAfterPrefix(
