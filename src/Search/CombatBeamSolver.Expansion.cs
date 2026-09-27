@@ -63,29 +63,9 @@ internal sealed partial class CombatBeamSolver
                 using CardChoiceReplayCapture? cardCapture = PrepareCardChoiceCapture(node, action);
                 SimulationSnapshot probeSnapshot = ReplayAction(node, action, cardChoiceCapture: cardCapture);
 
-                CardChoiceSpec? choiceSpec = BuildPrimaryCardChoiceSpec(probeSnapshot);
-                if (choiceSpec == null && CardChoiceSupport.RequiresUnsupportedExistingChoice(card.Preview))
-                {
-                    probeSnapshot.ReleaseSimulator();
+                if (!TryResolvePlannedCardChoices(node, planned, card, probeSnapshot,
+                        out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                     continue;
-                }
-                PlanCardChoice? requiredEmptyChoice = CardChoiceSupport.BuildRequiredEmptyChoice(card.Preview);
-                CardChoiceSpec? primaryChoiceSpec = choiceSpec
-                    ?? BuildRequiredEmptyChoiceSpec(requiredEmptyChoice);
-                IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches =
-                    HasChoiceBeforePrimary(probeSnapshot, primaryChoiceSpec)
-                        ? ResolveRoundChoiceBranches(
-                            node,
-                            action,
-                            probeSnapshot,
-                            BuildPrimaryChoiceMatch(primaryChoiceSpec),
-                            budgetPrimaryChoiceSpec: primaryChoiceSpec)
-                        : ResolvePrimaryCardChoiceBranches(
-                            node,
-                            action,
-                            probeSnapshot,
-                            choiceSpec,
-                            requiredEmptyChoice);
                 resolvedBranches = WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches);
                 foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
                 {

@@ -495,28 +495,9 @@ internal sealed partial class CombatBeamSolver
                     throw;
                 }
             }
-            CardChoiceSpec? choiceSpec = BuildPrimaryCardChoiceSpec(probeSnapshot);
-            if (choiceSpec == null && action.RequiresUnsupportedExistingChoice)
-            {
-                probeSnapshot.ReleaseSimulator();
+            if (!TryResolvePlannedCardChoices(node, action, sourceCard: null, probeSnapshot,
+                    out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                 return null;
-            }
-            CardChoiceSpec? primaryChoiceSpec = choiceSpec
-                ?? BuildRequiredEmptyChoiceSpec(action.RequiredEmptyChoice);
-            IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches =
-                HasChoiceBeforePrimary(probeSnapshot, primaryChoiceSpec)
-                    ? ResolveRoundChoiceBranches(
-                        node,
-                        action.Action,
-                        probeSnapshot,
-                        BuildPrimaryChoiceMatch(primaryChoiceSpec),
-                        budgetPrimaryChoiceSpec: primaryChoiceSpec)
-                    : ResolvePrimaryCardChoiceBranches(
-                        node,
-                        action.Action,
-                        probeSnapshot,
-                        choiceSpec,
-                        action.RequiredEmptyChoice);
             AddResolvedCardCandidates(node, action,
                 WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches), batch);
             return null;

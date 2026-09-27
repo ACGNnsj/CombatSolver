@@ -188,6 +188,43 @@ internal sealed partial class CombatBeamSolver
         return AttachCycleSchedulingEvidence(child);
     }
 
+    private bool TryResolvePlannedCardChoices(
+        SearchNode node,
+        PreparedCardAction action,
+        PredictedCard? sourceCard,
+        SimulationSnapshot probeSnapshot,
+        out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches)
+    {
+        CardChoiceSpec? choiceSpec = BuildPrimaryCardChoiceSpec(probeSnapshot);
+        if (choiceSpec == null && (sourceCard == null
+                ? action.RequiresUnsupportedExistingChoice
+                : CardChoiceSupport.RequiresUnsupportedExistingChoice(sourceCard.Preview)))
+        {
+            probeSnapshot.ReleaseSimulator();
+            resolvedBranches = [];
+            return false;
+        }
+        PlanCardChoice? requiredEmptyChoice = sourceCard == null
+            ? action.RequiredEmptyChoice
+            : CardChoiceSupport.BuildRequiredEmptyChoice(sourceCard.Preview);
+        CardChoiceSpec? primaryChoiceSpec = choiceSpec
+            ?? BuildRequiredEmptyChoiceSpec(requiredEmptyChoice);
+        resolvedBranches = HasChoiceBeforePrimary(probeSnapshot, primaryChoiceSpec)
+            ? ResolveRoundChoiceBranches(
+                node,
+                action.Action,
+                probeSnapshot,
+                BuildPrimaryChoiceMatch(primaryChoiceSpec),
+                budgetPrimaryChoiceSpec: primaryChoiceSpec)
+            : ResolvePrimaryCardChoiceBranches(
+                node,
+                action.Action,
+                probeSnapshot,
+                choiceSpec,
+                requiredEmptyChoice);
+        return true;
+    }
+
     private SearchNode CreatePlannedPotionChild(
         SearchNode node,
         PlanAction finalAction,

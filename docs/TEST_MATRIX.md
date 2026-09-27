@@ -4,6 +4,7 @@
 
 - `ExpansionPlan` 同时供串行展开与并行准备读取卡牌、药水候选。`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 返回 `REFACTOR_BOUNDARIES_OK search_files=232`。尚未运行搜索语料或 DOP1／DOP8 对照，不能据此认定行为等价。Linux 门禁按用户要求不运行。
 - 卡牌／药水子节点字段抽入共享工厂：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=232`；本次只核对字段来源及调用位置，尚未运行固定根。Linux 门禁按用户要求不运行。
+- 普通卡牌选择分派改走同一入口：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=232`；尚未运行阶段语料。Linux 门禁按用户要求不运行。
 
 ## 策略重构 P4 登记表（2026-09-28）
 

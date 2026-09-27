@@ -47,6 +47,10 @@ for child_method in CreatePlannedCardChild CreatePlannedPotionChild; do
         violations+=("Serial and parallel paths duplicate card/potion child construction: $child_method")
     fi
 done
+if ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Serial and parallel paths duplicate ordinary card choice dispatch")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then
