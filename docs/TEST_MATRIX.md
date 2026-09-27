@@ -1,5 +1,15 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：跨回合固定前缀结果完整性（2026-09-27）
+
+- 原始失败证据是旧日雕像50,537展开的持久路线：预测Continuation为T3 HP70→T4 HP61，末态HP43／累计掉血27，但七张逐回合结果表仅有T4–6。UI求和显示18，结束回合保护缺键读0。没有恢复原玩家战斗或取得已经退休的该场完整live日志，不据此宣称另有怪物／药水模拟偏差。
+- 新增 [FIXED-PREFIX-TURN-OUTCOMES](../coverage/unattended/fixed-prefix-turn-outcomes.json)，通过现有无人ScenarioId入口运行。最小构造三次EndTurn固定前缀与第四回合后续搜索，内部DOP1／最多100展开／5秒，开启增量等价；验证每个前缀节点在结果投影前已持有Outcome、显式零及正战损、末回合部分前缀／终局前缀、空前缀、不合法回合和终局后动作仍拒绝，live根不变。独立原节点后备投影验证非零卖血差额、原分数不变和既有比较标注优先。
+- 对同一真实求解结果逐项移除战损、回血、敌方损血、卖血、最大／实际格挡与能量表的第三回合键：七种磁盘缓存均按未命中处理且内容未改，录像导入拒绝；生成结果序列化、内存续用及结束回合预计值查询均拒绝缺项。正确结果序列化往返通过，未删除玩家缓存。
+- 最终 `ea17a1f38de84a3b9b32797923ca1892` Passed，原生从T1逐次推进到T4，每次等待明确的EndPlayerTurnAction完成，完整ContinuationStamp与预测一致，LiveEndTurnRiskEvaluator与计划该回合损失一致，复用及UI求和包含前缀损失。只跑至最早覆盖三段前缀的边界，未执行SolverController全自动停机分支或整场自动部署。证据 `.local/fixed-prefix-outcomes-20260927/prefix-3/`。
+- 首次 `d67f326496fa4f749b9c68d990f39bea` 在新配置的首次洗牌教程等待至120秒，未记通过，启动器停止并清理实例。只在后续私有实例中导入进度模板并关闭教程，不改实机设置；`6feda5c2bbae43649327d0645302ba8f` 通过后，因新增节点所有权及精确异常断言运行最终夹具，未扩大超时。所有实例均在仓库 `.local/headless-instances/`，启动器分别输出删除成功。
+- 终局归属哨兵 `TERMINAL-TURN-PLAYER-START-V0111` / `6b4fb4ff7e594ebc9741e71155942a28` Passed：T1 EndTurn在T2准备阶段通过 `MERCURY_HOURGLASS` 获胜，增量验证／0战损／终局T2及动作回合结果完整性通过，避免按终局T2误要求第二回合动作统计。其后仅增强测试代码，生产源码未变，不重复该哨兵。
+- 最终Windows Release构建0警告0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，代码审阅通过。未运行Linux、原玩家存档重放或可见Steam测试；不将该最小合同当作全部卡牌语义或全量质量验收。
+
 ## 下一版本（开发中）：回合准备固定前缀边界（2026-09-27）
 
 - 失败基线来自本机原生 `GAMBLING_CHIP` 开局日志：`CombatBeamSolver.SolveCore → CombatSearchCoordinator.RunSearchPass` 抛 `include_turn_setup=True prefix=+STAMPEDE`，对应延后能力 `[EndTurn, STAMPEDE]`。未恢复完整玩家存档；不把后续同遭遇重试当成同一根。

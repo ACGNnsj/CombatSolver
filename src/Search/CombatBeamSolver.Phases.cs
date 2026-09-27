@@ -868,6 +868,7 @@ internal sealed partial class CombatBeamSolver
                 Continuations = resultScope == SolverResultScope.CurrentTurnAdoption ? [] : continuations,
             };
             finalSnapshot.ReleaseSimulator();
+            result.AssertCompleteTurnOutcomes();
             return result;
         }
 
@@ -2295,6 +2296,11 @@ internal sealed partial class CombatBeamSolver
                 CumulativeEnemyHpLost = AccumulateEnemyHpLost(node, snapshot),
             };
             node = AttachOrderedMutationLineage(node);
+            if (terminal || node.Turn > node.Parent!.Turn)
+            {
+                // Fixed prefixes have no sibling alternatives for comparative HP investment or block.
+                node = node with { Outcome = CreateUncomparedTurnOutcome(node) };
+            }
             node.Parent!.Snapshot.ReleaseSimulator();
         }
         if (resetSchedulingBaseline && prefix.Count > 0)

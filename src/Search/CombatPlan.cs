@@ -1627,12 +1627,68 @@ internal sealed class SolverResult
         : 0;
     public string? RecalculationStateDifference { get; internal set; }
 
+    internal bool TryValidateTurnOutcomes(out string? failure)
+    {
+        (string Name, IReadOnlyDictionary<int, int>? Values)[] tables =
+        [
+            (nameof(HpLostByTurn), HpLostByTurn),
+            (nameof(HpRecoveredByTurn), HpRecoveredByTurn),
+            (nameof(EnemyHpLostByTurn), EnemyHpLostByTurn),
+            (nameof(SoldHpByTurn), SoldHpByTurn),
+            (nameof(MaxBlockByTurn), MaxBlockByTurn),
+            (nameof(ActualBlockByTurn), ActualBlockByTurn),
+            (nameof(EnergyLeftByTurn), EnergyLeftByTurn),
+        ];
+        foreach (var table in tables)
+        {
+            if (table.Values == null)
+            {
+                failure = $"{table.Name}=null";
+                return false;
+            }
+        }
+        int lastActionTurn = BestNode.Actions.Select(action => action.Turn).DefaultIfEmpty(StartTurnNumber).Max();
+        bool terminal = Snapshot.PlayerDead || Snapshot.AllEnemiesDead
+            || Snapshot.BoundaryReason != SearchBoundaryReason.None;
+        HashSet<int> checkedTurns = [];
+        foreach (PlanAction action in BestNode.Actions)
+        {
+            if (action.Turn == lastActionTurn && !terminal
+                && action.Kind != PlanActionKind.EndTurn && !action.EndsPlayerTurn)
+                continue;
+            if (!checkedTurns.Add(action.Turn))
+                continue;
+            foreach (var table in tables)
+            {
+                if (!table.Values!.ContainsKey(action.Turn))
+                {
+                    failure = $"{table.Name}[{action.Turn}] missing";
+                    return false;
+                }
+            }
+        }
+        failure = null;
+        return true;
+    }
+
+    internal void AssertCompleteTurnOutcomes()
+    {
+        if (!TryValidateTurnOutcomes(out string? failure))
+            throw new InvalidOperationException($"路线回合统计不完整：{failure}。");
+    }
+
+    internal int RequireHpLostForTurn(int turn)
+        => HpLostByTurn.TryGetValue(turn, out int hpLost)
+            ? hpLost
+            : throw new InvalidOperationException($"路线缺少第 {turn} 回合的预计掉血，不能按零伤害执行。");
+
     public bool TryCreateContinuation(
         ContinuationStamp actual,
         int currentHp,
         BattleDamageSnapshot battleDamage,
         out SolverResult? continuation)
     {
+        AssertCompleteTurnOutcomes();
         CachedContinuation? cached = Continuations.FirstOrDefault(item => item.ExpectedState == actual);
         if (cached == null)
         {

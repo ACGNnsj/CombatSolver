@@ -139,20 +139,44 @@ internal sealed partial class CombatBeamSolver
         {
             FutureSoldHp = futureSold,
             Score = ApplySoldHpPenalty(scoreWithoutSoldPenalty, futureSold),
-            Outcome = new TurnOutcome(
-                outcome.Turn,
-                outcome.HpLost,
-                Math.Max(
-                    0,
-                    outcome.Node.Snapshot.RecoveredPlayerHp
-                        - outcome.TurnStart.Snapshot.RecoveredPlayerHp),
-                outcome.Node.CumulativeEnemyHpLost
-                    - outcome.TurnStart.CumulativeEnemyHpLost,
-                soldThisTurn,
-                maxBlock,
-                outcome.ActualBlock,
-                outcome.EnergyLeft),
+            Outcome = CreateTurnOutcome(
+                outcome.Node, outcome.TurnStart, outcome.HpLost, soldThisTurn,
+                maxBlock, outcome.ActualBlock, outcome.EnergyLeft),
         };
+    }
+
+    private static TurnOutcome CreateTurnOutcome(
+        SearchNode node,
+        SearchNode turnStart,
+        int hpLost,
+        int soldThisTurn,
+        int maxBlock,
+        int actualBlock,
+        int energyLeft)
+        => new(
+            node.Action!.Turn,
+            hpLost,
+            Math.Max(0, node.Snapshot.RecoveredPlayerHp - turnStart.Snapshot.RecoveredPlayerHp),
+            node.CumulativeEnemyHpLost - turnStart.CumulativeEnemyHpLost,
+            soldThisTurn,
+            maxBlock,
+            actualBlock,
+            energyLeft);
+
+    private static TurnOutcome CreateUncomparedTurnOutcome(SearchNode node)
+    {
+        SearchNode parent = node.Parent
+            ?? throw new InvalidOperationException("回合结果节点没有父节点。");
+        SearchNode turnStart = FindTurnStart(parent);
+        bool endedByTurn = node.Action!.Kind == PlanActionKind.EndTurn || node.Turn > parent.Turn;
+        int block = endedByTurn ? parent.Snapshot.PlayerBlock : node.Snapshot.PlayerBlock;
+        int energy = endedByTurn ? parent.Snapshot.Energy : node.Snapshot.Energy;
+        int soldThisTurn = node.FutureSoldHp - parent.FutureSoldHp;
+        if (soldThisTurn < 0)
+            throw new InvalidOperationException("路线回合累计卖血不能减少。");
+        return CreateTurnOutcome(node, turnStart,
+            Math.Max(0, node.Snapshot.CumulativePlayerHpLost - turnStart.Snapshot.CumulativePlayerHpLost),
+            soldThisTurn, block, block, energy);
     }
 
     private static ulong CurrentTurnPotionSlotsUsed(SearchNode turnStart, SearchNode outcome)
@@ -223,7 +247,11 @@ internal sealed partial class CombatBeamSolver
             }
             aliveMask = node.Snapshot.AliveEnemyMask;
 
-            if (node.Outcome is { } outcome)
+            TurnOutcome? turnOutcome = node.Outcome;
+            // Boundary fallbacks can retain the original node rather than its ranked annotation clone.
+            if (turnOutcome == null && (node.IsTerminal || node.Turn > parent.Turn))
+                turnOutcome = CreateUncomparedTurnOutcome(node);
+            if (turnOutcome is { } outcome)
             {
                 losses[outcome.Turn] = outcome.HpLost;
                 recoveries[outcome.Turn] = outcome.HpRecovered;
