@@ -8,6 +8,7 @@
 - 离线 GA-SILENT-BOSS-00：当前 DOP8 与临时 P4 提交 `e248b6e3` 的 DOP8，同政策、25,000 节点、110 秒，`compare_results.py` 的 121 个非时序字段全同，战损 44，expanded 69,257，transitions 222,131。当前 DOP1 对 P4 DOP1 的早期边界对照也全同；但此后共享选择分派发生源码变化，DOP1 最终对照仍待运行。P4 自身的 DOP1／DOP8 已有动作次序与计数差异，两边战损同为 44。Linux 门禁未运行。
 - 父节点入场准入合并后，Release 编译 0 警告、0 错误，Windows 门禁 `REFACTOR_BOUNDARIES_OK search_files=232`；仍待最终源码的固定根对照。Linux 门禁不运行。
 - 卡牌候选准入与快照所有权合并：Release 编译 0 警告、0 错误，Windows 门禁 `REFACTOR_BOUNDARIES_OK search_files=232`；GA-SILENT-BOSS-00 当前 DOP8 对 P4 同 DOP 基线使用 `compare_results.py` 比较 121 字段全同，战损 44、expanded 69,257、transitions 222,131。其余根和 DOP1 最终源码对照尚未运行。
+- P5 候选语义阶段对照：`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p5/after-p5-20260928` 的四个玩家根和两个生成场景均 `comparable`；`compare.py --left .local/strategy-refactor-p4/after-p4-20260928 --right .local/strategy-refactor-p5/after-p5-20260928 --out .local/strategy-refactor-p5/compare-p5-20260928` 六根逐位相同。P5 执行器接口和串行／并行调度统一尚未实施，不以该对照宣称 P5 全部完成。
 
 ## 策略重构 P4 登记表（2026-09-28）
 
