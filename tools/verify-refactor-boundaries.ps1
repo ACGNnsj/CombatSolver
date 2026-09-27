@@ -99,6 +99,11 @@ if (-not $coordinatorSource.Contains('RunBeamWidthPortfolioPass(') -or
     -not $coordinatorSource.Contains('SearchRequestWorkTotals totals = context.Budget.WorkTotals;')) {
     $violations.Add('Beam portfolio bypasses the search pass budget ledger')
 }
+foreach ($audit in @('AuditRequiredPotionUse', 'AuditSmartPotionUse', 'AuditOpeningPowerUse')) {
+    if ($coordinatorSource -notmatch ("private static SolverResult " + $audit + '\(\s*SearchPassContext context')) {
+        $violations.Add("Supplemental audit bypasses the search pass context: $audit")
+    }
+}
 $qualityConsumers = @{
     'src/Search/SolverInterimResultOrdering.cs' = 'RouteQualityProjection.Interim'
     'src/Search/CombatSearchCoordinator.cs' = 'RouteQualityProjection.PotionPolicy'

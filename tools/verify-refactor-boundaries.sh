@@ -59,6 +59,11 @@ if ! rg -Fq 'RunBeamWidthPortfolioPass(' "$repository_root/src/Search/CombatSear
    ! rg -Fq 'SearchRequestWorkTotals totals = context.Budget.WorkTotals;' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Beam portfolio bypasses the search pass budget ledger")
 fi
+for audit in AuditRequiredPotionUse AuditSmartPotionUse AuditOpeningPowerUse; do
+    if ! rg -Uq "private static SolverResult ${audit}\\(\\s*SearchPassContext context" "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+        violations+=("Supplemental audit bypasses the search pass context: $audit")
+    fi
+done
 for quality_contract in \
     'src/Search/SolverInterimResultOrdering.cs|RouteQualityProjection.Interim' \
     'src/Search/CombatSearchCoordinator.cs|RouteQualityProjection.PotionPolicy' \

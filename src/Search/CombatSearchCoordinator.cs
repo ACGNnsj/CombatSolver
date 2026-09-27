@@ -1626,14 +1626,10 @@ internal static partial class CombatSearchCoordinator
         SmartLayerMemoryForecast memoryForecast)
     {
         CombatRootSnapshot root = context.Root;
-        SolverDisplayNames displayNames = context.DisplayNames;
-        BattleDamageSnapshot battleDamage = context.BattleDamage;
         SearchPolicySnapshot policy = context.Policy;
         CancellationToken cancellationToken = context.CancellationToken;
-        Action<SolverProgress>? progressCallback = context.ProgressCallback;
         SolverSearchProfile profile = context.Profile;
         Stopwatch requestClock = context.Clock;
-        Action<SolverResult>? interimResultCallback = context.InterimResultCallback;
         long remainingMilliseconds = context.RemainingMilliseconds;
         if (remainingMilliseconds <= 0)
         {
@@ -1646,48 +1642,31 @@ internal static partial class CombatSearchCoordinator
 
         using CancellationTokenSource deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromMilliseconds(remainingMilliseconds));
+        SearchPassContext auditContext = context with { CancellationToken = deadline.Token };
         SolverResult selected = primary;
         try
         {
             if (!policy.PotionStrategy.HasForcedDirectives)
-                selected = AuditRequiredPotionUse(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    deadline.Token,
-                    progressCallback,
-                    profile,
-                    selected);
+                selected = AuditRequiredPotionUse(auditContext, selected);
             if (ResolveTakeoverResult(selected, policy.Interaction) is { } requiredTakeoverResult)
                 return requiredTakeoverResult;
             if (!policy.PotionStrategy.HasForcedDirectives
                 && HasReachedAcceptableBattleHpLoss(policy, selected))
                 return selected;
             selected = AuditSmartPotionUse(
-                root,
-                displayNames,
-                battleDamage,
-                policy,
-                deadline.Token,
-                cancellationToken,
-                progressCallback,
-                profile,
-                selected,
-                memoryForecast,
-                interimResultCallback);
+                auditContext, cancellationToken, selected, memoryForecast);
             if (root.PlayerCardIds.Contains("NIGHTMARE")
                 && !IsProvenZeroDamageRoute(root, policy, selected))
             {
                 selected = RunOpeningNightmarePortfolio(
-                    context with { CancellationToken = deadline.Token }, selected);
+                    auditContext, selected);
             }
             if (selected.BestNode.Actions.FirstOrDefault() is
                     { Kind: PlanActionKind.UsePotion }
                 && root.PlayerCardIds.Contains("WHITE_NOISE"))
             {
                 selected = RunOpeningPowerRoutePortfolio(
-                    context with { CancellationToken = deadline.Token },
+                    auditContext,
                     potionPolicyOverride: null,
                     selected,
                     generatedAfterOpeningPotionsOnly: true);
@@ -1696,15 +1675,7 @@ internal static partial class CombatSearchCoordinator
                 return selected;
             if (policy.PotionPolicy != SolverPotionPolicy.Smart)
             {
-                selected = AuditOpeningPowerUse(
-                    root,
-                    displayNames,
-                    battleDamage,
-                    policy,
-                    deadline.Token,
-                    progressCallback,
-                    profile,
-                    selected);
+                selected = AuditOpeningPowerUse(auditContext, selected);
                 if (HasReachedAcceptableBattleHpLoss(policy, selected))
                     return selected;
             }
@@ -1723,15 +1694,16 @@ internal static partial class CombatSearchCoordinator
     }
 
     private static SolverResult AuditOpeningPowerUse(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
+        SearchPassContext context,
         SolverResult primary)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
         int primaryDeficit = StrategicHpDeficit(root, policy, primary);
         int maximumSmartPotionUses = policy.PotionPolicy == SolverPotionPolicy.Smart
             ? MaximumSmartPotionUses(root, policy, potionFreeWon: true, primaryDeficit)
@@ -2023,15 +1995,16 @@ internal static partial class CombatSearchCoordinator
     }
 
     private static SolverResult AuditRequiredPotionUse(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
+        SearchPassContext context,
         SolverResult primary)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
         if (policy.PotionPolicy != SolverPotionPolicy.RequireAtLeastOne
             || battleDamage.PotionsUsedSoFar > 0
             || primary.PotionCount <= 1)
@@ -2278,18 +2251,19 @@ internal static partial class CombatSearchCoordinator
     }
 
     private static SolverResult AuditSmartPotionUse(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken searchCancellationToken,
+        SearchPassContext context,
         CancellationToken callerCancellationToken,
-        Action<SolverProgress>? progressCallback,
-        SolverSearchProfile profile,
         SolverResult primary,
-        SmartLayerMemoryForecast memoryForecast,
-        Action<SolverResult>? interimResultCallback)
+        SmartLayerMemoryForecast memoryForecast)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken searchCancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        SolverSearchProfile profile = context.Profile;
+        Action<SolverResult>? interimResultCallback = context.InterimResultCallback;
         if (policy.PotionPolicy != SolverPotionPolicy.Smart)
             return primary;
         try
