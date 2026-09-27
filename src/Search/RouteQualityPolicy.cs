@@ -4,8 +4,8 @@ internal enum RouteQualityProjection
 {
     Primary,
     Interim,
-    CompletedPrimary,
     PotionPolicy,
+    RetentionCost,
 }
 
 internal static class RouteQualityPolicy
@@ -16,6 +16,11 @@ internal static class RouteQualityPolicy
         RouteQualityProjection projection,
         SolverTheftPolicy? theftPolicy = null)
     {
+        if (projection == RouteQualityProjection.RetentionCost)
+        {
+            int risk = candidate.RetentionHealthRisk.CompareTo(current.RetentionHealthRisk);
+            return risk != 0 ? risk : candidate.PotionStrategicCost.CompareTo(current.PotionStrategicCost);
+        }
         if (projection == RouteQualityProjection.Primary)
             return ComparePrimary(candidate, current);
 
@@ -81,7 +86,7 @@ internal static class RouteQualityPolicy
             return candidate.ProjectedBattleHpLost.CompareTo(current.ProjectedBattleHpLost);
 
         comparison = ComparePrimary(candidate, current);
-        if (comparison != 0 || projection == RouteQualityProjection.CompletedPrimary)
+        if (comparison != 0)
             return comparison;
         if (theftPolicy == SolverTheftPolicy.PreserveResources
             && candidate.OutstandingStolenResource != current.OutstandingStolenResource)
