@@ -1716,6 +1716,7 @@ internal static partial class CombatSearchCoordinator
             SolverResult selected = gradient;
             int prefixLimit = prefixes.Any(prefix => prefix[0].PotionId == "BLOCK_POTION"
                 || prefix[0].Choice?.Effect == PlanChoiceEffect.SetFreeThisCombat) ? 12 : 8;
+            FrontierContinuationScheduler continuationScheduler = new(context);
             foreach (PlanAction[] prefix in prefixes
                          .DistinctBy(PowerPrefixKey)
                          .Take(prefixLimit))
@@ -1738,16 +1739,15 @@ internal static partial class CombatSearchCoordinator
                                 profile.BeamWidth, BeamWidthPortfolio.WideRefinementRatio),
                     }
                     : profile;
-                SolverResult? candidate = SolveOptionalPotionPosterior(
-                    new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                        searchCancellationToken, progressCallback, routeProfile,
-                        potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                        maximumPotionUses: prefix[0].PotionId == "BLOCK_POTION"
+                SolverResult? candidate = continuationScheduler.DispatchOptional(
+                    new ContinuationSearchRequest(context,
+                        ContinuationPurpose.SmartOpeningPotionPosterior,
+                        prefix, routeProfile, SolverPotionPolicy.RequireAtLeastOne,
+                        prefix[0].PotionId == "BLOCK_POTION"
                             ? Math.Min(2, MaximumSmartPotionUses(root, policy,
                                 potionFreeWon: false, potionFreeHpDeficit: 0))
-                            : 1,
-                        fixedPrefixActions: prefix),
-                    policy,
+                            : 1, null)
+                    { ResetFixedPrefixSchedulingBaseline = false },
                     $"SMART_OPENING_POTION_POSTERIOR prefix={prefixText}");
                 if (candidate == null)
                     continue;

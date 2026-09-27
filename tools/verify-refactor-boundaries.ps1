@@ -106,6 +106,9 @@ foreach ($purpose in @('RequiredOpeningPotion', 'RequiredPotionPair',
         $violations.Add("Required potion audit fixed-prefix request missing: $purpose")
     }
 }
+if ($coordinatorSource.Contains('fixedPrefixActions:')) {
+    $violations.Add('Search coordinator constructs a fixed-prefix solver outside the scheduler')
+}
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
 }

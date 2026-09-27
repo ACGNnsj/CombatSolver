@@ -29,6 +29,7 @@ internal enum ContinuationPurpose
     RequiredOpeningPotion,
     RequiredPotionPair,
     RequiredPotionPairDefensive,
+    SmartOpeningPotionPosterior,
 }
 
 internal interface IFrontierContinuationSource

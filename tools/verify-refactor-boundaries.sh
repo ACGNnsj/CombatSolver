@@ -58,6 +58,9 @@ for purpose in RequiredOpeningPotion RequiredPotionPair \
         violations+=("Required potion audit fixed-prefix request missing: $purpose")
     fi
 done
+if rg -Fq 'fixedPrefixActions:' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Search coordinator constructs a fixed-prefix solver outside the scheduler")
+fi
 if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator creates request work totals outside the budget ledger")
 fi
