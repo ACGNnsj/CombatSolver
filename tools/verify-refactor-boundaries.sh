@@ -91,6 +91,9 @@ if rg -Fq 'fixedPrefixActions: focusedOpening,' "$repository_root/src/Search/Com
    rg -Fq 'fixedPrefixActions: reordered,' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Forced potion opening bypasses fixed-prefix request dispatch")
 fi
+if rg -Fq 'fixedPrefixActions:' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Post-search pass constructs a fixed-prefix solver outside the scheduler")
+fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then

@@ -14,6 +14,8 @@ internal enum ContinuationPurpose
     TurnBoundaryDefensiveFollowUp,
     ForcedPotionOpening,
     ForcedPotionTurnOrder,
+    MidCombatRefinement,
+    MidCombatFreeFollowUp,
 }
 
 internal interface IFrontierContinuationSource
@@ -72,7 +74,7 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
     internal SolverResult Dispatch(ContinuationSearchRequest request)
         => CreateSolver(request).Solve();
 
-    private static SolverResult? DispatchOptional(
+    internal SolverResult? DispatchOptional(
         ContinuationSearchRequest request,
         string diagnostic)
     {

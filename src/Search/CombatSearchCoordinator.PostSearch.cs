@@ -418,18 +418,15 @@ internal static partial class CombatSearchCoordinator
                     policy, cancellationToken, progressCallback, policy.Profile,
                     potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                     maximumPotionUses: selected.ExplicitPotionCount);
+                FrontierContinuationScheduler scheduler = new(context);
                 SolverSearchProfile refinementProfile = refinementWindow.Limit(policy.Profile,
                     maximumNodes: 50_000, maximumMilliseconds: 15_000,
                     reserveMilliseconds: 2_000);
-                SolverResult? refined = SolveOptionalPotionPosterior(
-                    new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                        cancellationToken, progressCallback, refinementProfile,
-                        potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                        maximumPotionUses: selected.ExplicitPotionCount,
-                        minimumPotionUses: selected.ExplicitPotionCount,
-                        fixedPrefixActions: prefix,
-                        resetFixedPrefixSchedulingBaseline: true),
-                    policy, "MID_COMBAT_REFINEMENT");
+                SolverResult? refined = scheduler.DispatchOptional(
+                    new ContinuationSearchRequest(context, ContinuationPurpose.MidCombatRefinement,
+                        prefix, refinementProfile, SolverPotionPolicy.RequireAtLeastOne,
+                        selected.ExplicitPotionCount, selected.ExplicitPotionCount),
+                    "MID_COMBAT_REFINEMENT");
                 if (refined?.ResultScope == SolverResultScope.SearchCompletion)
                 {
                     bool improved = refined.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
@@ -465,15 +462,12 @@ internal static partial class CombatSearchCoordinator
                             SolverSearchProfile freeProfile = freeWindow.Limit(policy.Profile,
                                 maximumNodes: 50_000, maximumMilliseconds: 15_000,
                                 reserveMilliseconds: 2_000);
-                            SolverResult? freeRefined = SolveOptionalPotionPosterior(
-                                new CombatBeamSolver(root, displayNames, battleDamage, policy,
-                                    cancellationToken, progressCallback, freeProfile,
-                                    potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                                    maximumPotionUses: selected.ExplicitPotionCount,
-                                    minimumPotionUses: selected.ExplicitPotionCount,
-                                    fixedPrefixActions: freePrefix,
-                                    resetFixedPrefixSchedulingBaseline: true),
-                                policy, "MID_COMBAT_FREE_FOLLOW_UP");
+                            SolverResult? freeRefined = scheduler.DispatchOptional(
+                                new ContinuationSearchRequest(context,
+                                    ContinuationPurpose.MidCombatFreeFollowUp,
+                                    freePrefix, freeProfile, SolverPotionPolicy.RequireAtLeastOne,
+                                    selected.ExplicitPotionCount, selected.ExplicitPotionCount),
+                                "MID_COMBAT_FREE_FOLLOW_UP");
                             if (freeRefined?.ResultScope == SolverResultScope.SearchCompletion)
                             {
                                 bool improved = freeRefined.ProjectedBattleHpLost < selected.ProjectedBattleHpLost

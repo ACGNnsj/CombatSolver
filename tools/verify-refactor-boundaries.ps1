@@ -141,6 +141,9 @@ if ($postSearchSource.Contains('fixedPrefixActions: focusedOpening,') -or
     $postSearchSource.Contains('fixedPrefixActions: reordered,')) {
     $violations.Add('Forced potion opening bypasses fixed-prefix request dispatch')
 }
+if ($postSearchSource.Contains('fixedPrefixActions:')) {
+    $violations.Add('Post-search pass constructs a fixed-prefix solver outside the scheduler')
+}
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);')) {
