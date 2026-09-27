@@ -96,6 +96,17 @@ if (-not $postSearchSource.Contains('ledger.RequestWindow(policy.Profile)') -or
     $postSearchSource.Contains('MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)')) {
     $violations.Add('Early potion pair rescue bypasses the request budget window')
 }
+foreach ($pass in @('RunForcedPotionOpeningRescue', 'RunTurnBoundaryRescue',
+        'RunZeroCostOpeningRescue', 'RunMidCombatRefinement',
+        'RunTurnEndChoicePosterior', 'RunEarlierCopyDelayedDamage')) {
+    if (-not $coordinatorSource.Contains("$pass(postContext, selected") -or
+        -not $postSearchSource.Contains("SolverResult $pass(")) {
+        $violations.Add("Post-search pass ownership missing: $pass")
+    }
+}
+if (-not $coordinatorSource.Contains('RunEarlyTurnExploration(postContext, selected)')) {
+    $violations.Add('Early-turn exploration bypasses the search pass context')
+}
 $pipelineSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -Raw
 if (-not $pipelineSource.Contains('CombatSearchCoordinator.EscalateSearchWhenNoVictory(') -or
     -not $pipelineSource.Contains('_context,')) {

@@ -116,3 +116,7 @@ P0 建立六个严格恢复的玩家开战根与两个生成场景的固定预�
 ### P2 实施状态（2026-09-27）
 
 0.47.1 热修已并入任务分支。`SearchBudgetLedger` 现持有外层请求时钟和 `SearchRequestWorkTotals`，外层补搜与主 Pass 的前缀补搜从账本读取剩余时间与节点；药水梯度的转移采样与协调器回收开销也由此账本统计。`SearchBudgetWindow` 开始接管双药补搜的时间／节点切片，原准入阈值、候选顺序和结果政策未改。`SearchPassContext` 已收口主搜索、补充审计、开局能力与夜魇补搜、宽度与新颖性组合及无胜利升级的冻结输入与轮次时钟；三个药水审计入口也共用该上下文，截止令牌继续由补充审计派生。`SearchPassResult` 显式交还每轮的路线、接管与达标状态，`SearchRequestPipeline` 持有请求级首轮、接管和升级的调度顺序。外层双药死亡路线补搜已抽为具体 Pass；其余外层补搜尚未全部迁入管线。修复了语料运行器的语法错误，并从热修后的源码重新采集四个可比较玩家根与两个生成根；六根在外层账本迁移后逐位一致，#81 的能力路线组合及两层 Smart 药水梯度在本次成员接线迁移后与基线逐位一致，双药候选派发已由 #17 原配置直接验证；`SearchPassResult` 已扩为质量、累计工作量与真实轮次终止合同。其余前缀预算读取尚待后续对照，证据见测试矩阵。
+
+### P2 外层补搜 Pass 抽取（2026-09-27 续）
+
+把外层 `Solve` 里剩余的补搜块全部抽为 `CombatSearchCoordinator.PostSearch.cs` 中的具体 Pass：`RunForcedPotionOpeningRescue`、`RunTurnBoundaryRescue`、`RunZeroCostOpeningRescue`、`RunMidCombatRefinement`、`RunTurnEndChoicePosterior`、`RunEarlierCopyDelayedDamage`，并把 `RunEarlyTurnExploration` 从散参数收敛为接收 `SearchPassContext`。均为纯移动：方法体、分支条件、派发顺序、诊断标签与预算读取时点不变。`CombatSearchCoordinator.cs` 约 3,032 → 2,596 行。本轮按用户要求不启动实例，只通过 Release 编译与 Windows 结构门禁；行为等价与剩余阶段验证见[待测清单](strategy-refactor-test-backlog-20260927.md)，尚未取得基线逐位对照证据。

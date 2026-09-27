@@ -16,7 +16,7 @@
 
 `SearchRequestPipeline` 按原顺序运行首轮 Pass、检查接管／达标／固定预算，再决定是否交给无胜利升级；`SEARCH_SESSION` 仍仅在原有最终路径发布。协调器保留具体搜索成员与补充审计的实现。
 
-`CombatSearchCoordinator.PostSearch` 按既有外层顺序承接主搜索之后的补充 Pass；双药开局死亡路线补搜先从 `Solve` 抽出，使用请求上下文的同一账本，并保留原两种前缀顺序和终局选优。
+`CombatSearchCoordinator.PostSearch` 按既有外层顺序承接主搜索之后的双药、强制用药开局、回合边界、零费开局、战斗中精炼、回合末选牌及提前复制补搜。`Solve` 只保留派发顺序、接管与结果发布；各 Pass 使用同一请求上下文和账本，保持原候选顺序与终局选优。前两回合探索也从该上下文读取冻结输入。
 
 能力与夜魇开局补搜从 `SearchPassContext` 接受根、策略、轮次和取消；能力成员的工作量前后快照由关联的 `SearchBudgetLedger` 读取。它们的前缀生成及结果比较仍由原补搜实现负责。
 

@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## 策略重构 P2 外层补搜迁移（2026-09-28）
+
+- 强制用药开局、回合边界、零费开局、战斗中精炼、回合末选牌和提前复制补搜已从外层 `Solve` 移至 `PostSearch`，前两回合探索改用 `SearchPassContext`。本边界沿用原调用顺序、预算读取与诊断标签。
+- 本次只取得 Release 编译和 Windows 结构门禁证据；用户游戏运行期间未启动无头实例。行为逐位对照仍待执行，不能据此宣称搜索结果等价。Linux 门禁按用户要求未运行。
+
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 
 - 合入 0.47.1 后，`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/baseline-0471` 一次采集 #24、#37、#81、#89 与两个生成场景，六根均为 `comparable`。原始包与完整证据留在 `.local`，实例由启动器清理。

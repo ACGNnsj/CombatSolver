@@ -7,15 +7,16 @@ internal static partial class CombatSearchCoordinator
     private const int EarlyTurnExplorationNodeBudget = 1_000_000;
 
     private static SolverResult RunEarlyTurnExploration(
-        CombatRootSnapshot root,
-        SolverDisplayNames displayNames,
-        BattleDamageSnapshot battleDamage,
-        SearchPolicySnapshot policy,
-        CancellationToken cancellationToken,
-        Action<SolverProgress>? progressCallback,
-        Stopwatch requestClock,
+        SearchPassContext context,
         SolverResult selected)
     {
+        CombatRootSnapshot root = context.Root;
+        SolverDisplayNames displayNames = context.DisplayNames;
+        BattleDamageSnapshot battleDamage = context.BattleDamage;
+        SearchPolicySnapshot policy = context.Policy;
+        CancellationToken cancellationToken = context.CancellationToken;
+        Action<SolverProgress>? progressCallback = context.ProgressCallback;
+        Stopwatch requestClock = context.Clock;
         if (policy.EarlyTurnExplorationDepth == 0
             || selected.ResultScope != SolverResultScope.SearchCompletion
             || IsProvenZeroDamageRoute(root, policy, selected))

@@ -55,6 +55,17 @@ if ! rg -Fq 'ledger.RequestWindow(policy.Profile)' "$repository_root/src/Search/
    rg -Fq 'MaxExpandedNodes = (int)Math.Min(100_000, remainingNodes)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
     violations+=("Early potion pair rescue bypasses the request budget window")
 fi
+for pass in RunForcedPotionOpeningRescue RunTurnBoundaryRescue \
+    RunZeroCostOpeningRescue RunMidCombatRefinement \
+    RunTurnEndChoicePosterior RunEarlierCopyDelayedDamage; do
+    if ! rg -Fq "$pass(postContext, selected" "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+       ! rg -Fq "SolverResult $pass(" "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+        violations+=("Post-search pass ownership missing: $pass")
+    fi
+done
+if ! rg -Fq 'RunEarlyTurnExploration(postContext, selected)' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Early-turn exploration bypasses the search pass context")
+fi
 if ! rg -Fq 'CombatSearchCoordinator.EscalateSearchWhenNoVictory(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
    ! rg -Fq '_context,' "$repository_root/src/Search/SearchRequestPipeline.cs"; then
     violations+=("No-victory escalation does not consume the search request context")
