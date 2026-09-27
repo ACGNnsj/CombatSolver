@@ -54,72 +54,12 @@ internal sealed partial class CombatBeamSolver
             GenerateRawEndTurnCandidates(node, cycleExitBatch);
         }
 
-        SimPlayerCombatState playerState = simulator.State.GetPlayerCombatState(_player);
         List<ActionCandidate> nonDominated = new(16);
         List<ActionCandidate>? deferredCycleCandidates = null;
-        IReadOnlyList<PredictedCard> hand = playerState.Hand.Cards;
-        HandFingerprintBuffer seenCards = default;
-        int seenCardCount = 0;
-        for (int handIndex = 0; handIndex < hand.Count; handIndex++)
+        foreach ((PreparedCardAction planned, PredictedCard card) in EnumeratePlannedCardActions(
+                     new ExpansionPlan(node, PrepareChoiceMetadata: false)))
         {
-            cancellationToken.ThrowIfCancellationRequested();
-            PredictedCard card = hand[handIndex];
-            string cardId = card.Preview.Id.Entry;
-            int occurrence = 0;
-            for (int priorIndex = 0; priorIndex < handIndex; priorIndex++)
-            {
-                if (string.Equals(hand[priorIndex].Preview.Id.Entry, cardId, StringComparison.Ordinal))
-                    occurrence++;
-            }
-            if (!simulatedCombat.CanPlayCard(simulator, card))
-                continue;
-            StateFingerprint playableKey = BuildPlayableCardKey(card);
-            bool duplicate = false;
-            for (int seenIndex = 0; seenIndex < seenCardCount; seenIndex++)
-            {
-                if (seenCards[seenIndex] == playableKey)
-                {
-                    duplicate = true;
-                    break;
-                }
-            }
-            if (duplicate)
-            {
-                _run.DuplicateCardBranchesPruned++;
-                continue;
-            }
-            seenCards[seenCardCount++] = playableKey;
-            string cardStateKey = CardChoiceSupport.ChoiceCardKey(card);
-            int cardStateOccurrence = 0;
-            for (int priorIndex = 0; priorIndex < handIndex; priorIndex++)
-            {
-                if (string.Equals(
-                        CardChoiceSupport.ChoiceCardKey(hand[priorIndex]),
-                        cardStateKey,
-                        StringComparison.Ordinal))
-                {
-                    cardStateOccurrence++;
-                }
-            }
-            foreach ((int targetIndex, Creature? target) in TargetsFor(card, simulator))
-            {
-                // The first action after a partial-route restart still observes the live target gate.
-                if (node.ActionCount == 0 && !card.Original.CanPlayTargeting(target))
-                    continue;
-                string targetName = displayNames.Creature(target, ((SimulatedCombatState)simulator.State.CombatState).KnownEnemies);
-                PlanAction action = new(
-                    PlanActionKind.PlayCard,
-                    node.Turn,
-                    card.Preview.Id.Entry,
-                    occurrence,
-                    targetIndex,
-                    target?.CombatId,
-                    displayNames.Card(card.Preview),
-                    targetName,
-                    ReplayCount: Math.Max(0, card.Preview.GetEnchantedReplayCount()),
-                    CardStateKey: cardStateKey,
-                    CardStateOccurrence: cardStateOccurrence,
-                        CardEnchantmentId: card.Preview.Enchantment?.Id.Entry ?? "", CardUpgradeLevel: card.Preview.CurrentUpgradeLevel);
+                PlanAction action = planned.Action;
                 using CardChoiceReplayCapture? cardCapture = PrepareCardChoiceCapture(node, action);
                 SimulationSnapshot probeSnapshot = ReplayAction(node, action, cardChoiceCapture: cardCapture);
 
@@ -191,8 +131,8 @@ internal sealed partial class CombatBeamSolver
                         snapshot,
                         finalSnapshot,
                         child,
-                        card.Preview.Type,
-                        target?.CombatId);
+                        planned.CardType,
+                        planned.TargetCombatId);
                     if (CanRetainOrderedMutationLease(_run, child))
                     {
                         // An admitted ordered-state lease has a bounded coordinator budget of
@@ -214,7 +154,6 @@ internal sealed partial class CombatBeamSolver
                         finalSnapshot.ReleaseSimulator();
                     }
                 }
-            }
         }
 
         if (cycleExitBatch != null)
@@ -312,30 +251,11 @@ internal sealed partial class CombatBeamSolver
                     return $"{slot}:{item?.Id.Entry ?? "-"}:{(item != null && PotionOnUseSupport.CanSearch(item))}";
                 }))}");
         }
-        if ((_earliestPotionTurn == null || node.Turn >= _earliestPotionTurn.Value)
-            && (_maximumPotionUses == null || ExplicitPotionUseCount(node) < _maximumPotionUses.Value))
-        for (int potionSlot = 0; potionSlot < root.PotionSlotCount; potionSlot++)
+        foreach (PreparedPotionAction planned in EnumeratePlannedPotionActions(
+                     new ExpansionPlan(node, PrepareChoiceMetadata: false)))
         {
-            PotionModel? potion = simulatedCombat.GetPotionAtSlot(_player, potionSlot);
-            if (potion == null
-                || !simulatedCombat.IsPotionAvailable(_player, potionSlot)
-                || !PotionOnUseSupport.CanSearch(potion)
-                || !AllowsPotionUse(potionSlot, potion.Id.Entry))
-            {
-                continue;
-            }
-
-            foreach ((int targetIndex, Creature? target) in TargetsForPotion(potion, simulator))
-            {
-                PlanAction baseAction = new(
-                    PlanActionKind.UsePotion,
-                    node.Turn,
-                    TargetIndex: targetIndex,
-                    TargetCombatId: target?.CombatId,
-                    TargetName: displayNames.Creature(target, ((SimulatedCombatState)simulator.State.CombatState).KnownEnemies),
-                    PotionSlot: potionSlot,
-                    PotionId: potion.Id.Entry,
-                    PotionTitle: displayNames.Potion(potion));
+                PotionModel potion = planned.Potion;
+                PlanAction baseAction = planned.Action;
                 using PotionChoiceReplayCheckpoint? checkpoint = PreparePotionChoiceOptions(
                     node, baseAction, potion, out SimulationSnapshot? probeSnapshot,
                     out IReadOnlyList<PlanCardChoice?> choices, out CardChoiceSpec? choiceSpec);
@@ -403,7 +323,6 @@ internal sealed partial class CombatBeamSolver
                     else
                         finalSnapshot.ReleaseSimulator();
                 }
-            }
         }
 
         foreach (SearchNode endNode in BuildAcceptedEndTurnNodes(node))

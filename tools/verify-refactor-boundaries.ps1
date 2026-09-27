@@ -70,6 +70,17 @@ foreach ($sourceFile in Get-ChildItem -LiteralPath (Join-Path $repositoryRoot 's
 if ($strategyIdLiteralCount -gt 645) {
     $violations.Add("Search strategy ID literals increased: $strategyIdLiteralCount > 645")
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionPlan.cs') -PathType Leaf)) {
+    $violations.Add('Shared expansion plan missing')
+}
+$serialExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Expansion.cs') -Raw
+$parallelExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ParallelExpansion.cs') -Raw
+if (-not $serialExpansionSource.Contains('EnumeratePlannedCardActions(') -or
+    -not $parallelExpansionSource.Contains('EnumeratePlannedCardActions(') -or
+    -not $serialExpansionSource.Contains('EnumeratePlannedPotionActions(') -or
+    -not $parallelExpansionSource.Contains('EnumeratePlannedPotionActions(')) {
+    $violations.Add('Serial and parallel card/potion paths do not share the expansion plan')
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchBudgetLedger.cs') -PathType Leaf)) {
     $violations.Add('Search budget ledger missing')
 }
@@ -915,6 +926,7 @@ $expectedBeamFiles = @(
     "CombatBeamSolver.Expansion.Candidates.cs",
     "CombatBeamSolver.Expansion.Choices.cs",
     "CombatBeamSolver.Expansion.Opening.cs",
+    "CombatBeamSolver.ExpansionPlan.cs",
     "CombatBeamSolver.Expansion.Replay.cs",
     "CombatBeamSolver.FinalPlanOrdering.cs",
     "CombatBeamSolver.Models.cs",

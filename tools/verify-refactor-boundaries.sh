@@ -34,6 +34,13 @@ strategy_id_literal_count=$(rg -o --no-filename '"[A-Z][A-Z0-9_]{4,}"' "$reposit
 if (( strategy_id_literal_count > 645 )); then
     violations+=("Search strategy ID literals increased: $strategy_id_literal_count > 645")
 fi
+[[ -f "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ]] || violations+=("Shared expansion plan missing")
+if ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Serial and parallel card/potion paths do not share the expansion plan")
+fi
 [[ -f "$repository_root/src/Search/SearchBudgetLedger.cs" ]] || violations+=("Search budget ledger missing")
 if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_root/src/Search/SearchBudgetLedger.cs" ||
    ! rg -Fq 'internal SearchBudgetWindow RequestWindow(' "$repository_root/src/Search/SearchBudgetLedger.cs"; then
@@ -825,6 +832,7 @@ expected_beam_files=(
     CombatBeamSolver.Expansion.Candidates.cs
     CombatBeamSolver.Expansion.Choices.cs
     CombatBeamSolver.Expansion.Opening.cs
+    CombatBeamSolver.ExpansionPlan.cs
     CombatBeamSolver.Expansion.Replay.cs
     CombatBeamSolver.FinalPlanOrdering.cs
     CombatBeamSolver.Models.cs
