@@ -84,6 +84,9 @@ foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
 }
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
 $auditSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.Audits.cs') -Raw
+if (($coordinatorSource -split '\r?\n').Count -gt 1201) {
+    $violations.Add('Search coordinator main file exceeds the P3 1200-line ownership limit')
+}
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
 }

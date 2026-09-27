@@ -31,6 +31,9 @@ done
 for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs src/Search/EarlierCopyDelayedDamageContinuationSource.cs src/Search/OpeningNoCostContinuationSource.cs src/Search/TurnEndChoiceContinuationSource.cs src/Search/SinglePrefixContinuationSource.cs src/Search/TurnBoundaryContinuationSource.cs; do
     [[ -f "$repository_root/$continuation_input" ]] || violations+=("Frontier continuation component missing: $continuation_input")
 done
+if [[ $(wc -l < "$repository_root/src/Search/CombatSearchCoordinator.cs") -gt 1200 ]]; then
+    violations+=("Search coordinator main file exceeds the P3 1200-line ownership limit")
+fi
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi

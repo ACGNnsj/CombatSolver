@@ -42,6 +42,8 @@ Smart 开局药水的有序候选仍按原 `PowerPrefixKey` 去重并限制 8／
 
 默认关闭的前两回合实验从原独立时间和追加节点额度生成续搜 profile，保留分层交错与最多 24 个排名位置；固定前缀执行使用调度器的可选后验入口。该实验额度暂不改写为普通请求窗口，协调器各分片已无直接固定前缀求解器构造。
 
+P3 的前缀求解请求均声明 `ContinuationPurpose` 并通过 `FrontierContinuationScheduler` 构造；原各模式在候选生成、合法性、准入与取优上的不同控制流继续由对应模式负责。`BlockPotionInsertion.ReplayAdjustedRoute` 是所属 solver 内的结构调整回放，继续通过既有 `ReplayAction` 计入该 solver 工作量；它不是新的独立请求预算池。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。

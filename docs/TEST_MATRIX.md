@@ -28,6 +28,7 @@
 - P3 前两回合实验续搜迁移：静态核对独立时间/追加节点额度与 `EARLY_TURN_CONTINUATION` 的可选用药诊断；仅执行 Release 编译与 Windows 门禁，默认关闭模式不纳入普通语料质量结论。
 - P3 宽度组合纯移动：`RunBeamWidthPortfolioPass`、单成员结果包装与成员遥测整段迁入独立 partial 文件；只执行 Release 编译及 Windows 结构门禁，动作与工作量逐位对照并入 P3 收口。
 - P3 补充审计纯移动：三种审计、Smart 梯度及内存检查整段迁入独立 partial 文件；只执行 Release 编译与 Windows 结构门禁，动作、诊断和工作量逐位对照并入 P3 收口。
+- P3 收口：`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p3/after-p3-20260928` 的四个玩家根和两个生成场景均为 `comparable`。`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p2/after-p2-20260928 --right .local/strategy-refactor-p3/after-p3-20260928 --out .local/strategy-refactor-p3/compare-p3-20260928` 报告六根逐位相同；无头实例已清理。最终 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=228`；Linux 门禁按用户要求未运行。
 
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 
