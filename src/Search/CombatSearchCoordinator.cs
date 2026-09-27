@@ -847,6 +847,17 @@ internal static partial class CombatSearchCoordinator
         {
             SolverSearchProfile passProfile = passContext.Profile;
             Stopwatch passClock = passContext.Clock;
+            SearchPassResult CapturePassResult(
+                SolverResult selected,
+                SolverResult? takeover,
+                bool settled)
+                => new(selected, takeover, settled,
+                    selected.ResultScope == SolverResultScope.SearchCompletion
+                        ? RouteQuality.FromInterim(BuildInterimResult(root, policy, selected))
+                        : null,
+                    passContext.Budget.WorkTotals.Snapshot(),
+                    selected.ResultScope,
+                    selected.BoundaryReason);
             long passAllocatedAtStart = GC.GetTotalAllocatedBytes(precise: false);
             long passTransitionsAtStart = passContext.Budget.WorkTotals.Snapshot().TransitionCount;
             SearchPolicySnapshot passPolicy = forcedBaselinePolicy;
@@ -1153,9 +1164,9 @@ internal static partial class CombatSearchCoordinator
             if (!ReferenceEquals(passResult, publishedBaseline))
                 interimResultCallback?.Invoke(passResult);
             if (ResolveTakeoverResult(passResult, policy.Interaction) is { } passTakeover)
-                return new(passResult, passTakeover, false);
+                return CapturePassResult(passResult, passTakeover, false);
             if (policy.IncludeTurnSetup)
-                return new(passResult, null, false);
+                return CapturePassResult(passResult, null, false);
             SearchPassContext auditContext = passContext;
             if (passResult.DeterministicBlockPotionInserted)
             {
@@ -1168,19 +1179,19 @@ internal static partial class CombatSearchCoordinator
                     battleDamage, potionFreePolicy, cancellationToken, progressCallback,
                     passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled).Solve();
                 if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
-                    return new(potionFree, null, false);
+                    return CapturePassResult(potionFree, null, false);
                 SolverResult audited = RunSupplementalAudits(auditContext,
                     potionFree, memoryForecast);
                 if (audited.ResultScope != SolverResultScope.SearchCompletion)
-                    return new(audited, null, false);
+                    return CapturePassResult(audited, null, false);
                 if (IsBetterSmartPotionAuditResult(root, policy, audited, passResult))
                     passResult = audited;
-                return new(passResult, null, false);
+                return CapturePassResult(passResult, null, false);
             }
             if (!policy.PotionStrategy.HasForcedDirectives || hasForcedBaseline)
             {
                 if (!hasForcedBaseline && HasReachedAcceptableBattleHpLoss(policy, passResult))
-                    return new(passResult, null, true);
+                    return CapturePassResult(passResult, null, true);
                 passResult = RunSupplementalAudits(
                     policy.NoveltySearch == null
                         ? auditContext
@@ -1191,7 +1202,7 @@ internal static partial class CombatSearchCoordinator
                 // primary-pass observations alongside the request's final outcome.
                 passResult.NoveltyPortfolio = noveltyPass;
             }
-            return new(passResult, null, false);
+            return CapturePassResult(passResult, null, false);
         }
 
         SearchPassContext requestContext = new(root, displayNames, battleDamage,

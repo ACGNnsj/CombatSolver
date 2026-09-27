@@ -34,6 +34,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - Search 只接收快照、policy、diagnostics、frame signal 和 cancellation；不引用 Runtime 全局、UI 或 Testing。
 - P2 外层补搜逐模式从 `CombatSearchCoordinator.Solve` 迁往 `PostSearch`；已迁的双药开局死亡路线补搜使用 `SearchPassContext` 和请求账本，候选次序与原终局政策保持不变。后续模式须继续共用请求级预算和原阶段日志。
 - `SearchBudgetWindow` 只冻结一次请求余量并套用既有成员上限，模式专用准入与候选合法性仍在对应 Pass；迁移预算读取时保持时钟和工作量采样顺序。
+- `SearchPassResult` 同时记录所选路线质量与实际最后一轮的范围／边界及请求累计工作量；升级未改善时只把所选路线和质量换回旧值，不能把最后一轮终止原因误写成旧路线的原因。
 - 本地策略脚本由 CheckpointTool 单独编译、Testing 请求宿主加载和卸载；Search 只读冻结的策略接口与分支数值特征，不承担脚本文件读取或程序集加载。无脚本请求保持生产排序及预算路径。
 - 常驻会话的开发监控由 Testing 最多每秒发布一次纯标量快照，独立窗口进程只读会话文件；Search 不引用监控窗口或文件。关闭窗口不取消请求，stop 由工具层按进程身份清理。
 - `CombatBeamSolver.Transpositions` 独占转置标签及其支配前沿；`Models` 保留运行上下文和搜索特征。纯存储合同通过链接实际partial源码验证，不为测试复制生产判定。

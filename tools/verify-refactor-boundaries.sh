@@ -18,6 +18,12 @@ if ! rg -Fq 'internal readonly record struct SearchBudgetWindow' "$repository_ro
 fi
 [[ -f "$repository_root/src/Search/SearchPassContext.cs" ]] || violations+=("Search pass context missing")
 [[ -f "$repository_root/src/Search/SearchPassResult.cs" ]] || violations+=("Search pass result missing")
+for pass_field in 'RouteQuality? Quality' 'SearchRequestWorkSnapshot WorkTotals' \
+    'SolverResultScope PassScope' 'SearchBoundaryReason PassBoundary'; do
+    if ! rg -Fq "$pass_field" "$repository_root/src/Search/SearchPassResult.cs"; then
+        violations+=("Search pass result contract missing: $pass_field")
+    fi
+done
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 [[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
@@ -58,6 +64,9 @@ if ! rg -Fq 'internal static SearchPassResult EscalateSearchWhenNoVictory(' "$re
 fi
 if ! rg -Fq 'Func<SearchPassContext, SearchPassResult> runPass' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
     violations+=("No-victory escalation does not dispatch a search pass context")
+fi
+if ! rg -Fq 'Quality = selectedPass.Quality' "$repository_root/src/Search/CombatSearchCoordinator.FailureRecovery.cs"; then
+    violations+=("No-victory escalation does not retain the selected route quality")
 fi
 if ! rg -Fq 'RunOpeningNightmarePortfolio(' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs" ||
    ! rg -Fq 'RunOpeningPowerRoutePortfolio(' "$repository_root/src/Search/CombatSearchCoordinator.PowerRoutes.cs" ||

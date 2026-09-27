@@ -52,6 +52,13 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPa
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassResult.cs') -PathType Leaf)) {
     $violations.Add('Search pass result missing')
 }
+$passResultSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPassResult.cs') -Raw
+foreach ($field in @('RouteQuality? Quality', 'SearchRequestWorkSnapshot WorkTotals',
+        'SolverResultScope PassScope', 'SearchBoundaryReason PassBoundary')) {
+    if (-not $passResultSource.Contains($field)) {
+        $violations.Add("Search pass result contract missing: $field")
+    }
+}
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -PathType Leaf)) {
     $violations.Add('Search request pipeline missing')
 }
@@ -100,6 +107,9 @@ if (-not $failureRecoverySource.Contains('internal static SearchPassResult Escal
 }
 if (-not $failureRecoverySource.Contains('Func<SearchPassContext, SearchPassResult> runPass')) {
     $violations.Add('No-victory escalation does not dispatch a search pass context')
+}
+if (-not $failureRecoverySource.Contains('Quality = selectedPass.Quality')) {
+    $violations.Add('No-victory escalation does not retain the selected route quality')
 }
 $powerRoutesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PowerRoutes.cs') -Raw
 if (-not $powerRoutesSource.Contains('RunOpeningNightmarePortfolio(') -or

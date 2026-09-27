@@ -92,7 +92,7 @@ internal static partial class CombatSearchCoordinator
                 $"won={IsCompleteVictory(candidate)} improved={improved} " +
                 $"pass_ms={lastPassMilliseconds}");
             if (!improved)
-                return candidatePass with { Result = selected };
+                return candidatePass with { Result = selected, Quality = selectedPass.Quality };
             selected = candidate;
             selectedPass = candidatePass;
         }
