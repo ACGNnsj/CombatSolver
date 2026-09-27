@@ -14,7 +14,14 @@ internal sealed record SearchPassContext(
     Action<SolverProgress>? ProgressCallback,
     Action<SolverResult>? InterimResultCallback)
 {
+    internal SearchPlanDiscoveryState PlanDiscovery { get; init; } = new();
+
     internal long RemainingMilliseconds => Budget.RemainingMilliseconds(Profile, Clock);
 
     internal SearchBudgetWindow SliceWindow => Budget.PassWindow(Profile, Clock);
+}
+
+internal sealed class SearchPlanDiscoveryState
+{
+    internal int? OpeningPlanCount { get; set; }
 }

@@ -136,6 +136,7 @@ internal static partial class CombatSearchCoordinator
                     RouteAdoptionSeed = currentRouteAdoptionSeed,
                 });
             };
+        SearchPlanDiscoveryState planDiscovery = new();
         SolverResult RunPostSearch(SolverResult result)
         {
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
@@ -143,7 +144,10 @@ internal static partial class CombatSearchCoordinator
                 return selected;
             SearchPassContext postContext = new(root, displayNames, battleDamage,
                 policy, policy.Profile, requestClock, ledger, cancellationToken,
-                enrichedProgressCallback, interaction == null ? null : PublishAdoptableResult);
+                enrichedProgressCallback, interaction == null ? null : PublishAdoptableResult)
+            {
+                PlanDiscovery = planDiscovery,
+            };
             return RunPostSearchPasses(postContext, selected, firstTurnAnchors,
                 interaction, () => currentCompleteAdoptableResult);
         }
@@ -156,6 +160,7 @@ internal static partial class CombatSearchCoordinator
                 battleDamage,
                 policy,
                 ledger,
+                planDiscovery,
                 cancellationToken,
                 enrichedProgressCallback,
                 interaction == null ? null : PublishAdoptableResult,
@@ -220,6 +225,7 @@ internal static partial class CombatSearchCoordinator
         BattleDamageSnapshot battleDamage,
         SearchPolicySnapshot policy,
         SearchBudgetLedger ledger,
+        SearchPlanDiscoveryState planDiscovery,
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback,
         Action<SolverResult>? interimResultCallback,
@@ -633,7 +639,10 @@ internal static partial class CombatSearchCoordinator
 
         SearchPassContext requestContext = new(root, displayNames, battleDamage,
             policy, profile, requestClock, ledger, cancellationToken,
-            progressCallback, interimResultCallback);
+            progressCallback, interimResultCallback)
+        {
+            PlanDiscovery = planDiscovery,
+        };
         return new SearchRequestPipeline(requestContext, RunSearchPass, postSearch).Run();
     }
 

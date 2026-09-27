@@ -2,8 +2,10 @@
 
 ## 策略重构 P6 首回合计划（2026-09-28）
 
+- 跨回合能力计划：#100 `88619c63f91b48998737d7a9d623e2df` 的 `combat_start`、VeryHigh／180 秒／DOP 8，修改前完整胜利 41 战损／2 药、最终 29 HP；修改后完整胜利 22 战损／2 药、最终 48 HP。`PLAN_SEARCH_DISCOVERY count=0` 后，末段 `DEFERRED_POWER_PLAN` 选中第二回合飞刀扇前缀，成员展开 53,316。证据 `.local/strategy-refactor-p6/baseline-100` 与 `.local/strategy-refactor-p6/deferred-100-final-pass`。
+- 已达标哨兵 GA-SILENT-BOSS-00：DOP8、VeryHigh、25,000 节点／110 秒，修改前后 121 个非时序字段全同，完整胜利 44 战损／0 药；证据 `.local/strategy-refactor-p5/potion-admission-dop8` 与 `.local/strategy-refactor-p6/deferred-sentinel-dop8`。P6 尚需计划驱动地平线，不能据此宣称阶段全部完成。
 - #101 `a422c1c56022446c85f6ce00962019c4`：同一 `combat_start`、VeryHigh／180 秒／DOP 8，基线死亡、预计战损 70／0 药；计划成员完整胜利、战损 58／1 药、最终 12 HP。完整证据在 `.local/strategy-refactor-p6/baseline-101` 与 `.local/strategy-refactor-p6/plan-101-after-gradient`。
-- #100 `88619c63f91b48998737d7a9d623e2df`：正式首回合计划源码结果与基线同为胜利 41 战损／2 药、最终 29 HP；跨回合探测的 44 战损实验已撤回，证据分别在 `.local/strategy-refactor-p6/baseline-100`、`plan-100-v1`、`plan-100-target-payoffs`。第二个有效改善包未取得，P6 未达到退出标准。
+- #100 `88619c63f91b48998737d7a9d623e2df`：首回合计划入口阶段结果与基线同为胜利 41 战损／2 药、最终 29 HP；放在 Smart 审计中间的 44 战损跨回合实验已撤回，证据分别在 `.local/strategy-refactor-p6/baseline-100`、`plan-100-v1`、`plan-100-target-payoffs`。末段入口的最终收益见本节首项。
 - 当前源码 Release 编译成功，Windows 结构门禁返回 `REFACTOR_BOUNDARIES_OK search_files=234`。未运行 Linux 门禁或整批语料；构造 P6 计划入口后的哨兵尚未重测。
 
 ## 策略重构 P5 共享候选准备（2026-09-28）

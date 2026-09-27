@@ -15,6 +15,7 @@ internal static partial class CombatSearchCoordinator
             return baseline;
 
         IReadOnlyList<PlanCommitment> plans = DiscoverOpeningPlanCommitments(context);
+        context.PlanDiscovery.OpeningPlanCount = plans.Count;
         if (plans.Count == 0)
             return baseline;
 
@@ -105,6 +106,101 @@ internal static partial class CombatSearchCoordinator
             $"[CombatSolver/Test] PLAN_SEARCH result candidates={plans.Count} " +
             $"attempted={attempted} selected_hp_lost={selected.ProjectedBattleHpLost}");
         return selected;
+    }
+
+    private static SolverResult RunDeferredPowerPlanSearchPass(
+        SearchPassContext context, SolverResult baseline)
+    {
+        if (context.PlanDiscovery.OpeningPlanCount != 0
+            || baseline.ResultScope != SolverResultScope.SearchCompletion
+            || context.Policy.PotionStrategy.HasForcedDirectives
+            || context.Policy.Interaction?.CurrentTakeoverRequest != null
+            || baseline.ProjectedBattleHpLost < SolverWeights.PotionMinimumHpSaved * 3
+            || !context.Root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
+            return baseline;
+
+        SearchBudgetWindow scoutWindow = context.Budget.RequestWindow(context.Profile);
+        if (!scoutWindow.CanStart(45_000))
+            return baseline;
+
+        List<EarlyTurnFrontierCandidate> frontiers = [];
+        SolverSearchProfile scoutProfile = scoutWindow.Limit(context.Profile,
+            maximumNodes: 25_000, maximumMilliseconds: 8_000,
+            reserveMilliseconds: 2_000) with
+        {
+            StopPortfolioAtHpTarget = false,
+        };
+        FrontierContinuationScheduler scheduler = new(context);
+        scheduler.Dispatch(new ContinuationSearchRequest(context,
+            ContinuationPurpose.PlanCommitment, [], scoutProfile,
+            SolverPotionPolicy.Disabled, 0, null)
+        {
+            EarlyTurnScoutDepth = 1,
+            EarlyTurnScoutObserver = (turns, candidates) =>
+            {
+                if (turns == 1)
+                    frontiers.AddRange(candidates);
+            },
+        });
+
+        CombatBeamSolver builder = new(context.Root, context.DisplayNames,
+            context.BattleDamage, context.Policy, context.CancellationToken,
+            context.ProgressCallback, context.Profile);
+        PlanCommitment? plan = null;
+        int inspected = 0;
+        foreach (EarlyTurnFrontierCandidate frontier in frontiers.Take(8))
+        {
+            inspected++;
+            PlanAction? power = builder.BuildPowerActionsAfterPrefix(frontier.Actions)
+                .Select(action => (Action: action,
+                    Registered: PowerCardValuationModels.Registry.TryGetCommitmentDescriptor(
+                        action.CardId!, out PowerCommitmentDescriptor descriptor),
+                    Descriptor: descriptor))
+                .Where(item => item.Registered)
+                .OrderByDescending(item => item.Descriptor.Priority)
+                .Select(item => item.Action)
+                .FirstOrDefault();
+            if (power == null)
+                continue;
+            PlanAction[] prefix = [.. frontier.Actions, power];
+            plan = new(PlanCommitmentKind.PowerCycle, prefix,
+                context.Root.StartTurnNumber, power.CardId!,
+                UsesPotion: false, Priority: 1);
+            break;
+        }
+        if (plan == null)
+        {
+            context.Policy.Diagnostics.Info(
+                $"[CombatSolver/Test] DEFERRED_POWER_PLAN frontiers={inspected} candidate=false");
+            return baseline;
+        }
+
+        SearchBudgetWindow memberWindow = context.Budget.RequestWindow(context.Profile);
+        if (!memberWindow.CanStart(7_000))
+            return baseline;
+        SolverSearchProfile memberProfile = memberWindow.Limit(context.Profile,
+            maximumNodes: 120_000, maximumMilliseconds: 60_000,
+            reserveMilliseconds: 2_000) with
+        {
+            AggressivePowerCommitment = true,
+        };
+        SolverResult candidate = scheduler.Dispatch(new ContinuationSearchRequest(
+            context, ContinuationPurpose.PlanCommitment, plan.Prefix, memberProfile,
+            null, null, null)
+        {
+            Commitment = plan,
+        });
+        if (candidate.ResultScope != SolverResultScope.SearchCompletion)
+            return candidate;
+        PopulateSingleSessionTotals(candidate);
+        bool improved = IsBetterPotionPolicyResult(
+            context.Root, context.Policy, candidate, baseline);
+        context.Policy.Diagnostics.Info(
+            $"[CombatSolver/Test] DEFERRED_POWER_PLAN frontiers={inspected} " +
+            $"payoff={plan.PayoffCardId} won={IsCompleteVictory(candidate)} " +
+            $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} " +
+            $"expanded={candidate.ExpandedNodes} selected={improved}");
+        return improved ? candidate : baseline;
     }
 
     private static IReadOnlyList<PlanCommitment> DiscoverOpeningPlanCommitments(

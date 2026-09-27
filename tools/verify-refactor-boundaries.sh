@@ -73,6 +73,10 @@ if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatS
    ! rg -Fq 'IsBetterPotionPolicyResult(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Plan search bypasses shared budget, continuation or final quality policy")
 fi
+if ! rg -Fq 'RunDeferredPowerPlanSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'EarlyTurnScoutDepth = 1' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
+    violations+=("Deferred power plan must use the ordered post-search continuation")
+fi
 if ! rg -Fq 'AdmitPlanCommitmentRepresentatives(' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs" ||
    ! rg -Fq '_planCommitment' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs"; then
     violations+=("Plan commitment has no protected retention representatives")

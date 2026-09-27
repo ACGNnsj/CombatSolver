@@ -117,6 +117,11 @@ if (-not $planSearchSource.Contains('context.Budget.RequestWindow(') -or
     -not $planSearchSource.Contains('IsBetterPotionPolicyResult(')) {
     $violations.Add('Plan search bypasses shared budget, continuation or final quality policy')
 }
+$postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
+if (-not $postSearchSource.Contains('RunDeferredPowerPlanSearchPass(') -or
+    -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1')) {
+    $violations.Add('Deferred power plan must use the ordered post-search continuation')
+}
 $planRetentionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.BeamRetentionPolicy.cs') -Raw
 if (-not $planRetentionSource.Contains('AdmitPlanCommitmentRepresentatives(') -or
     -not $planRetentionSource.Contains('_planCommitment')) {

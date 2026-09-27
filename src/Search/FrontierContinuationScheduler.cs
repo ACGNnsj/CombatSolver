@@ -59,6 +59,8 @@ internal sealed record ContinuationSearchRequest(
     internal PotionFreePolicyBaseline? PotionFreePolicyBaseline { get; init; }
     internal PrimarySearchIncumbent? PrimaryIncumbent { get; init; }
     internal PlanCommitment? Commitment { get; init; }
+    internal int EarlyTurnScoutDepth { get; init; }
+    internal Action<int, IReadOnlyList<EarlyTurnFrontierCandidate>>? EarlyTurnScoutObserver { get; init; }
     internal int? EarliestPotionTurn { get; init; }
     internal bool ResetFixedPrefixSchedulingBaseline { get; init; } = true;
 }
@@ -88,7 +90,9 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
             minimumPotionUses: request.MinimumPotionUses,
             primaryIncumbent: request.PrimaryIncumbent,
             earliestPotionTurn: request.EarliestPotionTurn,
-            planCommitment: request.Commitment);
+            planCommitment: request.Commitment,
+            earlyTurnScoutDepth: request.EarlyTurnScoutDepth,
+            earlyTurnScoutObserver: request.EarlyTurnScoutObserver);
     }
 
     internal SolverResult Dispatch(ContinuationSearchRequest request)
