@@ -212,6 +212,8 @@ SearchRequestPipeline.Run(root, policy, budgetLedger)
 
 **验证**：语料 DOP1 与 DOP8 结果一致；增量严格回放仍强制 DOP1。
 
+**实施核对（2026-09-28）**：P4 基线的 GA-SILENT-BOSS-00 在 DOP1、DOP8 下均胜利且战损 44，但第 6 回合动作次序和 expanded／transitions 已不同。P5 的纯重构逐位门槛按相同 DOP 分别对 P4 基线执行；跨 DOP 比较胜负与最终质量，旧有动作／工作量差异单列，不当作 P5 回归。
+
 **退出标准**：双路径消除，行为等价。
 
 **工作量**：约 3–5 周。**风险**：高；并行/内存所有权敏感，必须在 P3 之后做。

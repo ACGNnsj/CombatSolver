@@ -5,6 +5,7 @@
 - `ExpansionPlan` 同时供串行展开与并行准备读取卡牌、药水候选。`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 返回 `REFACTOR_BOUNDARIES_OK search_files=232`。尚未运行搜索语料或 DOP1／DOP8 对照，不能据此认定行为等价。Linux 门禁按用户要求不运行。
 - 卡牌／药水子节点字段抽入共享工厂：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=232`；本次只核对字段来源及调用位置，尚未运行固定根。Linux 门禁按用户要求不运行。
 - 普通卡牌选择分派改走同一入口：Release 编译 0 警告、0 错误，Windows 门禁返回 `REFACTOR_BOUNDARIES_OK search_files=232`；尚未运行阶段语料。Linux 门禁按用户要求不运行。
+- 离线 GA-SILENT-BOSS-00：当前 DOP8 与临时 P4 提交 `e248b6e3` 的 DOP8，同政策、25,000 节点、110 秒，`compare_results.py` 的 121 个非时序字段全同，战损 44，expanded 69,257，transitions 222,131。当前 DOP1 对 P4 DOP1 的早期边界对照也全同；但此后共享选择分派发生源码变化，DOP1 最终对照仍待运行。P4 自身的 DOP1／DOP8 已有动作次序与计数差异，两边战损同为 44。Linux 门禁未运行。
 
 ## 策略重构 P4 登记表（2026-09-28）
 
