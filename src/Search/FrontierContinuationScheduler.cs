@@ -5,6 +5,7 @@ namespace CombatSolver;
 internal enum ContinuationPurpose
 {
     EarlyPotionPair,
+    EarlierCopyDelayedDamage,
 }
 
 internal interface IFrontierContinuationSource
@@ -39,8 +40,7 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
         int maximumMilliseconds,
         int reserveMilliseconds,
         SolverPotionPolicy? potionPolicyOverride,
-        int? maximumPotionUses,
-        int? minimumPotionUses)
+        Func<(int? Maximum, int? Minimum)> potionBounds)
     {
         foreach (PlanAction[] prefix in source.Enumerate())
         {
@@ -51,6 +51,7 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
                 continue;
             if (!_seen.Add((purpose, JsonSerializer.Serialize(prefix))))
                 continue;
+            (int? maximumPotionUses, int? minimumPotionUses) = potionBounds();
             ContinuationSearchRequest request = new(context, purpose, prefix,
                 window.Limit(context.Policy.Profile, maximumNodes, maximumMilliseconds,
                     reserveMilliseconds), potionPolicyOverride, maximumPotionUses,

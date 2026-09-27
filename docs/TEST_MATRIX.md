@@ -11,6 +11,7 @@
 - 夜魇开局成员改走 `ProfileWindow`，仍使用配置时间帽和请求剩余节点；仅做 Release 编译及 Windows 结构门禁，实际路线对照留到 P2 收口。
 - P2 收口：`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --out .local/strategy-refactor-p2/after-p2-20260928` 运行一次，#24、#37、#81、#89 与两个生成场景均为 `comparable`，无头实例已清理。`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p2/baseline-0471 --right .local/strategy-refactor-p2/after-p2-20260928 --out .local/strategy-refactor-p2/compare-p2-20260928` 报告六根逐位相同。最终行为源码的 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=219`；Linux 门禁按用户要求未运行。
 - P3 双药开局来源迁移：本边界只执行 Release 编译与 Windows 结构门禁；#17 两种顺序和六根语料的行为对照保留至 P3 收口一次运行，未把 P2 的旧证据算作新源码通过。
+- P3 提前复制药水来源迁移：用药数仍在逐候选派发时读取，静态检查其捕获时机；行为对照留到 P3 收口，不额外启动一个游戏实例。
 
 ## 策略重构 P2 请求级预算所有权（2026-09-27）
 

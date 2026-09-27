@@ -46,8 +46,7 @@ internal static partial class CombatSearchCoordinator
                          maximumMilliseconds: 30_000,
                          reserveMilliseconds: 2_000,
                          potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                         maximumPotionUses: 2,
-                         minimumPotionUses: 2))
+                         potionBounds: () => (2, 2)))
             {
                 PlanAction[] prefix = outcome.Request.Prefix;
                 SolverResult pair = outcome.Result;
@@ -625,12 +624,7 @@ internal static partial class CombatSearchCoordinator
     private static SolverResult RunEarlierCopyDelayedDamage(SearchPassContext context, SolverResult selected)
     {
         CombatRootSnapshot root = context.Root;
-        SolverDisplayNames displayNames = context.DisplayNames;
-        BattleDamageSnapshot battleDamage = context.BattleDamage;
         SearchPolicySnapshot policy = context.Policy;
-        CancellationToken cancellationToken = context.CancellationToken;
-        Action<SolverProgress>? progressCallback = context.ProgressCallback;
-        SearchBudgetLedger ledger = context.Budget;
         if (selected.ResultScope == SolverResultScope.SearchCompletion
             && policy.PotionPolicy == SolverPotionPolicy.Smart
             && !policy.PotionStrategy.HasForcedDirectives
@@ -639,24 +633,21 @@ internal static partial class CombatSearchCoordinator
             && selected.BestNode.Actions.Any(action => action is
                 { Kind: PlanActionKind.UsePotion, PotionId: "DUPLICATOR" }))
         {
-            CombatBeamSolver copyBuilder = new(root, displayNames, battleDamage,
-                policy, cancellationToken, progressCallback, policy.Profile);
-            foreach (PlanAction[] prefix in copyBuilder
-                         .BuildEarlierCopyPotionDelayedDamagePrefixes(selected.BestNode.Actions))
+            foreach (ContinuationSearchOutcome outcome in
+                     new FrontierContinuationScheduler(context).Run(
+                         new EarlierCopyDelayedDamageContinuationSource(
+                             context, selected.BestNode.Actions),
+                         ContinuationPurpose.EarlierCopyDelayedDamage,
+                         minimumRemainingMilliseconds: 20_000,
+                         maximumNodes: 80_000,
+                         maximumMilliseconds: 18_000,
+                         reserveMilliseconds: 2_000,
+                         potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+                         potionBounds: () => (selected.ExplicitPotionCount,
+                             selected.ExplicitPotionCount)))
             {
-                SearchBudgetWindow copyWindow = ledger.RequestWindow(policy.Profile);
-                if (!copyWindow.CanStart(20_000))
-                    break;
-                SolverSearchProfile copyProfile = copyWindow.Limit(policy.Profile,
-                    maximumNodes: 80_000, maximumMilliseconds: 18_000,
-                    reserveMilliseconds: 2_000);
-                SolverResult candidate = new CombatBeamSolver(root, displayNames,
-                    battleDamage, policy, cancellationToken, progressCallback,
-                    copyProfile, potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-                    maximumPotionUses: selected.ExplicitPotionCount,
-                    fixedPrefixActions: prefix,
-                    resetFixedPrefixSchedulingBaseline: true,
-                    minimumPotionUses: selected.ExplicitPotionCount).Solve();
+                PlanAction[] prefix = outcome.Request.Prefix;
+                SolverResult candidate = outcome.Result;
                 bool improved = candidate.ResultScope == SolverResultScope.SearchCompletion
                     && candidate.ProjectedBattleHpLost < selected.ProjectedBattleHpLost
                     && IsBetterPotionPolicyResult(root, policy, candidate, selected);

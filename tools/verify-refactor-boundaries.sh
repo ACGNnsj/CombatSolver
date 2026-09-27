@@ -26,7 +26,7 @@ for pass_field in 'RouteQuality? Quality' 'SearchRequestWorkSnapshot WorkTotals'
 done
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
 [[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
-for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs; do
+for continuation_input in src/Search/FrontierContinuationScheduler.cs src/Search/OpeningPotionPairContinuationSource.cs src/Search/EarlierCopyDelayedDamageContinuationSource.cs; do
     [[ -f "$repository_root/$continuation_input" ]] || violations+=("Frontier continuation component missing: $continuation_input")
 done
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
@@ -61,6 +61,10 @@ if ! rg -Fq 'new FrontierContinuationScheduler(context).Run(' "$repository_root/
    ! rg -Fq 'RequestWindow(' "$repository_root/src/Search/FrontierContinuationScheduler.cs" ||
    ! rg -Fq 'fixedPrefixActions: request.Prefix' "$repository_root/src/Search/FrontierContinuationScheduler.cs"; then
     violations+=("Early potion pair rescue bypasses the frontier continuation scheduler")
+fi
+if ! rg -Fq 'new EarlierCopyDelayedDamageContinuationSource(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'context, selected.BestNode.Actions)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs"; then
+    violations+=("Earlier copy potion rescue bypasses the frontier continuation scheduler")
 fi
 if ! rg -Fq 'SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
