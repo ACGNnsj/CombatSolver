@@ -16,7 +16,8 @@ internal static partial class CombatSearchCoordinator
         Stopwatch requestClock,
         SolverResult selected)
     {
-        if (policy.EarlyTurnExplorationDepth == 0
+        if (policy.IncludeTurnSetup
+            || policy.EarlyTurnExplorationDepth == 0
             || selected.ResultScope != SolverResultScope.SearchCompletion
             || IsProvenZeroDamageRoute(root, policy, selected))
             return selected;

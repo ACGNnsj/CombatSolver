@@ -1,5 +1,14 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：回合准备固定前缀边界（2026-09-27）
+
+- 失败基线来自本机原生 `GAMBLING_CHIP` 开局日志：`CombatBeamSolver.SolveCore → CombatSearchCoordinator.RunSearchPass` 抛 `include_turn_setup=True prefix=+STAMPEDE`，对应延后能力 `[EndTurn, STAMPEDE]`。未恢复完整玩家存档；不把后续同遭遇重试当成同一根。
+- 原生短场景先用较强牌组验证页面顺序，`df377b96d5a14c718adbdc21ed3732cd` Passed；该根提前取得零战损，所以另用含6张伤口的 [准备阶段回归夹具](../coverage/unattended/turn-setup-fixed-prefix-stampede.json) 覆盖仍需补充搜索的承伤根。最终 `0c96548a196e449e9fa98a7acd6e7422` Passed：12张牌、`GAMBLING_CHIP` 与惊逃，DOP2、20秒固定时间预算，完整胜利投影21 HP／0药、5回合，总展开8,549、转移17,429；原生 `Visible → SearchStarted → PlanReady → Selected` 顺序通过，在首个准备结果与选择执行后停止，没有部署整场战斗。
+- 最终日志包含一次 `OPENING_PREFIX_REFINEMENT skipped reason=TurnSetupRoot`，仍进入正常 Smart 梯度（本根无药，返回 `no_potion_acceptable`）；没有把准备前动作送入可选固定前缀成员。夹具中的性能档位／Beam／节点测试覆盖在准备结束后才应用，本次准备搜索实际基线为 Beam60／120,000节点，不能按请求中的Low／24／6,000解释。证据 `.local/turn-setup-fixed-prefix-20260927/native-setup-loss/`。
+- 首次启动在游戏请求提交前因无默认离线 `settings.save` 失败，未计行为验证；只向新建的自有隔离实例复制当前Steam设置作为模板后继续，未修改实机配置或存档。首次失败和两次完成均由启动器输出 `UNATTENDED_INSTANCE_REMOVED` 删除整个实例；所有实例位于仓库 `.local/headless-instances/`。
+- 普通 Play 根哨兵复用本轮修改前保存的故障机器人精英 Coordinator / Smart 输入与政策：Low、Beam24、2,000节点、DOP1、20秒。修复后总展开10,000、转移40,482、10 HP／0药，与基线106项非时间对照、完整 `route.json`（包括选择）、根续用文本、后续续用及策略文件相同，均无时间截断。该对照仅证明此根的原路径保持，不宣称准备根的搜索质量不变或性能改善。证据 `.local/turn-setup-fixed-prefix-20260927/play-sentinel-comparison.json`。
+- Windows Release 构建0警告、0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，代码审阅通过。未运行Linux、完整自动部署或可见游戏验收；实机由用户验证。
+
 ## 0.47.0 前两回合实验开关（2026-09-27）
 
 - `NOVELTY-PORTFOLIO-SETTINGS` / `9b087e2edcc54785aeb3922bd80dbb5d` Passed：新安装默认关闭，设置页第三个实验开关、持久化和请求冻结通过；开启时深度 2、整次探索期限 2400000 ms，关闭时深度 0。

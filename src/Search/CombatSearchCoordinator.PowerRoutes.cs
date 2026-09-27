@@ -16,6 +16,8 @@ internal static partial class CombatSearchCoordinator
         SolverSearchProfile profile,
         SolverResult baseline)
     {
+        if (policy.IncludeTurnSetup)
+            return baseline;
         CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
             cancellationToken, progressCallback, profile,
             potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
@@ -104,7 +106,8 @@ internal static partial class CombatSearchCoordinator
         SolverResult baseline,
         bool generatedAfterOpeningPotionsOnly = false)
     {
-        if (!root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
+        if (policy.IncludeTurnSetup
+            || !root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
             return baseline;
         if (CanFinishTargetPortfolio(root, policy, profile, baseline))
         {

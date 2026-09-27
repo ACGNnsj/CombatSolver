@@ -23,6 +23,12 @@ internal static partial class CombatSearchCoordinator
             RequestWorkTotals = requestWorkTotals,
             PortfolioTelemetry = portfolioTelemetry,
         };
+        if (policy.IncludeTurnSetup)
+        {
+            // Action-only prefixes do not preserve the preparation choices that produced them.
+            policy.Diagnostics.Info(
+                "[CombatSolver/Test] OPENING_PREFIX_REFINEMENT skipped reason=TurnSetupRoot");
+        }
         SearchInteractionState? interaction = policy.Interaction;
         SolverResult? currentCompleteAdoptableResult = null;
         SolverInterimResult? currentDisplayedResult = null;
@@ -148,6 +154,7 @@ internal static partial class CombatSearchCoordinator
                 firstTurnAnchors.Add);
             SolverResult selected = ResolveTakeoverResult(result, interaction) ?? result;
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
@@ -203,6 +210,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && selected.OnlyDeathRoutesFound
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && policy.PotionStrategy.HasForcedDirectives
@@ -368,6 +376,7 @@ internal static partial class CombatSearchCoordinator
                 && selected.ExplicitPotionCount == 0
                 && selected.ProjectedBattleHpLost is > 0 and <= SolverWeights.PotionMinimumHpSaved;
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && (rescueAfterDeath || refineNearZeroLoss))
@@ -497,9 +506,9 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
-                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(selected)
                 && selected.ExplicitPotionCount == 0
                 && selected.ProjectedBattleHpLost > 0
@@ -543,6 +552,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -646,6 +656,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -753,6 +764,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (selected.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && policy.PotionPolicy == SolverPotionPolicy.Smart
                 && !policy.PotionStrategy.HasForcedDirectives
                 && IsCompleteVictory(selected)
@@ -991,6 +1003,7 @@ internal static partial class CombatSearchCoordinator
                     passResult);
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1038,6 +1051,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && root.Enemies.Count > 1
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
                 && initialPotionPolicyOverride == SolverPotionPolicy.Disabled)
@@ -1133,6 +1147,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1175,6 +1190,7 @@ internal static partial class CombatSearchCoordinator
                 }
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
+                && !policy.IncludeTurnSetup
                 && IsCompleteVictory(passResult)
                 && passResult.ExplicitPotionCount == 0
                 && passResult.ProjectedBattleHpLost >= SolverWeights.PotionMinimumHpSaved
@@ -1799,6 +1815,8 @@ internal static partial class CombatSearchCoordinator
         SolverSearchProfile profile,
         SolverResult primary)
     {
+        if (policy.IncludeTurnSetup)
+            return primary;
         int primaryDeficit = StrategicHpDeficit(root, policy, primary);
         int maximumSmartPotionUses = policy.PotionPolicy == SolverPotionPolicy.Smart
             ? MaximumSmartPotionUses(root, policy, potionFreeWon: true, primaryDeficit)
@@ -2127,6 +2145,11 @@ internal static partial class CombatSearchCoordinator
         bool potionFreeWon = IsCompleteVictory(potionFree);
         if (!potionFreeWon)
         {
+            if (policy.IncludeTurnSetup)
+            {
+                MergeAuditTotals(primary, primary, potionFree);
+                return primary;
+            }
             List<SolverResult> searches = [primary, potionFree];
             SolverResult selected = primary;
             IReadOnlyList<PlanAction> openingPotions = new CombatBeamSolver(
@@ -2373,7 +2396,8 @@ internal static partial class CombatSearchCoordinator
                 primary,
                 memoryForecast,
                 interimResultCallback);
-            if (gradient.ResultScope != SolverResultScope.SearchCompletion
+            if (policy.IncludeTurnSetup
+                || gradient.ResultScope != SolverResultScope.SearchCompletion
                 || policy.PotionStrategy.HasForcedDirectives
                 || battleDamage.PotionsUsedSoFar != 0
                 || (gradient.ExplicitPotionCount <= 1
