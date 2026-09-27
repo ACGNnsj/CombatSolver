@@ -34,6 +34,19 @@ class ComparisonTests(unittest.TestCase):
         self.assertTrue(better(QUALITY, lost))
         self.assertFalse(better(lost, QUALITY))
 
+    def test_time_boundary_is_not_exact_evidence(self):
+        case = {"status": "comparable", "identity": {"root": "same"},
+                "observations": {"elapsedMilliseconds": 109992}}
+        self.assertEqual("不可比较", classify(case, case, 110000)["classification"])
+
+    def test_quality_direction(self):
+        baseline = {"status": "comparable", "identity": {"root": "same"},
+                    "quality": QUALITY}
+        cheaper = {**baseline, "quality": {**QUALITY, "potionStrategicCost": 9,
+                                            "projectedBattlePotionCount": 1}}
+        self.assertEqual("变好", classify(baseline, cheaper)["classification"])
+        self.assertEqual("变差", classify(cheaper, baseline)["classification"])
+
 
 if __name__ == "__main__":
     unittest.main()

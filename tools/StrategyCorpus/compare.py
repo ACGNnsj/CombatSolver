@@ -73,7 +73,7 @@ def better(candidate, current):
     return candidate["score"] > current["score"]
 
 
-def classify(left, right):
+def classify(left, right, budget_ms=None):
     if left is None or right is None:
         return {"classification": "不可比较", "reason": "缺少一侧结果"}
     if left.get("status") != "comparable" or right.get("status") != "comparable":
@@ -82,6 +82,12 @@ def classify(left, right):
     identity = first_difference(left["identity"], right["identity"])
     if identity:
         return {"classification": "不可比较", "reason": "根或政策不一致", "firstDifference": identity}
+    if budget_ms is not None:
+        for side, case in (("baseline", left), ("after", right)):
+            elapsed = (case.get("observations") or {}).get("elapsedMilliseconds")
+            if elapsed is not None and elapsed >= budget_ms - 1000:
+                return {"classification": "不可比较",
+                        "reason": f"{side} search elapsed {elapsed:.0f} ms reached time boundary"}
     fields = ("quality", "outcome", "actions", "continuations", "metrics", "pruneCounters")
     differences = {field: difference for field in fields
                    if (difference := first_difference(left.get(field), right.get(field), field))}
@@ -97,10 +103,13 @@ def classify(left, right):
             "before": left.get("outcome"), "after": right.get("outcome")}
 
 
-def compare(left_directory, right_directory):
+def compare(left_directory, right_directory, budget_ms=None):
+    if budget_ms is None:
+        manifest = Path(__file__).resolve().parents[2] / "coverage/strategy-refactor-p0/corpus.json"
+        budget_ms = json.loads(manifest.read_text(encoding="utf-8"))["searchBudgetMilliseconds"]
     left = read_cases(left_directory)
     right = read_cases(right_directory)
-    return {label: classify(left.get(label), right.get(label))
+    return {label: classify(left.get(label), right.get(label), budget_ms)
             for label in sorted(left.keys() | right.keys())}
 
 

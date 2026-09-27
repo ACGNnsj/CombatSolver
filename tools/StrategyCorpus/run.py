@@ -95,18 +95,22 @@ def capture_report(case, source, directory, manifest, cleanup):
     search_path = evidence / "search-result.json"
     search = read(search_path) if search_path.exists() else {}
     metrics = result.get("solverMetrics") or {}
+    elapsed = metrics.get("totalElapsedMilliseconds")
+    time_boundary = elapsed is not None and elapsed >= manifest["searchBudgetMilliseconds"] - 1000
     ready = (code == 0 and result.get("status") == "Passed"
              and verification.get("restorationVerified") is True
              and verification.get("continuationVerified") is True
              and verification.get("nativeStateVerified") is True
              and metrics.get("boundary") != "TimeLimit"
              and metrics.get("turnLayerTimeBudgetStops", 0) == 0
+             and not time_boundary
              and search.get("comparisonQuality") is not None
              and search.get("rootContinuationStamp") is not None)
     checkpoint = verification.get("checkpoint") or {}
     return {
         "status": "comparable" if ready else "unavailable",
-        "reason": None if ready else result.get("error") or verification.get("reason")
+        "reason": None if ready else (f"search elapsed {elapsed:.0f} ms reached time boundary"
+                  if time_boundary else result.get("error") or verification.get("reason")
                   or f"exit={code} status={result.get('status')} restoration={verification.get('restorationVerified')} boundary={metrics.get('boundary')}",
         "identity": {
             "sourceSha256": digest(source), "checkpointId": checkpoint.get("checkpointId"),
@@ -146,13 +150,18 @@ def capture_generated(case, source, directory, manifest):
     search = read(evidence / "search-policy.json") if (evidence / "search-policy.json").exists() else None
     route = read(evidence / "route.json") if (evidence / "route.json").exists() else None
     metrics = result.get("solverMetrics") or {}
+    elapsed = metrics.get("totalElapsedMilliseconds")
+    time_boundary = elapsed is not None and elapsed >= manifest["searchBudgetMilliseconds"] - 1000
     ready = (code == 0 and result.get("status") == "Passed"
              and metrics.get("boundary") != "TimeLimit"
              and metrics.get("turnLayerTimeBudgetStops", 0) == 0
+             and not time_boundary
              and result.get("comparisonQuality") is not None)
     return {
         "status": "comparable" if ready else "unavailable",
-        "reason": None if ready else result.get("error") or f"exit={code} status={result.get('status')} boundary={metrics.get('boundary')}",
+        "reason": None if ready else (f"search elapsed {elapsed:.0f} ms reached time boundary"
+                  if time_boundary else result.get("error")
+                  or f"exit={code} status={result.get('status')} boundary={metrics.get('boundary')}",
         "identity": {"sourceSha256": digest(source),
                      "rootContinuationStamp": result.get("rootContinuationStamp"),
                      "catalogFingerprint": result.get("catalogFingerprint"), "policy": search},
