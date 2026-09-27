@@ -994,10 +994,8 @@ internal static partial class CombatSearchCoordinator
                     && opening[generatedIndex - 1].Kind == PlanActionKind.PlayCard)
                 {
                     PlanAction[] prefix = [.. opening.Take(generatedIndex - 1), opening[discardIndex]];
-                    int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                        - (int)passClock.ElapsedMilliseconds;
-                    long remainingNodes = passProfile.MaxExpandedNodes
-                        - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                    int remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                    long remainingNodes = passContext.RemainingNodes;
                     CombatBeamSolver builder = new(root, displayNames, battleDamage,
                         beamPolicy, cancellationToken, progressCallback, passProfile,
                         potionPolicyOverride: SolverPotionPolicy.Disabled, maximumPotionUses: 0);
@@ -1037,10 +1035,8 @@ internal static partial class CombatSearchCoordinator
                              .BuildOpeningLeadingTargetPrefixes(opening)
                              .DistinctBy(PowerPrefixKey).Take(4))
                 {
-                    int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                        - (int)passClock.ElapsedMilliseconds;
-                    long remainingNodes = passProfile.MaxExpandedNodes
-                        - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                    int remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                    long remainingNodes = passContext.RemainingNodes;
                     if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                         break;
                     SolverSearchProfile targetProfile = passProfile with
@@ -1066,10 +1062,8 @@ internal static partial class CombatSearchCoordinator
                                  .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
                                  .Take(1))
                     {
-                        remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                            - (int)passClock.ElapsedMilliseconds;
-                        remainingNodes = passProfile.MaxExpandedNodes
-                            - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                        remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                        remainingNodes = passContext.RemainingNodes;
                         if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile powerProfile = targetProfile with
@@ -1092,10 +1086,8 @@ internal static partial class CombatSearchCoordinator
                         foreach (PlanAction defensive in targetBuilder
                                      .BuildOpeningDefensiveFollowUps([.. prefix, power]))
                         {
-                            remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                                - (int)passClock.ElapsedMilliseconds;
-                            remainingNodes = passProfile.MaxExpandedNodes
-                                - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                            remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                            remainingNodes = passContext.RemainingNodes;
                             if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                                 break;
                             SolverSearchProfile defensiveProfile = powerProfile with
@@ -1136,10 +1128,8 @@ internal static partial class CombatSearchCoordinator
                                  .Where(action => PowerCardValuationModels.Registry.ContainsCardId(action.CardId!))
                                  .Take(2))
                     {
-                        int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                            - (int)passClock.ElapsedMilliseconds;
-                        long remainingNodes = passProfile.MaxExpandedNodes
-                            - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                        int remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                        long remainingNodes = passContext.RemainingNodes;
                         if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile deferredProfile = passProfile with
@@ -1177,10 +1167,8 @@ internal static partial class CombatSearchCoordinator
                     foreach (PlanAction setup in setups.Take(2))
                     {
                         PlanAction[] prefix = [attack, setup];
-                        int remainingMilliseconds = passProfile.SoftTimeBudgetMilliseconds
-                            - (int)passClock.ElapsedMilliseconds;
-                        long remainingNodes = passProfile.MaxExpandedNodes
-                            - (policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L);
+                        int remainingMilliseconds = passContext.RemainingSliceMilliseconds;
+                        long remainingNodes = passContext.RemainingNodes;
                         if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
                             break;
                         SolverSearchProfile openingProfile = passProfile with

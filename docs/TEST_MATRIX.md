@@ -9,6 +9,7 @@
 - `SearchPassResult` 接管轮次停止状态后，#24 同根 SearchOnly 请求 `7ba221e6f4ef4d48926992768476e17b` Passed，实例已清理；与上一条的预计战损同为 1 HP，请求总展开 157004、转移 460496、选择分支 21493 均一致。这只覆盖普通返回路径，不代替接管或无胜利升级验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
 - 无胜利升级改用 `SearchPassContext` / `SearchPassResult` 后，#24 `start` 严格恢复与 SearchOnly 请求 `9bcf08de582f4c67a0b6ea61cd03eba0` Passed。非固定预算 110 秒、首轮节点帽 5000；实际日志 `NO_VICTORY_ESCALATION start attempt=1 beam=135->270 nodes=5000->10000`，随后 `won=False improved=False`，保留首轮路线，实例已清理。60 秒配置的诊断请求没有进入升级，因为首轮约 29 秒、下一轮估计约 58 秒超过剩余时间；未把它算作升级路径验证。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
 - 主搜索改为直接消费 `SearchPassContext` 后，#24 `start` 严格恢复与 15 秒配置的 SearchOnly 请求 `6e9c6c8bfa854a39bd610037c42fb536` Passed，实例已清理；这是执行路径检查，不是整批逐位对照。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`；未运行 Linux 门禁。
+- 主 Pass 内六处前缀补搜预算读取迁入账本后，Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=217`。上一条短场景没有触发这六处前缀通道；此边界的行为对照留到 P2 收口的固定语料，本条只记录构建与结构证据。按用户要求未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

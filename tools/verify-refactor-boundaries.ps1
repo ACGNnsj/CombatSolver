@@ -51,6 +51,10 @@ $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Se
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
 }
+if ($coordinatorSource.Contains('- (int)passClock.ElapsedMilliseconds') -or
+    $coordinatorSource.Contains('policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L')) {
+    $violations.Add('Primary pass prefix budgets bypass the request budget ledger')
+}
 if ($coordinatorSource.Contains('SearchRequestWorkTotals requestWorkTotals = new()')) {
     $violations.Add('Search coordinator creates request work totals outside the budget ledger')
 }

@@ -17,6 +17,10 @@ done
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi
+if rg -Fq 'policy.RequestWorkTotals?.Snapshot().ExpandedNodes ?? 0L' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   rg -Fq -- '- (int)passClock.ElapsedMilliseconds' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Primary pass prefix budgets bypass the request budget ledger")
+fi
 if rg -Fq 'SearchRequestWorkTotals requestWorkTotals = new()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator creates request work totals outside the budget ledger")
 fi

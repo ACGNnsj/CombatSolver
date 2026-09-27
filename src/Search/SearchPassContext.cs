@@ -15,4 +15,8 @@ internal sealed record SearchPassContext(
     Action<SolverResult>? InterimResultCallback)
 {
     internal long RemainingMilliseconds => Budget.RemainingMilliseconds(Profile, Clock);
+
+    internal int RemainingSliceMilliseconds => Budget.RemainingPassMillisecondsForSlice(Profile, Clock);
+
+    internal long RemainingNodes => Budget.RemainingNodes(Profile);
 }

@@ -27,4 +27,7 @@ internal sealed class SearchBudgetLedger
 
     internal long RemainingMilliseconds(SolverSearchProfile profile, Stopwatch clock)
         => profile.SoftTimeBudgetMilliseconds - clock.ElapsedMilliseconds;
+
+    internal int RemainingPassMillisecondsForSlice(SolverSearchProfile profile, Stopwatch clock)
+        => profile.SoftTimeBudgetMilliseconds - (int)clock.ElapsedMilliseconds;
 }
