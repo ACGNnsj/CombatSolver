@@ -9,6 +9,7 @@ internal enum ContinuationPurpose
     NoCostOpening,
     TurnEndChoice,
     TurnEndChoiceShorterOpening,
+    TurnBoundaryRescue,
 }
 
 internal interface IFrontierContinuationSource
@@ -45,7 +46,8 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
         int maximumMilliseconds,
         int reserveMilliseconds,
         SolverPotionPolicy? potionPolicyOverride,
-        Func<(int? Maximum, int? Minimum)> potionBounds)
+        Func<(int? Maximum, int? Minimum)> potionBounds,
+        string? optionalPotionDiagnostic = null)
     {
         foreach (PlanAction[] prefix in source.Enumerate())
         {
@@ -62,14 +64,25 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
                 window.Limit(context.Policy.Profile, maximumNodes, maximumMilliseconds,
                     reserveMilliseconds), potionPolicyOverride, maximumPotionUses,
                 minimumPotionUses);
-            SolverResult result = new CombatBeamSolver(
+            CombatBeamSolver solver = new(
                 context.Root, context.DisplayNames, context.BattleDamage,
                 context.Policy, context.CancellationToken, context.ProgressCallback,
                 request.Profile, potionPolicyOverride: request.PotionPolicyOverride,
                 maximumPotionUses: request.MaximumPotionUses,
                 fixedPrefixActions: request.Prefix,
                 resetFixedPrefixSchedulingBaseline: true,
-                minimumPotionUses: request.MinimumPotionUses).Solve();
+                minimumPotionUses: request.MinimumPotionUses);
+            SolverResult result;
+            try
+            {
+                result = solver.Solve();
+            }
+            catch (PotionPolicyUnsatisfiedException) when (optionalPotionDiagnostic != null)
+            {
+                context.Policy.Diagnostics.Info(
+                    $"[CombatSolver/Test] {optionalPotionDiagnostic} qualified=false");
+                continue;
+            }
             yield return new(request, result);
         }
     }

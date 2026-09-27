@@ -246,31 +246,24 @@ internal static partial class CombatSearchCoordinator
             && (rescueAfterDeath || refineNearZeroLoss))
         {
             // Revisit distinct first-turn states while the shared request still has time and nodes.
-            foreach (PlanAction[] firstTurn in firstTurnAnchors
-                         .DistinctBy(PowerPrefixKey).Take(8))
+            foreach (ContinuationSearchOutcome outcome in
+                     new FrontierContinuationScheduler(context).Run(
+                         new TurnBoundaryContinuationSource(firstTurnAnchors, PowerPrefixKey),
+                         ContinuationPurpose.TurnBoundaryRescue,
+                         minimumRemainingMilliseconds: 5_000,
+                         maximumNodes: 80_000,
+                         maximumMilliseconds: 20_000,
+                         reserveMilliseconds: 2_000,
+                         potionPolicyOverride: rescueAfterDeath
+                             ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
+                         potionBounds: () => (rescueAfterDeath
+                             ? MaximumSmartPotionUses(root, policy, potionFreeWon: false,
+                                 potionFreeHpDeficit: 0)
+                             : 0, null),
+                         optionalPotionDiagnostic: "TURN_BOUNDARY_RESCUE"))
             {
-                if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
-                    continue;
-                SearchBudgetWindow rescueWindow = ledger.RequestWindow(policy.Profile);
-                if (!rescueWindow.CanStart(5_000))
-                    break;
-                SolverSearchProfile rescueProfile = rescueWindow.Limit(policy.Profile,
-                    maximumNodes: 80_000, maximumMilliseconds: 20_000,
-                    reserveMilliseconds: 2_000);
-                SolverResult? rescue = SolveOptionalPotionPosterior(
-                    new CombatBeamSolver(root, displayNames, battleDamage,
-                        policy, cancellationToken, progressCallback, rescueProfile,
-                        potionPolicyOverride: rescueAfterDeath
-                            ? SolverPotionPolicy.RequireAtLeastOne : SolverPotionPolicy.Disabled,
-                        maximumPotionUses: rescueAfterDeath
-                            ? MaximumSmartPotionUses(root, policy, potionFreeWon: false,
-                                potionFreeHpDeficit: 0)
-                            : 0,
-                        fixedPrefixActions: firstTurn,
-                        resetFixedPrefixSchedulingBaseline: true),
-                    policy, "TURN_BOUNDARY_RESCUE");
-                if (rescue == null)
-                    continue;
+                PlanAction[] firstTurn = outcome.Request.Prefix;
+                SolverResult rescue = outcome.Result;
                 policy.Diagnostics.Info($"[CombatSolver/Test] TURN_BOUNDARY_RESCUE " +
                     $"won={IsCompleteVictory(rescue)} hp_lost={rescue.ProjectedBattleHpLost} " +
                     $"potions={rescue.PotionCount} first_turn={string.Join('+', firstTurn.Select(action => action.CardId))}");

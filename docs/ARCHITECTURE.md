@@ -20,6 +20,8 @@ P3 前沿续搜首先迁移双药开局模式：`OpeningPotionPairContinuationSo
 
 回合末选牌模式的备选 EndTurn 前缀由 `TurnEndChoiceContinuationSource` 生成；删去一次回收与紧随出牌后的短前缀由单前缀来源传入。两处继续由原模式检查选牌身份和结果改善，调度器只负责原请求额度及固定前缀搜索。
 
+回合边界锚点来源沿用原 `PowerPrefixKey` 去重、最多八个原序锚点和 EndTurn 过滤；调度器只对该模式的 `PotionPolicyUnsatisfiedException` 保留原诊断并继续下一候选，其他异常仍传播。
+
 `SearchBudgetWindow` 在一次准入时冻结请求剩余时间与节点，并按传入的既有上限和预留量派生单成员 profile。调用者仍决定本模式的阈值与候选合法性；双药开局补搜先使用该窗口。
 
 强制用药开局补搜的发现、续搜和次回合换序成员也在各自原预算读取点取得 `SearchBudgetWindow`；窗口只代替原时间／节点切片公式，不改变三种成员的准入阈值和派发顺序。

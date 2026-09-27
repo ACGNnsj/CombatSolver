@@ -70,7 +70,8 @@ foreach ($relative in @('src/Search/FrontierContinuationScheduler.cs',
         'src/Search/EarlierCopyDelayedDamageContinuationSource.cs',
         'src/Search/OpeningNoCostContinuationSource.cs',
         'src/Search/TurnEndChoiceContinuationSource.cs',
-        'src/Search/SinglePrefixContinuationSource.cs')) {
+        'src/Search/SinglePrefixContinuationSource.cs',
+        'src/Search/TurnBoundaryContinuationSource.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Frontier continuation component missing: $relative")
     }
@@ -122,6 +123,10 @@ if (-not $postSearchSource.Contains('OpeningNoCostContinuationSource source = ne
 if (-not $postSearchSource.Contains('new TurnEndChoiceContinuationSource(') -or
     -not $postSearchSource.Contains('new SinglePrefixContinuationSource(')) {
     $violations.Add('Turn-end choice posterior bypasses the frontier continuation scheduler')
+}
+if (-not $postSearchSource.Contains('new TurnBoundaryContinuationSource(') -or
+    -not $continuationSchedulerSource.Contains('optionalPotionDiagnostic')) {
+    $violations.Add('Turn-boundary rescue bypasses the frontier continuation scheduler')
 }
 if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger.RequestWindow(policy.Profile);') -or
     -not $postSearchSource.Contains('SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);') -or
