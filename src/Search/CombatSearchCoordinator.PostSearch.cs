@@ -252,15 +252,12 @@ internal static partial class CombatSearchCoordinator
             {
                 if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
                     continue;
-                int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                SearchBudgetWindow rescueWindow = ledger.RequestWindow(policy.Profile);
+                if (!rescueWindow.CanStart(5_000))
                     break;
-                SolverSearchProfile rescueProfile = policy.Profile with
-                {
-                    MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
-                    SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
-                };
+                SolverSearchProfile rescueProfile = rescueWindow.Limit(policy.Profile,
+                    maximumNodes: 80_000, maximumMilliseconds: 20_000,
+                    reserveMilliseconds: 2_000);
                 SolverResult? rescue = SolveOptionalPotionPosterior(
                     new CombatBeamSolver(root, displayNames, battleDamage,
                         policy, cancellationToken, progressCallback, rescueProfile,
@@ -296,18 +293,15 @@ internal static partial class CombatSearchCoordinator
                     {
                         if (firstTurn.LastOrDefault()?.Kind != PlanActionKind.EndTurn)
                             continue;
-                        int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                        long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                        if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                        SearchBudgetWindow prefixWindow = ledger.RequestWindow(policy.Profile);
+                        if (!prefixWindow.CanStart(5_000))
                             break;
                         PlanAction[] combinedPrefix = [freeAction, .. firstTurn];
                         if (!NewPrefixBuilder().CanReplayOpeningPrefix(combinedPrefix))
                             continue;
-                        SolverSearchProfile prefixProfile = policy.Profile with
-                        {
-                            MaxExpandedNodes = (int)Math.Min(30_000, remainingNodes),
-                            SoftTimeBudgetMilliseconds = Math.Min(10_000, remainingMilliseconds - 2_000),
-                        };
+                        SolverSearchProfile prefixProfile = prefixWindow.Limit(policy.Profile,
+                            maximumNodes: 30_000, maximumMilliseconds: 10_000,
+                            reserveMilliseconds: 2_000);
                         SolverResult freeRescue = new CombatBeamSolver(root, displayNames,
                             battleDamage, policy, cancellationToken, progressCallback,
                             prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
@@ -330,16 +324,12 @@ internal static partial class CombatSearchCoordinator
                             foreach (PlanAction nextAttack in NewPrefixBuilder()
                                          .BuildOpeningOffensiveCardVariantsAfterPrefix(nextTurnPrefix).Take(3))
                             {
-                                remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                                remainingNodes = ledger.RemainingNodes(policy.Profile);
-                                if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                                SearchBudgetWindow continuationWindow = ledger.RequestWindow(policy.Profile);
+                                if (!continuationWindow.CanStart(5_000))
                                     break;
-                                SolverSearchProfile continuationProfile = prefixProfile with
-                                {
-                                    MaxExpandedNodes = (int)Math.Min(30_000, remainingNodes),
-                                    SoftTimeBudgetMilliseconds = Math.Min(
-                                        10_000, remainingMilliseconds - 2_000),
-                                };
+                                SolverSearchProfile continuationProfile = continuationWindow.Limit(
+                                    prefixProfile, maximumNodes: 30_000, maximumMilliseconds: 10_000,
+                                    reserveMilliseconds: 2_000);
                                 SolverResult continuation = new CombatBeamSolver(root, displayNames,
                                     battleDamage, policy, cancellationToken, progressCallback,
                                     continuationProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
@@ -394,15 +384,12 @@ internal static partial class CombatSearchCoordinator
             {
                 foreach (PlanAction[] prefix in builder.BuildOpeningNoCostPrefixes())
                 {
-                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                    if (remainingMilliseconds <= 5_000 || remainingNodes <= 0)
+                    SearchBudgetWindow prefixWindow = ledger.RequestWindow(policy.Profile);
+                    if (!prefixWindow.CanStart(5_000))
                         break;
-                    SolverSearchProfile prefixProfile = policy.Profile with
-                    {
-                        MaxExpandedNodes = (int)Math.Min(40_000, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(12_000, remainingMilliseconds - 2_000),
-                    };
+                    SolverSearchProfile prefixProfile = prefixWindow.Limit(policy.Profile,
+                        maximumNodes: 40_000, maximumMilliseconds: 12_000,
+                        reserveMilliseconds: 2_000);
                     SolverResult candidate = new CombatBeamSolver(root, displayNames,
                         battleDamage, policy, cancellationToken, progressCallback,
                         prefixProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
@@ -443,21 +430,18 @@ internal static partial class CombatSearchCoordinator
             PlanAction[] prefix = selected.BestNode.Actions
                 .TakeWhile(action => action.Turn < root.StartTurnNumber + 3)
                 .ToArray();
-            int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-            long remainingNodes = ledger.RemainingNodes(policy.Profile);
+            SearchBudgetWindow refinementWindow = ledger.RequestWindow(policy.Profile);
             if (prefix.LastOrDefault()?.Kind == PlanActionKind.EndTurn
                 && prefix.All(action => action.Kind != PlanActionKind.UsePotion)
-                && remainingMilliseconds > 20_000 && remainingNodes > 0)
+                && refinementWindow.CanStart(20_000))
             {
                 CombatBeamSolver prefixBuilder = new(root, displayNames, battleDamage,
                     policy, cancellationToken, progressCallback, policy.Profile,
                     potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
                     maximumPotionUses: selected.ExplicitPotionCount);
-                SolverSearchProfile refinementProfile = policy.Profile with
-                {
-                    MaxExpandedNodes = (int)Math.Min(50_000, remainingNodes),
-                    SoftTimeBudgetMilliseconds = Math.Min(15_000, remainingMilliseconds - 2_000),
-                };
+                SolverSearchProfile refinementProfile = refinementWindow.Limit(policy.Profile,
+                    maximumNodes: 50_000, maximumMilliseconds: 15_000,
+                    reserveMilliseconds: 2_000);
                 SolverResult? refined = SolveOptionalPotionPosterior(
                     new CombatBeamSolver(root, displayNames, battleDamage, policy,
                         cancellationToken, progressCallback, refinementProfile,
@@ -481,13 +465,12 @@ internal static partial class CombatSearchCoordinator
                 PlanAction[] fourthTurn = selected.BestNode.Actions
                     .TakeWhile(action => action.Turn <= root.StartTurnNumber + 3)
                     .ToArray();
-                remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                remainingNodes = ledger.RemainingNodes(policy.Profile);
+                SearchBudgetWindow followUpWindow = ledger.RequestWindow(policy.Profile);
                 if (fourthTurn.Length > prefix.Length + 1
                     && fourthTurn.Last().Kind == PlanActionKind.EndTurn
                     && fourthTurn.All(action => action.Kind != PlanActionKind.UsePotion)
                     && fourthTurn[^2].Kind == PlanActionKind.PlayCard
-                    && remainingMilliseconds > 18_000 && remainingNodes > 0)
+                    && followUpWindow.CanStart(18_000))
                 {
                     PlanAction[] beforeEndTurn = fourthTurn[..^1];
                     PlanAction? followUp = prefixBuilder
@@ -496,16 +479,13 @@ internal static partial class CombatSearchCoordinator
                     if (followUp != null)
                     {
                         PlanAction[] freePrefix = [.. beforeEndTurn, followUp, fourthTurn[^1]];
-                        remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                        remainingNodes = ledger.RemainingNodes(policy.Profile);
-                        if (remainingMilliseconds > 18_000 && remainingNodes > 0
+                        SearchBudgetWindow freeWindow = ledger.RequestWindow(policy.Profile);
+                        if (freeWindow.CanStart(18_000)
                             && prefixBuilder.CanReplayOpeningPrefix(freePrefix))
                         {
-                            SolverSearchProfile freeProfile = policy.Profile with
-                            {
-                                MaxExpandedNodes = (int)Math.Min(50_000, remainingNodes),
-                                SoftTimeBudgetMilliseconds = Math.Min(15_000, remainingMilliseconds - 2_000),
-                            };
+                            SolverSearchProfile freeProfile = freeWindow.Limit(policy.Profile,
+                                maximumNodes: 50_000, maximumMilliseconds: 15_000,
+                                reserveMilliseconds: 2_000);
                             SolverResult? freeRefined = SolveOptionalPotionPosterior(
                                 new CombatBeamSolver(root, displayNames, battleDamage, policy,
                                     cancellationToken, progressCallback, freeProfile,
@@ -567,15 +547,12 @@ internal static partial class CombatSearchCoordinator
                              .Where(action => CombatBeamSolver.TurnEndChoiceKey(action) != chosenKey)
                              .Take(2))
                 {
-                    int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                    long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                    if (remainingMilliseconds <= 25_000 || remainingNodes <= 0)
+                    SearchBudgetWindow choiceWindow = ledger.RequestWindow(policy.Profile);
+                    if (!choiceWindow.CanStart(25_000))
                         break;
-                    SolverSearchProfile choiceProfile = policy.Profile with
-                    {
-                        MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
-                        SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
-                    };
+                    SolverSearchProfile choiceProfile = choiceWindow.Limit(policy.Profile,
+                        maximumNodes: 80_000, maximumMilliseconds: 20_000,
+                        reserveMilliseconds: 2_000);
                     SolverResult candidate = new CombatBeamSolver(root, displayNames,
                         battleDamage, policy, cancellationToken, progressCallback,
                         choiceProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
@@ -617,15 +594,12 @@ internal static partial class CombatSearchCoordinator
                                 == CombatBeamSolver.TurnEndChoiceKey(selectedEndTurn));
                         if (endTurn == null)
                             continue;
-                        int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                        long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                        if (remainingMilliseconds <= 25_000 || remainingNodes <= 0)
+                        SearchBudgetWindow shorterWindow = ledger.RequestWindow(policy.Profile);
+                        if (!shorterWindow.CanStart(25_000))
                             break;
-                        SolverSearchProfile shorterProfile = policy.Profile with
-                        {
-                            MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
-                            SoftTimeBudgetMilliseconds = Math.Min(20_000, remainingMilliseconds - 2_000),
-                        };
+                        SolverSearchProfile shorterProfile = shorterWindow.Limit(policy.Profile,
+                            maximumNodes: 80_000, maximumMilliseconds: 20_000,
+                            reserveMilliseconds: 2_000);
                         SolverResult candidate = new CombatBeamSolver(root, displayNames,
                             battleDamage, policy, cancellationToken, progressCallback,
                             shorterProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
@@ -670,15 +644,12 @@ internal static partial class CombatSearchCoordinator
             foreach (PlanAction[] prefix in copyBuilder
                          .BuildEarlierCopyPotionDelayedDamagePrefixes(selected.BestNode.Actions))
             {
-                int remainingMilliseconds = ledger.RemainingRequestMilliseconds;
-                long remainingNodes = ledger.RemainingNodes(policy.Profile);
-                if (remainingMilliseconds <= 20_000 || remainingNodes <= 0)
+                SearchBudgetWindow copyWindow = ledger.RequestWindow(policy.Profile);
+                if (!copyWindow.CanStart(20_000))
                     break;
-                SolverSearchProfile copyProfile = policy.Profile with
-                {
-                    MaxExpandedNodes = (int)Math.Min(80_000, remainingNodes),
-                    SoftTimeBudgetMilliseconds = Math.Min(18_000, remainingMilliseconds - 2_000),
-                };
+                SolverSearchProfile copyProfile = copyWindow.Limit(policy.Profile,
+                    maximumNodes: 80_000, maximumMilliseconds: 18_000,
+                    reserveMilliseconds: 2_000);
                 SolverResult candidate = new CombatBeamSolver(root, displayNames,
                     battleDamage, policy, cancellationToken, progressCallback,
                     copyProfile, potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,

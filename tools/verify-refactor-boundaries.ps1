@@ -101,6 +101,9 @@ if (-not $postSearchSource.Contains('SearchBudgetWindow discoveryWindow = ledger
     -not $postSearchSource.Contains('SearchBudgetWindow reorderedWindow = ledger.RequestWindow(policy.Profile);')) {
     $violations.Add('Forced potion opening rescue bypasses the request budget window')
 }
+if ($postSearchSource.Contains('MaxExpandedNodes = (int)Math.Min(')) {
+    $violations.Add('Post-search member budget bypasses the request budget window')
+}
 foreach ($pass in @('RunForcedPotionOpeningRescue', 'RunTurnBoundaryRescue',
         'RunZeroCostOpeningRescue', 'RunMidCombatRefinement',
         'RunTurnEndChoicePosterior', 'RunEarlierCopyDelayedDamage')) {
