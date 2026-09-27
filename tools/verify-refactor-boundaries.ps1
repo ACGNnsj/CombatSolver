@@ -50,6 +50,9 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchPa
 if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -PathType Leaf)) {
     $violations.Add('Search request pipeline missing')
 }
+if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -PathType Leaf)) {
+    $violations.Add('Post-search passes missing')
+}
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
 if (-not $coordinatorSource.Contains('SearchBudgetLedger ledger = new(')) {
     $violations.Add('Search coordinator does not own a request budget ledger')
@@ -70,6 +73,12 @@ if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(')) {
 if (-not $coordinatorSource.Contains('SearchPassResult RunSearchPass(SearchPassContext passContext)') -or
     -not $coordinatorSource.Contains('new SearchRequestPipeline(requestContext, RunSearchPass).Run()')) {
     $violations.Add('Primary search pass does not consume the search pass context')
+}
+$postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
+if (-not $coordinatorSource.Contains('RunEarlyPotionPairRescue(postContext, selected)') -or
+    -not $postSearchSource.Contains('RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)') -or
+    $coordinatorSource.Contains('EARLY_POTION_PAIR prefix=')) {
+    $violations.Add('Early potion pair rescue is not a post-search pass')
 }
 $pipelineSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestPipeline.cs') -Raw
 if (-not $pipelineSource.Contains('CombatSearchCoordinator.EscalateSearchWhenNoVictory(') -or

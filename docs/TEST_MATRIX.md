@@ -14,6 +14,7 @@
 - 开局能力／夜魇和宽度／新颖性成员改用 Pass 上下文后，#81 同根 SearchOnly 请求 `9af903cb5fdb4b1f941ea892863b7082` Passed，实例已清理。与 `baseline-0471/report-81` 同为 VeryHigh、Beam 135、25,000 节点、DOP 1、110 秒固定预算；动作与搜索结果仅有运行环境的 `savedNoGcRegionEnabled` 标记不同，归一化后的 `solverMetrics` 和执行政策无差异。先前请求漏传预设而用了包内 Beam 300，属于不可比较的诊断运行，不计入回归。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 - 三个补充审计入口共用 Pass 上下文后，#81 同根同政策 SearchOnly 请求 `b00a458217a840b8a4be98e773a75242` Passed，两层 Smart 药水梯度均执行，实例已清理。与 `baseline-0471/report-81` 的执行政策、`search-result.json` 全字段及剔除时间／分配／GC 的 `solverMetrics` 无差异。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
 - Smart 药水梯度的层转移与回收开销改由账本读取后，#81 同根同政策 SearchOnly 请求 `65baeec98b724b2daa8ab9c2ea8894b6` Passed，实例已清理；与 `baseline-0471/report-81` 的执行政策、`search-result.json` 全字段及剔除时间／分配／GC 的 `solverMetrics` 无差异。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=218`；未运行 Linux 门禁。
+- 双药死亡路线补搜移入 `PostSearch` 后，#17 `start` 同根 SearchOnly 请求 `7da93842f7d340358962d6c2d7267cd5`（60 秒）及 `cc2b89675b0e46ec80b58809d0d7cd12`（120 秒）均 Passed，实例清理；两次都是 5,000 节点、DOP 1、固定预算，所选仍为死亡路线，日志没有 `EARLY_POTION_PAIR`。因此这两份只证明请求通过，**不证明双药候选派发等价**；不能拿它们与历史 180 秒 / DOP 8 的双药胜利数值对照。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=219`；未运行 Linux 门禁。
 
 ## 策略重构 P0/P1 固定根对照（2026-09-27）
 

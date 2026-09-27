@@ -15,6 +15,7 @@ done
 [[ -f "$repository_root/src/Search/SearchPassContext.cs" ]] || violations+=("Search pass context missing")
 [[ -f "$repository_root/src/Search/SearchPassResult.cs" ]] || violations+=("Search pass result missing")
 [[ -f "$repository_root/src/Search/SearchRequestPipeline.cs" ]] || violations+=("Search request pipeline missing")
+[[ -f "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ]] || violations+=("Post-search passes missing")
 if ! rg -Fq 'SearchBudgetLedger ledger = new(' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Search coordinator does not own a request budget ledger")
 fi
@@ -34,6 +35,11 @@ fi
 if ! rg -Fq 'SearchPassResult RunSearchPass(SearchPassContext passContext)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
    ! rg -Fq 'new SearchRequestPipeline(requestContext, RunSearchPass).Run()' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary search pass does not consume the search pass context")
+fi
+if ! rg -Fq 'RunEarlyPotionPairRescue(postContext, selected)' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   ! rg -Fq 'RunEarlyPotionPairRescue(SearchPassContext context, SolverResult selected)' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   rg -Fq 'EARLY_POTION_PAIR prefix=' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Early potion pair rescue is not a post-search pass")
 fi
 if ! rg -Fq 'CombatSearchCoordinator.EscalateSearchWhenNoVictory(' "$repository_root/src/Search/SearchRequestPipeline.cs" ||
    ! rg -Fq '_context,' "$repository_root/src/Search/SearchRequestPipeline.cs"; then
