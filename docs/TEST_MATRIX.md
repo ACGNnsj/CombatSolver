@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 类型化收益证据（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#101 首次同根请求在写结果前以 `-1073741819` 退出，证据 `.local/strategy-refactor-p6/typed-payoff-101/launcher-result.json`，无崩溃堆栈，原因未定位；启动器清理了实例。同源码同配置重试 Passed，根戳记、执行政策、完整动作、冻结质量与 `.local/strategy-refactor-p6/semantic-copy-101` 全同，均为胜利、58 战损／1 药，证据 `.local/strategy-refactor-p6/typed-payoff-101-retry`。重试进程日志中出现 Godot 的 `Invalid Task ID` 与对象终结器断开信号错误，但仍完成请求，无法据此归因首次崩溃。Linux 门禁未运行。
+
 ## 策略重构 P6 复制效果提名（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#101 `a422c1c56022446c85f6ce00962019c4` 的 `combat_start` 在 VeryHigh／180 秒／DOP8 下严格恢复并 Passed；与 `.local/strategy-refactor-p6/horizon-101` 相比，根戳记、执行政策、完整动作与冻结质量全同，均为胜利、58 战损／1 药、第 16 回合结束。新证据 `.local/strategy-refactor-p6/semantic-copy-101`；实例由启动器清理。尚无新增优化量，未运行 Linux 门禁。

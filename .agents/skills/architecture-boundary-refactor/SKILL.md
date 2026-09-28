@@ -38,7 +38,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - P7a 单项 Beam 权重扰动由 Testing 的请求宿主校验，Runtime 捕获为不可变 profile；Search 不读取请求宿主或运行中设置。普通请求不注入扰动，敏感度结果只用于中途保路评估，不改变终局或状态等价。
 - P7b 生成药水链从合法早期前缀模拟识别零成本生成药，可在已选首张牌后加入合法进攻跟进，最多提名两条固定前缀并经 `FrontierContinuationScheduler` 消耗请求剩余额度。来源标记属于 `SimulatedCombatState`，Search 只读该分支事实；强制用药仍由原政策校验，终局比较保持单一权威入口。
 - 首回合计划发现数量由请求级 `SearchPlanDiscoveryState` 在审计与 `PostSearch` 间共享；常规后验结束后才探测第二回合可打能力并用剩余账本续搜，未改善时保留先前完整结果。不得把该成员提前到 Smart 无药基线之前。
-- `PlanHorizonPolicy` 只延长已实际打出收益牌的显式计划成员，最多一个当前牌堆周期；普通、未兑现计划及战斗状态键不变。阈值合同不能代替长线请求的实际触发证据。
+- `PlanHorizonPolicy` 只延长类型化收益证据已在模拟分支兑现的显式计划成员，最多一个当前牌堆周期；普通、未兑现计划及战斗状态键不变。现有复制/能力前缀先保持原后续出牌证据，免费药与已登记能力收益须有实际提名和触发证据；阈值合同不能代替长线请求的实际触发证据。
 - 主 Pass 的固定前缀成员从 `SearchPassContext.SliceWindow` 取得轮次时间与请求节点；窗口仍按原顺序先读时间、后读节点。具体模式保留原准入阈值、profile 变体和候选顺序。
 - 夜魇开局成员通过 `SearchBudgetLedger.ProfileWindow` 取得请求剩余节点和配置 profile 的原时间帽，不把它改成轮次剩余时间。
 - P3 固定前缀迁移按模式逐个进行。双药开局的两种药水槽顺序由 `OpeningPotionPairContinuationSource` 产出，`FrontierContinuationScheduler` 负责用途／完整前缀去重、请求窗口、前缀合法性及求解器派发；模式仍负责原结果比较和诊断标签。

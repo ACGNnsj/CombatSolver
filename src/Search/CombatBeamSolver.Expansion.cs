@@ -266,7 +266,7 @@ internal sealed partial class CombatBeamSolver
                 node.CombatProgress.TurnsWithoutProgress,
                 noProgressLimit,
                 deckCycleTurns,
-                plan.CountRealizedPayoffPlays(node) > 0))
+                plan.CountRealizedPayoffs(node) > 0))
             return false;
         return true;
     }

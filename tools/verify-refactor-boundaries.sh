@@ -136,6 +136,12 @@ if ! rg -Fq 'ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)' "$repositor
    ! rg -Fq 'HasPlayableChoiceEffect(' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
     violations+=("Plan copy discovery must follow registered choice semantics")
 fi
+if ! rg -Fq 'PlanPayoffEvidenceKind' "$repository_root/src/Search/PlanCommitment.cs" ||
+   ! rg -Fq 'FreePotionUsed' "$repository_root/src/Search/PlanCommitment.cs" ||
+   ! rg -Fq 'RegisteredPowerBenefit' "$repository_root/src/Search/PlanCommitment.cs" ||
+   rg -Fq 'PayoffCardId' "$repository_root/src/Search/PlanCommitment.cs"; then
+    violations+=("Plan payoff evidence must be typed and shared across mechanisms")
+fi
 if ! rg -Fq 'RunDeferredPowerPlanSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'EarlyTurnScoutDepth = 1' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Deferred power plan must use the ordered post-search continuation")

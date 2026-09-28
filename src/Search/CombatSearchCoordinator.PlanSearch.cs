@@ -29,7 +29,7 @@ internal static partial class CombatSearchCoordinator
                      .OrderByDescending(priority => priority))
         {
             PlanCommitment[][] payoffGroups = plans.Where(plan => plan.Priority == priority)
-                .GroupBy(plan => plan.PayoffCardId)
+                .GroupBy(plan => plan.Payoff.SourceId)
                 .Select(group => group.ToArray())
                 .ToArray();
             for (int rank = 0; scheduled.Count < MaximumPlanCommitments; rank++)
@@ -85,7 +85,7 @@ internal static partial class CombatSearchCoordinator
                 selected = candidate;
             policy.Diagnostics.Info(
                 $"[CombatSolver/Test] PLAN_SEARCH_MEMBER kind={plan.Kind} " +
-                $"payoff={plan.PayoffCardId} potion={plan.UsesPotion} " +
+                $"payoff={plan.Payoff.SourceId} potion={plan.UsesPotion} " +
                 $"prefix={string.Join(',', plan.Prefix.Select(action =>
                     action.Kind == PlanActionKind.UsePotion
                         ? $"P:{action.PotionId}" + (action.Choice is { Cards.Count: > 0 } potionChoice
@@ -164,7 +164,9 @@ internal static partial class CombatSearchCoordinator
                 continue;
             PlanAction[] prefix = [.. frontier.Actions, power];
             plan = new(PlanCommitmentKind.PowerCycle, prefix,
-                context.Root.StartTurnNumber, power.CardId!,
+                context.Root.StartTurnNumber,
+                new PlanPayoffEvidence(PlanPayoffEvidenceKind.CardPlayed,
+                    power.CardId!, context.Root.StartTurnNumber),
                 UsesPotion: false, Priority: 1);
             break;
         }
@@ -197,7 +199,7 @@ internal static partial class CombatSearchCoordinator
             context.Root, context.Policy, candidate, baseline);
         context.Policy.Diagnostics.Info(
             $"[CombatSolver/Test] DEFERRED_POWER_PLAN frontiers={inspected} " +
-            $"payoff={plan.PayoffCardId} won={IsCompleteVictory(candidate)} " +
+            $"payoff={plan.Payoff.SourceId} won={IsCompleteVictory(candidate)} " +
             $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} " +
             $"expanded={candidate.ExpandedNodes} selected={improved}");
         return improved ? candidate : baseline;
@@ -226,7 +228,11 @@ internal static partial class CombatSearchCoordinator
                 || !seen.Add(PowerPrefixKey(prefix)))
                 return;
             bool usesPotion = prefix.Any(action => action.Kind == PlanActionKind.UsePotion);
-            plans.Add(new(kind, prefix, prefix[0].Turn, payoff, usesPotion, priority));
+            plans.Add(new(kind, prefix, prefix[0].Turn,
+                new PlanPayoffEvidence(PlanPayoffEvidenceKind.CardPlayed,
+                    payoff, kind == PlanCommitmentKind.PowerCycle
+                        ? prefix[0].Turn : checked(prefix[0].Turn + 1)),
+                usesPotion, priority));
             perPayoff[(kind, payoff)] = perPayoff.GetValueOrDefault((kind, payoff)) + 1;
         }
 

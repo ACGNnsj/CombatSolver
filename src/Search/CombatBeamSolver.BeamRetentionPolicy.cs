@@ -1815,7 +1815,7 @@ internal sealed partial class CombatBeamSolver
                 return;
 
             SearchNode[] representatives = pool
-                .Select(node => (Node: node, Progress: plan.CountRealizedPayoffPlays(node)))
+                .Select(node => (Node: node, Progress: plan.CountRealizedPayoffs(node)))
                 .Where(item => item.Progress > 0)
                 .GroupBy(item => item.Progress)
                 .OrderByDescending(group => group.Key)
@@ -1826,10 +1826,10 @@ internal sealed partial class CombatBeamSolver
             {
                 if (ContainsReference(selected, candidate))
                     continue;
-                int candidateProgress = plan.CountRealizedPayoffPlays(candidate);
+                int candidateProgress = plan.CountRealizedPayoffs(candidate);
                 int replaceIndex = selected.FindLastIndex(node =>
                     !ContainsReference(required, node)
-                    && plan.CountRealizedPayoffPlays(node) < candidateProgress);
+                    && plan.CountRealizedPayoffs(node) < candidateProgress);
                 if (replaceIndex < 0)
                     continue;
                 selected[replaceIndex] = candidate;

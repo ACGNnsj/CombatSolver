@@ -190,6 +190,13 @@ if (-not $planSearchSource.Contains('ContainsChoiceEffectInRoot(PlanChoiceEffect
     -not $openingSource.Contains('HasPlayableChoiceEffect(')) {
     $violations.Add('Plan copy discovery must follow registered choice semantics')
 }
+$planCommitmentSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/PlanCommitment.cs') -Raw
+if (-not $planCommitmentSource.Contains('PlanPayoffEvidenceKind') -or
+    -not $planCommitmentSource.Contains('FreePotionUsed') -or
+    -not $planCommitmentSource.Contains('RegisteredPowerBenefit') -or
+    $planCommitmentSource.Contains('PayoffCardId')) {
+    $violations.Add('Plan payoff evidence must be typed and shared across mechanisms')
+}
 $postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
 if (-not $postSearchSource.Contains('RunDeferredPowerPlanSearchPass(') -or
     -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1')) {
