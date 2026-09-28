@@ -106,6 +106,7 @@ internal sealed partial class UnattendedTestRunner
                 TotalChoiceBranches = result.TotalChoiceBranchesEvaluated,
                 ElapsedMilliseconds = result.Elapsed.TotalMilliseconds,
                 TotalElapsedMilliseconds = result.TotalSearchElapsed.TotalMilliseconds,
+                SearchWorkAttributions = result.SearchWorkAttributions,
                 WorkerAllocatedBytes = result.WorkerAllocatedBytes,
                 TotalWorkerAllocatedBytes = result.TotalWorkerAllocatedBytes,
                 TotalGen0Collections = result.TotalGen0Collections,

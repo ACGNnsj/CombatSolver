@@ -93,7 +93,8 @@ internal sealed class FrontierContinuationScheduler(SearchPassContext context)
             earliestPotionTurn: request.EarliestPotionTurn,
             planCommitment: request.Commitment,
             earlyTurnScoutDepth: request.EarlyTurnScoutDepth,
-            earlyTurnScoutObserver: request.EarlyTurnScoutObserver);
+            earlyTurnScoutObserver: request.EarlyTurnScoutObserver,
+            attributionPurpose: request.Purpose);
     }
 
     internal SolverResult Dispatch(ContinuationSearchRequest request)

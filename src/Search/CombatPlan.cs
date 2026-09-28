@@ -1423,6 +1423,7 @@ internal sealed class SolverResult
     /// </summary>
     public BeamWidthPortfolioTelemetry? PortfolioTelemetry { get; internal set; }
     public TimeSpan TotalSearchElapsed { get; internal set; }
+    public SearchWorkAttribution[] SearchWorkAttributions { get; internal set; } = [];
     public long TotalWorkerAllocatedBytes { get; internal set; }
     public int TotalGen0Collections { get; internal set; }
     public int TotalGen1Collections { get; internal set; }

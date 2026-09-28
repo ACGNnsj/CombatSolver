@@ -2002,6 +2002,14 @@ foreach ($rule in @(
 }
 
 # Contextual estimates remain pure intermediate ordering; never a bound or final policy.
+foreach ($boundary in @(
+    @('src/Search/FrontierContinuationScheduler.cs', 'attributionPurpose: request.Purpose'),
+    @('src/Search/SearchRequestWorkTotals.cs', 'AttributionSnapshot()')
+)) {
+    if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot $boundary[0]) -SimpleMatch $boundary[1] -Quiet)) {
+        $violations.Add("Missing request work attribution boundary: $($boundary[0])")
+    }
+}
 if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot 'tools/CheckpointTool/StrategySessionRunner.cs') -SimpleMatch 'timeout-progress.json' -Quiet)) {
     $violations.Add('Strategy session timeout must preserve its last progress snapshot')
 }

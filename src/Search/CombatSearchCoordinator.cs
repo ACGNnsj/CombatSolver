@@ -1018,7 +1018,10 @@ internal static partial class CombatSearchCoordinator
     private static void PopulateRequestWorkTotals(
         SolverResult result,
         SearchRequestWorkTotals requestWorkTotals)
-        => PopulateRequestWorkTotals(result, requestWorkTotals.Snapshot());
+    {
+        PopulateRequestWorkTotals(result, requestWorkTotals.Snapshot());
+        result.SearchWorkAttributions = requestWorkTotals.AttributionSnapshot();
+    }
 
     private static void PopulateRequestWorkTotals(
         SolverResult result,

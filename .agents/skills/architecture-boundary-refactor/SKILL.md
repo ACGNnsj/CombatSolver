@@ -63,6 +63,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - 本地策略脚本由 CheckpointTool 单独编译、Testing 请求宿主加载和卸载；Search 只读冻结的策略接口与分支数值特征，不承担脚本文件读取或程序集加载。无脚本请求保持生产排序及预算路径。
 - 常驻会话的开发监控由 Testing 最多每秒发布一次纯标量快照，独立窗口进程只读会话文件；Search 不引用监控窗口或文件。关闭窗口不取消请求，stop 由工具层按进程身份清理。
 - P8a 常驻会话超时时，在停止实例及覆盖监控状态前，把本请求最新且身份/时间匹配的监控快照保存到请求证据；旧包缺快照时不可从单一 timeout 状态猜节点、阶段或原因。
+- P8a 续搜成员归因由 `FrontierContinuationScheduler` 传递既有 Purpose 给 `CombatBeamSolver`，求解结束时随原工作量在同一账本记录；未细分的直接求解器和协调器开销分别标明。归因结果只用于诊断，不改变预算、候选次序或最终政策。
 - `CombatBeamSolver.Transpositions` 独占转置标签及其支配前沿；`Models` 保留运行上下文和搜索特征。纯存储合同通过链接实际partial源码验证，不为测试复制生产判定。
 - 玩家回合末第二阶段由 `PlayerTurnEndLifecycle.RunPhaseTwo` 统一安排常规 Power、遗物及晚期 Power；Search、风险预估和无人差分调用同一入口，阶段内的挂起选择立即返回。
 - `src/Api/PreCombat*` 拥有公开 API v5 的战前请求、状态/设置令牌与独立游戏 worker。主线程捕获，worker 通过无人协议恢复并复核完整跑局；Mod 使用独立副本、当前账号设置映射到 worker，求解设置变化使缓存及 worker 失效。跨请求停止/期限不能只等待繁忙锁；此边界不把 headless 等同操作系统沙箱。

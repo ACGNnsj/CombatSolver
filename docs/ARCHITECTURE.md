@@ -42,6 +42,8 @@ P7a 的单项 Beam 权重敏感度由无人测试请求显式指定，`ProtocolH
 
 P8a 超时取证由 CheckpointTool 的常驻会话保存 Testing 已发布的最近一次纯标量监控快照；快照包含当前成员节点上限、展开／结束节点及已完成回合层，只在超时且报告 ID、更新时间与本请求匹配时写入请求证据。它不读取或改变 Search 运行对象，旧超时请求没有该证据时保持未归因。
 
+P8a 请求账本将经 `FrontierContinuationScheduler` 派发的成员按既有 `ContinuationPurpose` 记录展开、转移、选择、时间和分配；未迁入调度器的直接求解器显式归为未细分，协调器开销单列。归因仅写结果证据，原请求总计与预算扣费仍由 `SearchRequestWorkTotals` 独占。
+
 主 Pass 的前缀补搜用 `SearchPassContext.SliceWindow` 在原采样点同时取得轮次剩余时间和请求剩余节点，随后以原常数生成成员 profile；主搜及药水审计的其他预算分配仍按原顺序执行。
 
 夜魇开局补搜沿用配置 profile 的时间帽，只从请求账本读取剩余节点；`SearchBudgetLedger.ProfileWindow` 按该原口径生成单成员切片。默认关闭的前两回合探索保留其显式实验额度。

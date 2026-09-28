@@ -2,6 +2,7 @@
 
 ## 策略重构 P8a 超时进度取证（2026-09-28）
 
+- 请求工作归因：GA-SILENT-BOSS-00 的固定生成根在当前源码可比较，总展开 70,460 = `OpeningPowerRouteMember` 45,460 + `UnattributedDirect` 25,000；总转移 225,665 = 146,815 + 78,850；总选牌 12,296 = 8,874 + 3,422。总搜索耗时约 35,950.7 ms 等于两分项之和。相对 `.local/strategy-refactor-p7b/ga-silent-sentinel`，动作、结果和旧非时序指标一致，只有新增归因字段不同；证据 `.local/strategy-refactor-p8a/attribution-silent` 与 `attribution-comparison`。没有逐个跑 13 个超时包。
 - 新超时请求会在停止常驻实例后、覆盖会话监控状态前，将报告 ID 和更新时间均匹配本请求的最近监控快照保存至请求证据；快照补充当前成员节点上限、结束节点和已完成回合层。仅执行 CheckpointTool Release 编译及 Windows 结构门禁；尚未实际制造一次超时，不能声称运行时取证已通过。旧 13 个超时包没有这些新字段，不从历史 `timeout` 状态推断单一主因。Linux 门禁依用户要求不运行。
 
 ## 策略重构 P7c 目标代表试验（2026-09-28）
