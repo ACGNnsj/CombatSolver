@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #139 合并验证（2026-09-28）
+
+`TurnPhaseMirrorChecks` 的默认／`--seal`／`--start`／`--start --seal`／`--after-player-start`／`--after-player-start --seal` 六组分别 28、3、27、2、52、5 项通过。合并时补齐具体模型忽略登记与复合登记原子性：红灯为 `Ignored accepted an abstract model`；绿灯覆盖抽象、无关类型、重复、失败后 Early 正常登记及派发。Release 0/0；Windows 结构门禁通过。未运行原生第三方 Mod 或 Linux 门禁。
+
 ## PR #138 合并验证（2026-09-28）
 
 Release 0/0、Windows 结构门禁 238；GA-SILENT-BOSS-00 与本轮重构基线逐位相同，证据 `.local/audit-20260928/pr138-comparison`。`GENERIC-LOOP-HELLRAISER-PILLAGE-SINGLE-CURRENT-V0111` 原生请求 `0eaff0f74d134a0aa7e4e4bb453cbc8e` Passed，固定 5 秒搜索、DOP1、增量验证，首动作 PILLAGE、0 战损、首回合击杀；1 展开／2 转移，覆盖动作内部循环，不覆盖循环租约。120 秒请求内完成、实例删除。未运行批量性能或 Linux 门禁。

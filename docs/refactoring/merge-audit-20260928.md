@@ -33,6 +33,10 @@
 
 当前 main 上的合并候选 Release 0/0、Windows 边界 238 通过。GA-SILENT-BOSS-00 对本轮重构基线逐位相同（`pr138-sentinel`、`pr138-comparison`）。原生 `0eaff0f74d134a0aa7e4e4bb453cbc8e` Passed：Hellraiser/Pillage 内部洗牌循环、首动作、0 战损、首回合击杀与增量验证；实例删除。该循环只展开 1 节点／2 转移，没有触发循环租约，不能用它宣称覆盖所有循环准入分支。未复跑作者 17 根性能样本，也没有可见性能结论。
 
+### #139 — 运行时 Type 镜像登记
+
+修复两项合并阻塞：`RegisterIgnored(Type)` 缺少具体模型类型约束（抽象或无关同签名类型可被接受）；AfterPlayerTurnStart 多表忽略登记在后续表重复时留下前面表的写入。现在统一验证闭合具体派生类型，复合登记先全量校验、后写入。新增未修复代码的合同以 `Ignored accepted an abstract model` 失败，最终派发／冻结六组合同分别 28、3、27、2、52、5 项通过；包含失败后仍能正确登记 Early 的原子性检查。Release 0/0、Windows 结构门禁通过。工具链接生产登记代码及最小游戏替身；没有声称原生回合伤害或真实第三方 Mod 验收。
+
 ## 内存条与交付
 
 在前述合并完成后处理。原始证据及临时产物统一位于忽略目录 `.local/audit-20260928/`。本批不运行 Linux 门禁，不启动可见 Steam，不提升版本或上传渠道。
