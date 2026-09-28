@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P7a 多项权重矩阵（2026-09-28）
+
+- `python -m py_compile tools/StrategyCorpus/matrix.py` 通过。GA-SILENT-BOSS-00 使用 `.local/strategy-refactor-p8a/attribution-silent` 的当前源码无扰动基线，分别单次运行 `EnemyHp:0.8`、`PersistentBuffDelta:1.2`，两次均为 `comparable`；矩阵工具核对同根和除扰动外相同政策。基线和两次扰动均为胜利、44 战损／0 药／最终 26 HP，第 9 回合结束；两项扰动的终局 score 都从 9999299954 降到 9999299953，故按冻结质量比较为变差。证据 `.local/strategy-refactor-p7a/matrix-current-v2`。未扩展到整批语料，未调整生产权重；本次只有 Python 工具与文档改动，未重复 C# 构建或运行 Linux 门禁。
+
 ## 策略重构 P8c 丢路查询（2026-09-28）
 
 - `python tools/ContextualOrdering/test_first_loss.py` 通过 1 项构造测试：两个不同求解器均有编号 1、2 的保路边界，编号 1 的目标前缀分别在全局 Beam 与后续仲裁落选，编号 2 作为各自的截断末边界忽略；查询输出两条独立结果和同状态别名。未运行玩家 ZIP 自动采集或真实路径诊断；Linux 门禁依用户要求不运行。
