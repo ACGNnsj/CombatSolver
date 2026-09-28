@@ -802,6 +802,8 @@ while IFS=$'\t' read -r relative_path text; do
     require_fixed "$repository_root/$relative_path" "$text" 'missing pre-combat isolation boundary'
 done <<'EOF'
 src/Api/PreCombatForecastApi.cs	public static class PreCombatForecastApi
+src/Runtime/Entry.cs	public static bool IsPreCombatWorker
+src/Runtime/SolverDispatcher.cs	if (!Entry.IsPreCombatWorker)
 src/Api/PreCombatLiveStateSnapshot.cs	RunManager.Instance.ToSave(null)
 src/Api/PreCombatRunSerialization.cs	point["can_modify"] = false
 src/Api/PreCombatRunSerialization.cs	eventChoice["variables"] is JsonObject { Count: 0 }

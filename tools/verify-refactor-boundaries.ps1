@@ -931,6 +931,14 @@ $rootSnapshotChecks = @(
 
 $preCombatApiChecks = @(
     @{
+        Path = Join-Path $repositoryRoot "src\Runtime\Entry.cs"
+        Text = "public static bool IsPreCombatWorker"
+    },
+    @{
+        Path = Join-Path $repositoryRoot "src\Runtime\SolverDispatcher.cs"
+        Text = "if (!Entry.IsPreCombatWorker)"
+    },
+    @{
         Path = Join-Path $repositoryRoot "src\Api\PreCombatForecastApi.cs"
         Text = "public static class PreCombatForecastApi"
     },
