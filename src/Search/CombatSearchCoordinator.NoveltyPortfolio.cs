@@ -37,7 +37,8 @@ internal static partial class CombatSearchCoordinator
         // the remainder; simulation errors and caller cancellation propagate normally.
         SolverResult? exploration = SolveOptionalPotionPosterior(new CombatBeamSolver(root, names, damage,
             policy with { NoveltySearch = policy.NoveltySearch ?? new() }, cancellation,
-            progress, explorationProfile, potionPolicyOverride: potionOverride), policy, "novelty_exploration");
+            progress, explorationProfile, potionPolicyOverride: potionOverride,
+            directSearchPurpose: DirectSearchPurpose.NoveltyExploration), policy, "novelty_exploration");
         long explorationExpanded = totals.Snapshot().ExpandedNodes - expandedBefore;
         long explorationElapsed = clock.ElapsedMilliseconds;
         if (exploration != null && IsCompleteVictory(exploration)) publish?.Invoke(exploration);
@@ -122,7 +123,8 @@ internal static partial class CombatSearchCoordinator
             $"time_ms={refinement.SoftTimeBudgetMilliseconds}");
         SolverResult? exploration = SolveOptionalPotionPosterior(new CombatBeamSolver(
             root, names, damage, policy with { NoveltySearch = policy.NoveltySearch ?? new() },
-            cancellation, progress, refinement, potionPolicyOverride: potionOverride),
+            cancellation, progress, refinement, potionPolicyOverride: potionOverride,
+            directSearchPurpose: DirectSearchPurpose.AdaptiveNoveltyRefinement),
             policy, "adaptive_novelty_refinement");
         SearchRequestWorkSnapshot scoutAfter = totals.Snapshot();
         long expanded = scoutAfter.ExpandedNodes - scoutBefore.ExpandedNodes;

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P8a 直接成员归因（2026-09-28）
+
+- Release 构建 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`。#81 `4eb25e79483c462089f9c6088d650c77` 的 `combat_start` 在 VeryHigh／25,000 节点／110 秒／DOP1 下严格恢复并得到 `comparable`；请求总展开 161,521、转移 680,415、选择分支 0，分项为 `PrimaryBeam` 22,981／93,916、`SmartPotionGradient` 50,000／224,589、`OpeningPowerRouteMember` 88,540／361,910，合计逐项相等。证据 `.local/strategy-refactor-p8a/direct-attribution-report81`，实例由运行器清理。这只直接验证当前触发的三个类别；新颖性、前两回合侦察等未启用成员本轮未运行，旧 13 个超时包未重跑，Linux 门禁未运行。
+
 ## 策略重构 P5 回合尾部准入（2026-09-28）
 
 - Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`。GA-SILENT-BOSS-00 同根 VeryHigh／25,000 节点／110 秒，DOP8 与本轮改动前的路线及 122 个非时序字段全同，均胜利、44 战损／0 药、请求总展开 69,257、转移 222,131；DOP1 的质量、动作、续用和非时序指标全同。证据 `.local/strategy-refactor-p5/choice-plan-after-dop8`、`endturn-admission-after-dop8`、`choice-plan-after-dop1`、`endturn-admission-after-dop1`。该场景不证明周期出口批次路径命中；未跑 Linux 门禁或其他包。

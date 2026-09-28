@@ -94,7 +94,7 @@ description: 在战斗语义已证明正确后，审计或修改 CombatSolver �
 
 - `BeamRetentionPolicy.RoutingChoiceScratch` 只复用空字典桶；每次 `RankBest` 的 `RoutingChoiceNodes` 独占候选列表和五项代表，按原比较规则聚合，归还时清空引用，不跨调用缓存组。组填满后用原 `Max/Min` 冻结最高 Beam 分、最高父分和最低父排名；只在本次 routing block 中使用，全部消费早于 `AssignRetentionRanks`，下一次调用重新建立。不得把该组统计扩展成单节点父链或跨调用排名缓存；新统计必须证明有效期并对比包括 deferred-round 诊断在内的相关非时序指标。
 - `SearchRunContext` 是单次运行可变指标、转置和缓存的所有者；不要把这些字段退回 solver 入口或静态全局。
-- 请求工作归因复用 `SearchRequestWorkTotals` 原总账本：经续搜调度器的 solver 用 `ContinuationPurpose` 标记，尚未标记的直接成员明确记 `UnattributedDirect`，协调器开销另列。各分项之和须与原展开、转移和选择总计一致；阶段名不能替代候选丢失证据，旧超时包没有进度快照时保持未归因。
+- 请求工作归因复用 `SearchRequestWorkTotals` 原总账本：经续搜调度器的 solver 用 `ContinuationPurpose` 标记，主搜、宽度精炼及直接审计／侦察成员用 `DirectSearchPurpose` 标记，仍未标记的直接成员记 `UnattributedDirect`，协调器开销另列。各分项之和须与原展开、转移和选择总计一致；阶段名不能替代候选丢失证据，旧超时包没有进度快照时保持未归因。
 - 混沌药生成链成员只在根药水确有生成源、原路线尚有可改善战损且请求账本有余量时运行。候选来自已选路线早期前缀及合法进攻跟进，生成药的免费身份从分支状态读取；最多两条前缀，每条共享请求节点／时间，完整结果由既有用药政策取优。强制用药按原政策验证，不以包 ID 或预定卡牌顺序提名。
 - 无完整胜利追加搜索位于请求级、主搜索与药水审计之后，消耗请求剩余时间。每轮分配/转移采样从该轮开始计；采用或应用结果直接交还调用者。饱和判断比较上一轮全部搜索维度，预设节点调整与动态恢复倍数分别记录。
 - 并行 worker 只能拥有 lane-local 模拟、缓存、节流和原始候选；transposition、dominance、fallback、预算与最终接收顺序仍由 coordinator 独占。固定 lane 应在一次 `Solve` 内复用，禁止回到每父节点 `Task.Run` / 新建 solver。

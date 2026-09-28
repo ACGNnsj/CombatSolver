@@ -76,7 +76,8 @@ internal static partial class CombatSearchCoordinator
             SolverResult scout = new CombatBeamSolver(root, displayNames, battleDamage,
                 scoutPolicy, cancellationToken, progressCallback, scoutProfile,
                 earlyTurnScoutDepth: policy.EarlyTurnExplorationDepth,
-                earlyTurnScoutObserver: Observe).Solve();
+                earlyTurnScoutObserver: Observe,
+                directSearchPurpose: DirectSearchPurpose.EarlyTurnScout).Solve();
             if (IsCompleteVictory(scout)
                 && IsBetterPotionPolicyResult(root, policy, scout, selected))
                 selected = scout;

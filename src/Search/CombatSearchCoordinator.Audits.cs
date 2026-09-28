@@ -385,7 +385,8 @@ internal static partial class CombatSearchCoordinator
             cancellationToken,
             progressCallback,
             profile,
-            SolverPotionPolicy.Disabled).Solve();
+            SolverPotionPolicy.Disabled,
+            directSearchPurpose: DirectSearchPurpose.PotionFreeAudit).Solve();
         if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
             return potionFree;
 
@@ -574,7 +575,8 @@ internal static partial class CombatSearchCoordinator
             profile,
             SolverPotionPolicy.RequireAtLeastOne,
             baseline,
-            maximumPotionUses: 1).Solve();
+            maximumPotionUses: 1,
+            directSearchPurpose: DirectSearchPurpose.RequiredPotionAudit).Solve();
         if (audited.ResultScope != SolverResultScope.SearchCompletion)
             return audited;
 
@@ -912,7 +914,8 @@ internal static partial class CombatSearchCoordinator
                     baseline,
                     maximumPotionUses: potionCount,
                     minimumPotionUses: potionCount,
-                    primaryIncumbent: primaryIncumbent).Solve();
+                    primaryIncumbent: primaryIncumbent,
+                    directSearchPurpose: DirectSearchPurpose.SmartPotionGradient).Solve();
                 observedLayerResult = candidate;
             }
             catch (PotionPolicyUnsatisfiedException)

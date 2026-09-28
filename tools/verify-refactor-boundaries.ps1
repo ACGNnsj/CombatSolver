@@ -127,6 +127,20 @@ if (-not $workTotalsSource.Contains('DirectSearchPurpose') -or
     -not $coordinatorSource.Contains('DirectSearchPurpose.PrimaryBeam')) {
     $violations.Add('Primary and refinement Beam work attribution missing')
 }
+$auditSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.Audits.cs') -Raw
+$postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
+$earlyTurnSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.EarlyTurnExploration.cs') -Raw
+$noveltySource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs') -Raw
+if (-not $coordinatorSource.Contains('DirectSearchPurpose.PotionFreeAudit') -or
+    -not $auditSource.Contains('DirectSearchPurpose.PotionFreeAudit') -or
+    -not $auditSource.Contains('DirectSearchPurpose.RequiredPotionAudit') -or
+    -not $auditSource.Contains('DirectSearchPurpose.SmartPotionGradient') -or
+    -not $postSearchSource.Contains('DirectSearchPurpose.TurnBoundaryDiscovery') -or
+    -not $earlyTurnSource.Contains('DirectSearchPurpose.EarlyTurnScout') -or
+    -not $noveltySource.Contains('DirectSearchPurpose.NoveltyExploration') -or
+    -not $noveltySource.Contains('DirectSearchPurpose.AdaptiveNoveltyRefinement')) {
+    $violations.Add('Direct search work attribution missing')
+}
 foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Plan search boundary missing: $relative")

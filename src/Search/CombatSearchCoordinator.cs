@@ -612,7 +612,8 @@ internal static partial class CombatSearchCoordinator
                 };
                 SolverResult potionFree = new CombatBeamSolver(root, displayNames,
                     battleDamage, potionFreePolicy, cancellationToken, progressCallback,
-                    passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled).Solve();
+                    passProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
+                    directSearchPurpose: DirectSearchPurpose.PotionFreeAudit).Solve();
                 if (potionFree.ResultScope != SolverResultScope.SearchCompletion)
                     return CapturePassResult(potionFree, null, false);
                 SolverResult audited = RunSupplementalAudits(auditContext,

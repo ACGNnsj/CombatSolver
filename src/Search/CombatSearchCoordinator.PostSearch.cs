@@ -106,7 +106,8 @@ internal static partial class CombatSearchCoordinator
                 SolverResult discovery = new CombatBeamSolver(root, displayNames,
                     battleDamage, policy, cancellationToken, progressCallback,
                     discoveryProfile, potionPolicyOverride: SolverPotionPolicy.Disabled,
-                    maximumPotionUses: 0).Solve();
+                    maximumPotionUses: 0,
+                    directSearchPurpose: DirectSearchPurpose.TurnBoundaryDiscovery).Solve();
                 PlanAction[] opening = discovery.BestNode.Actions
                     .TakeWhile(action => action.Turn == root.StartTurnNumber)
                     .ToArray();

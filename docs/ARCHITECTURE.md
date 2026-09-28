@@ -48,7 +48,7 @@ P8a 超时取证由 CheckpointTool 的常驻会话保存 Testing 已发布的最
 
 P8a 请求账本将经 `FrontierContinuationScheduler` 派发的成员按既有 `ContinuationPurpose` 记录展开、转移、选择、时间和分配；未标注的直接求解器显式归为未细分，协调器开销单列。归因仅写结果证据，原请求总计与预算扣费仍由 `SearchRequestWorkTotals` 独占。
 
-主 Beam 与宽度精炼由 `RunSearchPass.SolveMember` 在求解器构造时标注 `DirectSearchPurpose`，并在原工作量入账时写入同一归因表。其余未标注的直接求解器继续显示 `UnattributedDirect`，不能误认为主搜工作量。
+主 Beam、宽度精炼、药水反事实、强制用药、Smart 药水梯度、回合边界发现、前两回合侦察及新颖性成员在求解器构造时标注 `DirectSearchPurpose`，并在原工作量入账时写入同一归因表。未标注的直接求解器继续显示 `UnattributedDirect`，不能误认为主搜工作量。
 
 P8c 的离线首个丢路查询只消费 `SearchPathObserver` 已写出的值观察，按求解器身份与边界编号配对 GlobalRetention／RetentionPoolFinal；未观察到的前缀、采集截断边界和同状态别名保持未知，不把前缀落选当作最优状态消失。
 

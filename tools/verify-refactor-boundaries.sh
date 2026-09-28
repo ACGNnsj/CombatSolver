@@ -83,6 +83,16 @@ if ! rg -Fq 'DirectSearchPurpose' "$repository_root/src/Search/SearchRequestWork
    ! rg -Fq 'DirectSearchPurpose.PrimaryBeam' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
     violations+=("Primary and refinement Beam work attribution missing")
 fi
+if ! rg -Fq 'DirectSearchPurpose.PotionFreeAudit' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.PotionFreeAudit' "$repository_root/src/Search/CombatSearchCoordinator.Audits.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.RequiredPotionAudit' "$repository_root/src/Search/CombatSearchCoordinator.Audits.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.SmartPotionGradient' "$repository_root/src/Search/CombatSearchCoordinator.Audits.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.TurnBoundaryDiscovery' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.EarlyTurnScout' "$repository_root/src/Search/CombatSearchCoordinator.EarlyTurnExploration.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.NoveltyExploration' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.AdaptiveNoveltyRefinement' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then
+    violations+=("Direct search work attribution missing")
+fi
 for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
     [[ -f "$repository_root/$plan_source" ]] || violations+=("Plan search boundary missing: $plan_source")
 done

@@ -4,6 +4,13 @@ internal enum DirectSearchPurpose
 {
     PrimaryBeam,
     RefinementBeam,
+    PotionFreeAudit,
+    RequiredPotionAudit,
+    SmartPotionGradient,
+    TurnBoundaryDiscovery,
+    EarlyTurnScout,
+    NoveltyExploration,
+    AdaptiveNoveltyRefinement,
 }
 
 internal readonly record struct SearchRequestWorkSnapshot(
