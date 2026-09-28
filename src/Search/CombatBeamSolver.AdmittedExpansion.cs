@@ -403,6 +403,50 @@ internal sealed partial class CombatBeamSolver
                 }
             }
 
+            public void PrepareSerialPotions(CombatBeamSolver solver)
+            {
+                if (Actions == null || _completedActions != Actions.Count
+                    || FindChoiceJob() != null || Potions is not { Count: 0 }
+                    || NextPotion != 0)
+                    throw new InvalidOperationException("串行药水作业只能在卡牌选择全部完成后准备。");
+                Potions = solver.PreparePotionActions(Node);
+                _potionBatches = new ExpansionBatch?[Potions.Count];
+                _potionCompleted = new bool[Potions.Count];
+                _potionFrontiers = new PrimaryChoiceReplayFrontier?[Potions.Count];
+            }
+
+            public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)
+            {
+                if (NextKind != ParallelExpansionWorkProfile.Kind.Potion
+                    || FindChoiceJob() != null)
+                    throw new InvalidOperationException("串行药水作业次序错误。");
+                int index = NextPotion;
+                var job = new AdmittedExpansionJob(this,
+                    ParallelExpansionWorkProfile.Kind.Potion, index, Action: null,
+                    Potions![index], Probe: null, Wave: null, LaneIndex: 0,
+                    Frontier: null, ReplayIndex: -1, ReplayCount: 0);
+                MarkDispatched(job);
+                bool completed = false;
+                try
+                {
+                    foreach (SearchNode child in solver.EnumerateSerialPotionChildren(
+                                 Node, Potions[index]))
+                        yield return child;
+                    completed = true;
+                }
+                finally
+                {
+                    if (completed)
+                    {
+                        using var outcome = new AdmittedJobOutcome(job, solver)
+                        {
+                            Batch = solver.RentExpansionBatch(),
+                        };
+                        Receive(outcome);
+                    }
+                }
+            }
+
             public ChoiceJob? FindChoiceJob()
             {
                 for (int family = 0; family < 2; family++)

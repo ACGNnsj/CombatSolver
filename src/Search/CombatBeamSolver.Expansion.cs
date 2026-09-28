@@ -146,57 +146,58 @@ internal sealed partial class CombatBeamSolver
                     return $"{slot}:{item?.Id.Entry ?? "-"}:{(item != null && PotionOnUseSupport.CanSearch(item))}";
                 }))}");
         }
-        foreach (PreparedPotionAction planned in EnumeratePlannedPotionActions(
-                     new ExpansionPlan(node, CardNameFirst: false)))
-        {
-                PotionModel potion = planned.Potion;
-                PlanAction baseAction = planned.Action;
-                using PotionChoiceReplayCheckpoint? checkpoint = PreparePotionChoiceOptions(
-                    node, baseAction, potion, out SimulationSnapshot? probeSnapshot,
-                    out IReadOnlyList<PlanCardChoice?> choices, out CardChoiceSpec? choiceSpec);
-                if (_detailedDiagnostics && node.ActionCount == 0)
-                {
-                    policy.Diagnostics.Info(
-                        $"[CombatSolver/Debug] ROOT_POTION_OPTIONS potion={potion.Id.Entry} " +
-                        $"choices={string.Join(';', choices.Select(choice => choice == null
-                            ? "-"
-                            : choice.Cards.Count == 0
-                                ? "skip"
-                                : string.Join(',', choice.Cards.Select(card => card.CardId))))}");
-                }
-                foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in
-                         WithPotionChoiceCheckpoint(checkpoint, ResolveExplicitCardChoiceBranches(
-                             node, baseAction, probeSnapshot, choices, choiceSpec)))
-                {
-                    SearchNode child = CreatePlannedPotionChild(node, finalAction, finalSnapshot);
-                    PromoteOrderedMutationProgressTail(child);
-                    CommitCycleExitObservation(child);
-                    bool accepted = TryAdmitPlannedPotionChild(child, out bool rejectedByCycle);
-                    if (rejectedByCycle)
-                    {
-                        finalSnapshot.ReleaseSimulator();
-                        continue;
-                    }
-                    if (_detailedDiagnostics && node.ActionCount == 0)
-                    {
-                        PlanCardChoice? resolvedChoice = finalAction.Choice;
-                        policy.Diagnostics.Info(
-                            $"[CombatSolver/Debug] ROOT_POTION_BRANCH potion={potion.Id.Entry} " +
-                            $"choice={(resolvedChoice == null ? "-" : string.Join(',', resolvedChoice.Cards.Select(card => card.CardId)))} " +
-                            $"accepted={accepted} hp={finalSnapshot.PlayerHp} " +
-                            $"projected_hp={finalSnapshot.ProjectedPlayerHp} " +
-                            $"enemy_hp={finalSnapshot.EnemyHp} hand={finalSnapshot.HandCount} " +
-                            $"score={child.Score:0}");
-                    }
-                    if (accepted)
-                        yield return child;
-                    else
-                        finalSnapshot.ReleaseSimulator();
-                }
-        }
+        cardJobs.PrepareSerialPotions(this);
+        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Potion)
+            foreach (SearchNode child in cardJobs.RunSerialPotionJob(this))
+                yield return child;
 
         foreach (SearchNode endNode in BuildAcceptedEndTurnNodes(node))
             yield return endNode;
+    }
+
+    private IEnumerable<SearchNode> EnumerateSerialPotionChildren(
+        SearchNode node, PreparedPotionAction planned)
+    {
+        PotionModel potion = planned.Potion;
+        using PreparedPotionChoiceWork work = PreparePotionChoiceWork(node, planned);
+        if (_detailedDiagnostics && node.ActionCount == 0)
+        {
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Debug] ROOT_POTION_OPTIONS potion={potion.Id.Entry} " +
+                $"choices={string.Join(';', work.Choices.Select(choice => choice == null
+                    ? "-"
+                    : choice.Cards.Count == 0
+                        ? "skip"
+                        : string.Join(',', choice.Cards.Select(card => card.CardId))))}");
+        }
+        foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in
+                 work.Resolve(this, node, planned.Action))
+        {
+            SearchNode child = CreatePlannedPotionChild(node, finalAction, finalSnapshot);
+            PromoteOrderedMutationProgressTail(child);
+            CommitCycleExitObservation(child);
+            bool accepted = TryAdmitPlannedPotionChild(child, out bool rejectedByCycle);
+            if (rejectedByCycle)
+            {
+                finalSnapshot.ReleaseSimulator();
+                continue;
+            }
+            if (_detailedDiagnostics && node.ActionCount == 0)
+            {
+                PlanCardChoice? resolvedChoice = finalAction.Choice;
+                policy.Diagnostics.Info(
+                    $"[CombatSolver/Debug] ROOT_POTION_BRANCH potion={potion.Id.Entry} " +
+                    $"choice={(resolvedChoice == null ? "-" : string.Join(',', resolvedChoice.Cards.Select(card => card.CardId)))} " +
+                    $"accepted={accepted} hp={finalSnapshot.PlayerHp} " +
+                    $"projected_hp={finalSnapshot.ProjectedPlayerHp} " +
+                    $"enemy_hp={finalSnapshot.EnemyHp} hand={finalSnapshot.HandCount} " +
+                    $"score={child.Score:0}");
+            }
+            if (accepted)
+                yield return child;
+            else
+                finalSnapshot.ReleaseSimulator();
+        }
     }
 
     private bool ShouldPruneCrossTurnNoProgress(SearchNode node)

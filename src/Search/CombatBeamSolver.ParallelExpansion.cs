@@ -662,6 +662,61 @@ internal sealed partial class CombatBeamSolver
         return actions;
     }
 
+    private sealed class PreparedPotionChoiceWork(
+        SimulationSnapshot? probe,
+        IReadOnlyList<PlanCardChoice?> choices,
+        CardChoiceSpec? choiceSpec,
+        PotionChoiceReplayCheckpoint? checkpoint) : IDisposable
+    {
+        private SimulationSnapshot? _probe = probe;
+        private PotionChoiceReplayCheckpoint? _checkpoint = checkpoint;
+
+        public IReadOnlyList<PlanCardChoice?> Choices { get; } = choices;
+        public CardChoiceSpec? ChoiceSpec { get; } = choiceSpec;
+        public PotionChoiceReplayCheckpoint? Checkpoint => _checkpoint;
+
+        public void TransferCheckpoint() => _checkpoint = null;
+
+        public IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> Resolve(
+            CombatBeamSolver solver, SearchNode parent, PlanAction action)
+        {
+            SimulationSnapshot? ownedProbe = _probe;
+            PotionChoiceReplayCheckpoint? ownedCheckpoint = _checkpoint;
+            _probe = null;
+            _checkpoint = null;
+            foreach (var branch in solver.WithPotionChoiceCheckpoint(ownedCheckpoint,
+                         solver.ResolveExplicitCardChoiceBranches(parent, action,
+                             ownedProbe, Choices, ChoiceSpec)))
+                yield return branch;
+        }
+
+        public void Dispose()
+        {
+            _probe?.ReleaseSimulator();
+            _checkpoint?.Dispose();
+        }
+    }
+
+    private PreparedPotionChoiceWork PreparePotionChoiceWork(
+        SearchNode parent, PreparedPotionAction action)
+    {
+        PotionChoiceReplayCheckpoint? checkpoint = PreparePotionChoiceOptions(
+            parent, action.Action, action.Potion,
+            out SimulationSnapshot? probe,
+            out IReadOnlyList<PlanCardChoice?> choices,
+            out CardChoiceSpec? choiceSpec);
+        try
+        {
+            return new PreparedPotionChoiceWork(probe, choices, choiceSpec, checkpoint);
+        }
+        catch
+        {
+            probe?.ReleaseSimulator();
+            checkpoint?.Dispose();
+            throw;
+        }
+    }
+
     private PrimaryChoiceReplayFrontier? GeneratePreparedPotionAction(
         SearchNode node,
         PreparedPotionAction action,
@@ -669,43 +724,28 @@ internal sealed partial class CombatBeamSolver
         bool allowPrimaryReplays = false)
     {
         PlanAction baseAction = action.Action;
-        SimulationSnapshot? probeSnapshot = null;
-        PotionChoiceReplayCheckpoint? checkpoint = null;
-        try
+        using PreparedPotionChoiceWork work = PreparePotionChoiceWork(node, action);
+        if (allowPrimaryReplays && work.Choices.Count >= 2)
         {
-            checkpoint = PreparePotionChoiceOptions(node, baseAction, action.Potion,
-                out probeSnapshot, out IReadOnlyList<PlanCardChoice?> choices, out CardChoiceSpec? choiceSpec);
-            if (allowPrimaryReplays && choices.Count >= 2)
+            bool identityChangingLayer = work.ChoiceSpec != null
+                && CardChoiceSupport.IsIdentityChangingPersistentChoiceEffect(work.ChoiceSpec.Effect);
+            int semanticCount = identityChangingLayer
+                ? CardChoiceSupport.CountSemanticChoices(
+                    work.Choices.Where(choice => choice != null).Cast<PlanCardChoice>().ToList())
+                : work.Choices.Count;
+            PrimaryCardChoiceLayer layer = new(work.Choices, UnregisteredPendingChoice: false,
+                semanticCount, identityChangingLayer,
+                CreateWholeActionChoiceBudget(work.ChoiceSpec, semanticCount));
+            PrimaryChoiceReplayFrontier? frontier = PreparePrimaryChoiceReplays(
+                layer, potion: action, potionCheckpoint: work.Checkpoint);
+            if (frontier != null)
             {
-                bool identityChangingLayer = choiceSpec != null
-                    && CardChoiceSupport.IsIdentityChangingPersistentChoiceEffect(choiceSpec.Effect);
-                int semanticCount = identityChangingLayer
-                    ? CardChoiceSupport.CountSemanticChoices(
-                        choices.Where(choice => choice != null).Cast<PlanCardChoice>().ToList())
-                    : choices.Count;
-                PrimaryCardChoiceLayer layer = new(choices, UnregisteredPendingChoice: false,
-                    semanticCount, identityChangingLayer,
-                    CreateWholeActionChoiceBudget(choiceSpec, semanticCount));
-                PrimaryChoiceReplayFrontier? frontier = PreparePrimaryChoiceReplays(
-                    layer, potion: action, potionCheckpoint: checkpoint);
-                if (frontier != null)
-                {
-                    checkpoint = null; // All replay producers and the ordered consumer now own it.
-                    return frontier;
-                }
+                work.TransferCheckpoint(); // The frontier owns it until all lanes drain.
+                return frontier;
             }
-            var branches = ResolveExplicitCardChoiceBranches(node, baseAction, probeSnapshot, choices, choiceSpec);
-            probeSnapshot = null;
-            var ownedCheckpoint = checkpoint;
-            checkpoint = null;
-            AddResolvedPotionCandidates(node, WithPotionChoiceCheckpoint(ownedCheckpoint, branches), batch);
-            return null;
         }
-        finally
-        {
-            checkpoint?.Dispose();
-            probeSnapshot?.ReleaseSimulator();
-        }
+        AddResolvedPotionCandidates(node, work.Resolve(this, node, baseAction), batch);
+        return null;
     }
 
     private void AddResolvedPotionCandidates(

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 药水作业（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#24 `f88c625680e64a2c99a2ab8844abcbdd` 的 `combat_start` 严格恢复后，VeryHigh／25,000 节点／DOP1／110 秒搜索 `comparable`；同 P4 基线排除后加归因字段后，完整动作、续用、终局、工作量、剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-potion-jobs-report24`。DOP8 药水根、其余语料、Linux 门禁均未运行；P5 尚未收口。
+
 ## 策略重构 P5 串行挂起选择作业（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#89 `10d01cc2d1f7445c8ff72e76e783aeb0` 严格恢复 `combat_start` 后，以 VeryHigh／25,000 节点／DOP1／110 秒固定配置取得 `comparable`；同 P4 基线比较，排除后加的 `searchWorkAttributions` 后完整动作、续用、终局、工作量及剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-choice-jobs-report89`。未跑其余语料、DOP8 或 Linux 门禁；药水与尾部作业尚未迁移。

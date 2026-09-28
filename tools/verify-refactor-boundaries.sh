@@ -37,7 +37,7 @@ fi
 [[ -f "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ]] || violations+=("Shared expansion plan missing")
 if ! rg -Fq 'cardJobs.PrepareSerialCards(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
-   ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'cardJobs.PrepareSerialPotions(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card/potion paths do not share the expansion plan")
 fi
@@ -83,8 +83,14 @@ if ! rg -Uq '    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' "
    ! rg -q '^    private sealed class AdmittedParent\(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
    ! rg -Fq 'public void RunSerialCardAction(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
    ! rg -Fq 'public void RunSerialChoiceJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
    ! rg -Fq 'cardJobs.RunSerialChoiceJob(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
     violations+=("Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor")
+fi
+if ! rg -Fq 'private sealed class PreparedPotionChoiceWork(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   ! rg -Fq 'work.Resolve(this, node, baseAction)' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   ! rg -Fq 'work.Resolve(this, node, planned.Action)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
+    violations+=("Serial and parallel potion choice replay must use the same prepared work owner")
 fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||

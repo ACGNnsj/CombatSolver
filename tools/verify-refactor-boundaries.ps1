@@ -77,7 +77,7 @@ $serialExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'sr
 $parallelExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ParallelExpansion.cs') -Raw
 if (-not $serialExpansionSource.Contains('cardJobs.PrepareSerialCards(this)') -or
     -not $parallelExpansionSource.Contains('EnumeratePlannedCardActions(') -or
-    -not $serialExpansionSource.Contains('EnumeratePlannedPotionActions(') -or
+    -not $serialExpansionSource.Contains('cardJobs.PrepareSerialPotions(this)') -or
     -not $parallelExpansionSource.Contains('EnumeratePlannedPotionActions(')) {
     $violations.Add('Serial and parallel card/potion paths do not share the expansion plan')
 }
@@ -126,8 +126,14 @@ if ($admittedExpansionSource -notmatch '(?m)^    }\r?\n\s*\r?\n    private reado
     $admittedExpansionSource -notmatch '(?m)^    private sealed class AdmittedParent\(' -or
     -not $admittedExpansionSource.Contains('public void RunSerialCardAction(CombatBeamSolver solver)') -or
     -not $admittedExpansionSource.Contains('public void RunSerialChoiceJob(CombatBeamSolver solver)') -or
+    -not $admittedExpansionSource.Contains('public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)') -or
     -not $serialExpansionSource.Contains('cardJobs.RunSerialChoiceJob(this)')) {
     $violations.Add('Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor')
+}
+if (-not $parallelExpansionSource.Contains('private sealed class PreparedPotionChoiceWork(') -or
+    -not $parallelExpansionSource.Contains('work.Resolve(this, node, baseAction)') -or
+    -not $serialExpansionSource.Contains('work.Resolve(this, node, planned.Action)')) {
+    $violations.Add('Serial and parallel potion choice replay must use the same prepared work owner')
 }
 if (-not (Test-Path -LiteralPath $executorPath -PathType Leaf) -or
     -not ([System.IO.File]::ReadAllText($executorPath)).Contains('private interface IExpansionExecutor') -or
