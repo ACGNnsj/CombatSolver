@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #143 合并验证（2026-09-28）
+
+本轮最终候选 Release 0/0、Windows 边界 238 通过。离线 Infused Core 14 项与 N4/N8/N17 独立前缀 oracle 通过。资源恢复后原生 FIXED-PREFIX-TURN-OUTCOMES、OPENING-DISCARD-CHOICE-VALUE、TURN-SETUP-FIXED-PREFIX-STAMPEDE、INITIAL-TOOLBOX-INFUSED-CORE 四项通过，分别 47.9/28.6/30.2/26.6 秒；包括固定前缀三回合实际续用、七表缓存、完整续用戳、弃牌 DOP1/DOP2 和初始原生选择。runId 与具体边界见 [合并审计](refactoring/merge-audit-20260928.md)。实例全部清理，未跑全量 CoverageCatalog 或性能大样本。
+
 ## PR #142 合并验证（2026-09-28）
 
 `dotnet run --project tools/ModelIdCacheChecks/ModelIdCacheChecks.csproj -c Release`：7 项通过。链接原 main 生产补丁时明确失败于注册前无前缀缓存；最终补丁核对原版、两个动态程序集同名类型、注册前／后、晚加载、并发与 null 原生入口。替身只提供模型 ID 和补丁元数据，缓存逻辑直接链接生产文件。主项目及离线宿主 Release 0/0，Windows 门禁通过。`PR142-MODEL-REGISTRY` 在主机准入阶段超时、实例删除，Windows 原生初始化事件尚未实测。
