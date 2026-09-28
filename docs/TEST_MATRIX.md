@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## PR #144 最终修复与合并验证（2026-09-28）
+
+以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。
+
+复用前一轮候选 `recovery` 11 项成功证据；本次保留同一退避与分类实现，只修复实际主动退出调用处。最终 Mod Release 构建 0 警告／0 错误，关闭自动复制，供合并后的本地五文件部署复用。未运行 Linux、可见游戏性能或全量 GC 套件。红灯与原 main 对照位于 `.local/audit-pr144-latest-20260928/`，最终合同日志位于 `.local/pr144-merge-20260928/`。
+
 ## 0.47.2 发布定版（2026-09-28）
 
 用户在版本与日志登记后授权全渠道发布。本次只更新文档中的开发状态，复用 `1b910969` 的成功 Release 构建和本地五文件部署；构建输入及行为源码未变。最小 ZIP 使用该构建及已提交的 manifest、两份许可文件，创意工坊更新说明由同版本中英日志完整转换。标签指向本次定版提交；统一脚本在发布前验证连接元数据，并按渠道记录结果到 `releases/CombatSolver-0.47.2.publish-state.json`。沿用下文已取得的定向行为证据，不重复构建、部署或行为测试，不运行 Linux 与完整发布门禁。
