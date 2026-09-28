@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P8a 主 Beam 工作归因（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`。离线 GA-SILENT-BOSS-00 当前源码单次请求 `comparable`，70,460 个展开节点归为 `PrimaryBeam` 9,017、`RefinementBeam` 15,983、`OpeningPowerRouteMember` 45,460，合计与请求总数一致。与 `.local/strategy-refactor-p8a/attribution-silent` 相比，身份、动作、质量、结果、旧非时序指标及剪枝计数完全相同，只有 `searchWorkAttributions` 分类变化；证据 `.local/strategy-refactor-p8a/primary-attribution-silent` 与 `primary-attribution-comparison`。未运行 Linux 门禁或超时包。
+
 ## 策略重构 P7a 多项权重矩阵（2026-09-28）
 
 - `python -m py_compile tools/StrategyCorpus/matrix.py` 通过。GA-SILENT-BOSS-00 使用 `.local/strategy-refactor-p8a/attribution-silent` 的当前源码无扰动基线，分别单次运行 `EnemyHp:0.8`、`PersistentBuffDelta:1.2`，两次均为 `comparable`；矩阵工具核对同根和除扰动外相同政策。基线和两次扰动均为胜利、44 战损／0 药／最终 26 HP，第 9 回合结束；两项扰动的终局 score 都从 9999299954 降到 9999299953，故按冻结质量比较为变差。证据 `.local/strategy-refactor-p7a/matrix-current-v2`。未扩展到整批语料，未调整生产权重；本次只有 Python 工具与文档改动，未重复 C# 构建或运行 Linux 门禁。

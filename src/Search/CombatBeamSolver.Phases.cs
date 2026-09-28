@@ -121,7 +121,7 @@ internal sealed partial class CombatBeamSolver
             Math.Max(0, GC.CollectionCount(1) - gen1AtStart),
             Math.Max(0, GC.CollectionCount(2) - gen2AtStart),
             gcPauseDuration < TimeSpan.Zero ? TimeSpan.Zero : gcPauseDuration,
-            _run.WorkPacer.MaxObservedGcPause), _attributionPurpose);
+            _run.WorkPacer.MaxObservedGcPause), _attributionPurpose, _directSearchPurpose);
     }
 
     private SolverResult SolveCore()

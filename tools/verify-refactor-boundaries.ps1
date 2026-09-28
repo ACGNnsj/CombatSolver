@@ -106,6 +106,15 @@ if (-not $expansionPlanSource.Contains('TryAdmitPlannedPotionChild(') -or
     -not $parallelExpansionSource.Contains('TryAdmitPlannedPotionChild(')) {
     $violations.Add('Serial and parallel potion admission remains duplicated')
 }
+$workTotalsSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestWorkTotals.cs') -Raw
+$beamSolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.cs') -Raw
+$coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
+if (-not $workTotalsSource.Contains('DirectSearchPurpose') -or
+    -not $beamSolverSource.Contains('DirectSearchPurpose? directSearchPurpose') -or
+    -not $coordinatorSource.Contains('DirectSearchPurpose.RefinementBeam') -or
+    -not $coordinatorSource.Contains('DirectSearchPurpose.PrimaryBeam')) {
+    $violations.Add('Primary and refinement Beam work attribution missing')
+}
 foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Plan search boundary missing: $relative")

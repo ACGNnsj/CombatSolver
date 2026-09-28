@@ -317,7 +317,10 @@ internal static partial class CombatSearchCoordinator
                     cancellationToken,
                     memberProgressCallback,
                     memberProfile,
-                    potionPolicyOverride: initialPotionPolicyOverride).Solve();
+                    potionPolicyOverride: initialPotionPolicyOverride,
+                    directSearchPurpose: refinement
+                        ? DirectSearchPurpose.RefinementBeam
+                        : DirectSearchPurpose.PrimaryBeam).Solve();
                 PlanAction[] firstTurn = memberResult.BestNode.Actions
                     .TakeWhile(action => action.Turn == root.StartTurnNumber)
                     .ToArray();

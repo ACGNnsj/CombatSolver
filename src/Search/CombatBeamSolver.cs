@@ -42,7 +42,8 @@ internal sealed partial class CombatBeamSolver(
     int earlyTurnScoutDepth = 0,
     Action<int, IReadOnlyList<EarlyTurnFrontierCandidate>>? earlyTurnScoutObserver = null,
     PlanCommitment? planCommitment = null,
-    ContinuationPurpose? attributionPurpose = null)
+    ContinuationPurpose? attributionPurpose = null,
+    DirectSearchPurpose? directSearchPurpose = null)
 {
     private readonly SolverSearchProfile _profile = searchProfile ?? SolverSearchProfile.Default;
     private readonly SearchRunContext _run = new(
@@ -80,6 +81,7 @@ internal sealed partial class CombatBeamSolver(
     private readonly IReadOnlyList<PlanAction> _fixedPrefixActions = fixedPrefixActions ?? [];
     private readonly PlanCommitment? _planCommitment = planCommitment;
     private readonly ContinuationPurpose? _attributionPurpose = attributionPurpose;
+    private readonly DirectSearchPurpose? _directSearchPurpose = directSearchPurpose;
     private readonly bool _resetFixedPrefixSchedulingBaseline = resetFixedPrefixSchedulingBaseline;
     private readonly int _earlyTurnScoutDepth = earlyTurnScoutDepth;
     private readonly Action<int, IReadOnlyList<EarlyTurnFrontierCandidate>>? _earlyTurnScoutObserver = earlyTurnScoutObserver;

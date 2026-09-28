@@ -65,6 +65,12 @@ if ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBea
    ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel potion admission remains duplicated")
 fi
+if ! rg -Fq 'DirectSearchPurpose' "$repository_root/src/Search/SearchRequestWorkTotals.cs" ||
+   ! rg -Fq 'DirectSearchPurpose? directSearchPurpose' "$repository_root/src/Search/CombatBeamSolver.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.RefinementBeam' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
+   ! rg -Fq 'DirectSearchPurpose.PrimaryBeam' "$repository_root/src/Search/CombatSearchCoordinator.cs"; then
+    violations+=("Primary and refinement Beam work attribution missing")
+fi
 for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
     [[ -f "$repository_root/$plan_source" ]] || violations+=("Plan search boundary missing: $plan_source")
 done

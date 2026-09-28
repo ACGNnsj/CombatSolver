@@ -1,5 +1,11 @@
 namespace CombatSolver;
 
+internal enum DirectSearchPurpose
+{
+    PrimaryBeam,
+    RefinementBeam,
+}
+
 internal readonly record struct SearchRequestWorkSnapshot(
     long ExpandedNodes, long TransitionCount, long ChoiceBranchesEvaluated,
     TimeSpan Elapsed, long WorkerAllocatedBytes,
@@ -51,8 +57,11 @@ internal sealed class SearchRequestWorkTotals
         new(StringComparer.Ordinal);
     internal int RecordedSolverCountForTesting { get { lock (_gate) return _totals.RecordedSolverCount; } }
 
-    public void Record(SearchSolverWorkContribution work, ContinuationPurpose? purpose = null)
+    public void Record(SearchSolverWorkContribution work, ContinuationPurpose? purpose = null,
+        DirectSearchPurpose? directSearchPurpose = null)
     {
+        if (purpose != null && directSearchPurpose != null)
+            throw new ArgumentException("A search contribution cannot have two purposes.");
         ArgumentOutOfRangeException.ThrowIfNegative(work.ExpandedNodes);
         ArgumentOutOfRangeException.ThrowIfNegative(work.TransitionCount);
         ArgumentOutOfRangeException.ThrowIfNegative(work.ChoiceBranchesEvaluated);
@@ -69,7 +78,9 @@ internal sealed class SearchRequestWorkTotals
                 ChoiceBranchesEvaluated = _totals.ChoiceBranchesEvaluated + work.ChoiceBranchesEvaluated,
                 RecordedSolverCount = _totals.RecordedSolverCount + 1,
             };
-            RecordAttribution(purpose?.ToString() ?? "UnattributedDirect", work, 1);
+            RecordAttribution(purpose?.ToString()
+                ?? directSearchPurpose?.ToString()
+                ?? "UnattributedDirect", work, 1);
         }
     }
 
