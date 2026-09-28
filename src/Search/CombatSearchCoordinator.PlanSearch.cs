@@ -234,14 +234,17 @@ internal static partial class CombatSearchCoordinator
             context.Policy, context.CancellationToken, context.ProgressCallback, context.Profile,
             potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
             maximumPotionUses: 1);
-        bool hasDeferredCopy = builder.ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare);
-        if (!hasDeferredCopy && !hasPower)
+        DeferredCopyPlanRule[] copyRules = PlanMechanismRegistry.Default.DeferredCopies
+            .Where(rule => builder.ContainsChoiceEffectInRoot(rule.Effect))
+            .ToArray();
+        if (copyRules.Length == 0 && !hasPower)
             return [];
 
         List<PlanCommitment> plans = [];
         HashSet<string> seen = new(StringComparer.Ordinal);
         Dictionary<(PlanCommitmentKind Kind, string Payoff), int> perPayoff = [];
-        void Add(PlanCommitmentKind kind, PlanAction[] prefix, string payoff, int priority)
+        void Add(PlanCommitmentKind kind, PlanAction[] prefix, string payoff,
+            int priority, int payoffTurnDelay = 1)
         {
             if (plans.Count >= MaximumDiscoveredPlanCommitments
                 || perPayoff.GetValueOrDefault((kind, payoff)) >= 2
@@ -251,7 +254,7 @@ internal static partial class CombatSearchCoordinator
             plans.Add(new(kind, prefix, prefix[0].Turn,
                 new PlanPayoffEvidence(PlanPayoffEvidenceKind.CardPlayed,
                     payoff, kind == PlanCommitmentKind.PowerCycle
-                        ? prefix[0].Turn : checked(prefix[0].Turn + 1)),
+                        ? prefix[0].Turn : checked(prefix[0].Turn + payoffTurnDelay)),
                 usesPotion, priority));
             perPayoff[(kind, payoff)] = perPayoff.GetValueOrDefault((kind, payoff)) + 1;
         }
@@ -259,39 +262,47 @@ internal static partial class CombatSearchCoordinator
         int potionOpenings = 0;
         int setupOpenings = 0;
         int copyOptions = 0;
-        if (hasDeferredCopy && context.Policy.PotionPolicy != SolverPotionPolicy.Disabled)
+        if (copyRules.Length > 0 && context.Policy.PotionPolicy != SolverPotionPolicy.Disabled)
         {
-            IReadOnlyList<PlanAction> selectedPotions = builder.BuildOpeningPlanPotionActions(
-                PlanChoiceEffect.Nightmare, maximumActions: 6);
-            foreach (PlanAction potion in selectedPotions)
+            foreach (DeferredCopyPlanRule rule in copyRules)
             {
-                potionOpenings++;
-                List<PlanAction[]> openings = [[potion]];
-                openings.AddRange(builder.BuildOpeningHandSetupActions([potion],
-                        maximumActions: 5,
-                        desiredFollowUpEffect: PlanChoiceEffect.Nightmare)
-                    .Select(setup => new[] { potion, setup }));
-                setupOpenings += openings.Count - 1;
-                foreach (PlanAction[] opening in openings)
+                IReadOnlyList<PlanAction> selectedPotions = builder.BuildOpeningPlanPotionActions(
+                    rule.Effect, maximumActions: 6);
+                foreach (PlanAction potion in selectedPotions)
                 {
-                    foreach (PlanAction copy in builder.BuildOpeningCopyActionsAfterPrefix(
-                                 opening, maximumPowerTargets: 3, maximumActions: 8))
+                    potionOpenings++;
+                    List<PlanAction[]> openings = [[potion]];
+                    openings.AddRange(builder.BuildOpeningHandSetupActions([potion],
+                            maximumActions: 5,
+                            desiredFollowUpEffect: rule.Effect)
+                        .Select(setup => new[] { potion, setup }));
+                    setupOpenings += openings.Count - 1;
+                    foreach (PlanAction[] opening in openings)
                     {
-                        copyOptions++;
-                        string copiedCardId = copy.Choice!.Cards[0].CardId;
-                        bool copiedPower = PowerCardValuationModels.Registry.ContainsCardId(copiedCardId);
-                        PlanAction[] copyPrefix = [.. opening, copy];
-                        if (copiedPower)
+                        foreach (PlanAction copy in builder.BuildOpeningCopyActionsAfterPrefix(
+                                     opening, maximumPowerTargets: 3, maximumActions: 8,
+                                     desiredEffect: rule.Effect))
                         {
-                            PlanAction? originalPower = builder.BuildPowerActionsAfterPrefix(copyPrefix)
-                                .FirstOrDefault(action => action.CardId == copiedCardId);
-                            if (originalPower != null)
-                                Add(PlanCommitmentKind.CopyPower,
-                                    [.. copyPrefix, originalPower], copiedCardId, priority: 4);
+                            copyOptions++;
+                            string copiedCardId = copy.Choice!.Cards[0].CardId;
+                            bool copiedPower = PowerCardValuationModels.Registry.ContainsCardId(copiedCardId);
+                            PlanAction[] copyPrefix = [.. opening, copy];
+                            if (copiedPower)
+                            {
+                                PlanAction? originalPower = builder.BuildPowerActionsAfterPrefix(copyPrefix)
+                                    .FirstOrDefault(action => action.CardId == copiedCardId);
+                                if (originalPower != null)
+                                    Add(PlanCommitmentKind.CopyPower,
+                                        [.. copyPrefix, originalPower], copiedCardId,
+                                        priority: 4, payoffTurnDelay: rule.PayoffTurnDelay);
+                            }
+                            Add(copiedPower ? PlanCommitmentKind.CopyPower
+                                    : PlanCommitmentKind.CopyCard,
+                                copyPrefix, copiedCardId, copiedPower ? 3 : 2,
+                                rule.PayoffTurnDelay);
+                            if (plans.Count >= MaximumDiscoveredPlanCommitments)
+                                break;
                         }
-                        Add(copiedPower ? PlanCommitmentKind.CopyPower
-                                : PlanCommitmentKind.CopyCard,
-                            copyPrefix, copiedCardId, copiedPower ? 3 : 2);
                         if (plans.Count >= MaximumDiscoveredPlanCommitments)
                             break;
                     }

@@ -316,7 +316,8 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningCopyActionsAfterPrefix(
         IReadOnlyList<PlanAction> prefix,
         int maximumPowerTargets = 1,
-        int maximumActions = 4)
+        int maximumActions = 4,
+        PlanChoiceEffect desiredEffect = PlanChoiceEffect.Nightmare)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix, SearchRouteTraits.None);
         List<SearchNode> children = [];
@@ -324,7 +325,7 @@ internal sealed partial class CombatBeamSolver
         {
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
             SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
-            if (!HasPlayableChoiceEffect(seed.Snapshot, PlanChoiceEffect.Nightmare))
+            if (!HasPlayableChoiceEffect(seed.Snapshot, desiredEffect))
                 return [];
             children.AddRange(ExpandOpeningSeed(seed));
             int nextTurnEnergy = Math.Max(0,
@@ -332,8 +333,8 @@ internal sealed partial class CombatBeamSolver
                     (SimulatedCombatState)simulator.State.CombatState, _player));
             var candidates = children
                 .Where(node => node.Action is
-                    { Kind: PlanActionKind.PlayCard,
-                      Choice: { Effect: PlanChoiceEffect.Nightmare, Cards.Count: 1 } })
+                    { Kind: PlanActionKind.PlayCard, Choice: { Cards.Count: 1 } }
+                    && node.Action.Choice.Effect == desiredEffect)
                 .Select(node => (Node: node, Token: node.Action!.Choice!.Cards[0]))
                 .Select(item => (item.Node, item.Token,
                     Card: player.Hand.Cards.First(card => CardChoiceSupport.MatchesToken(card, item.Token))))

@@ -28,7 +28,7 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 `IExpansionExecutor` 统一父节点子节点接收与完成合同；`AdmittedJobScheduler` 从共享 `AdmittedParent` 状态选择准备、动作、挂起选择、药水与 Tail 作业。串行执行器消费 `Expand` 的即时迭代结果，并行执行器消费固定 lane 批次并在提交前调用原顺序检查；串行分阶段停在卡牌候选交付及逐药水分支，保留最后预算槽行为。`Phases` 保留内存准入、波次容量和未进入 worker 的父节点清理，子节点不越过原提交顺序。
 
-`PlanCommitment` 保存从固定根可回放的前缀及类型化收益证据（后续出牌、免费用药、已登记能力的真实收益）；`CombatSearchCoordinator.PlanSearch` 从登记的选牌效果 `Nightmare` 和能力承诺描述提名复制与能力过牌，不按复制牌 ID 识别，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标效果的模拟可达性筛选药水和过牌分支，不改变普通开局候选上限。
+`PlanCommitment` 保存从固定根可回放的前缀及类型化收益证据（后续出牌、免费用药、已登记能力的真实收益）；`PlanMechanismRegistry` 保存内部不可变的延后复制效果规则，`CombatSearchCoordinator.PlanSearch` 从规则对应的模拟选牌效果和能力承诺描述提名复制与能力过牌，不按复制牌 ID 识别，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标效果的模拟可达性筛选药水和过牌分支，不改变普通开局候选上限。
 
 生成药水链成员从已选路线的早期前缀模拟混沌药，也允许在已选首张牌后插入合法的进攻跟进，再接原首回合余下动作。它读取分支药水槽已有的零成本来源标记，提名最多两条连续用药前缀；`FrontierContinuationScheduler` 按请求剩余额度完整续搜。该成员只扩展合法候选，药水来源、费用与战斗结算仍由 `SimulatedCombatState` 负责，最终结果仍走既有路线质量和用药政策。
 

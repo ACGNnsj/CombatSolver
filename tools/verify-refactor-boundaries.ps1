@@ -173,7 +173,7 @@ if (-not $coordinatorSource.Contains('DirectSearchPurpose.PotionFreeAudit') -or
     -not $noveltySource.Contains('DirectSearchPurpose.AdaptiveNoveltyRefinement')) {
     $violations.Add('Direct search work attribution missing')
 }
-foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
+foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/PlanMechanismRegistry.cs', 'src/Search/CombatSearchCoordinator.PlanSearch.cs')) {
     if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot $relative) -PathType Leaf)) {
         $violations.Add("Plan search boundary missing: $relative")
     }
@@ -185,11 +185,17 @@ if (-not $planSearchSource.Contains('context.Budget.RequestWindow(') -or
     -not $planSearchSource.Contains('TryRunPlanMember(')) {
     $violations.Add('Plan search bypasses shared budget, continuation or final quality policy')
 }
-if (-not $planSearchSource.Contains('ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)') -or
+if (-not $planSearchSource.Contains('PlanMechanismRegistry.Default.DeferredCopies') -or
     -not $planSearchSource.Contains('BuildOpeningCopyActionsAfterPrefix(') -or
+    $planSearchSource.Contains('PlanChoiceEffect.Nightmare') -or
     $planSearchSource.Contains('OpeningCandidatePurpose.NightmareCopyCard') -or
     -not $openingSource.Contains('HasPlayableChoiceEffect(')) {
     $violations.Add('Plan copy discovery must follow registered choice semantics')
+}
+$planMechanismSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/PlanMechanismRegistry.cs') -Raw
+if (-not $planMechanismSource.Contains('ImmutableArray<DeferredCopyPlanRule>') -or
+    -not $planMechanismSource.Contains('PlanChoiceEffect.Nightmare')) {
+    $violations.Add('Deferred copy plan rules must be internally immutable and registered')
 }
 $planCommitmentSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/PlanCommitment.cs') -Raw
 if (-not $planCommitmentSource.Contains('PlanPayoffEvidenceKind') -or

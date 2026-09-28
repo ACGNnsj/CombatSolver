@@ -122,7 +122,7 @@ if ! rg -Fq 'DirectSearchPurpose.PotionFreeAudit' "$repository_root/src/Search/C
    ! rg -Fq 'DirectSearchPurpose.AdaptiveNoveltyRefinement' "$repository_root/src/Search/CombatSearchCoordinator.NoveltyPortfolio.cs"; then
     violations+=("Direct search work attribution missing")
 fi
-for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
+for plan_source in src/Search/PlanCommitment.cs src/Search/PlanMechanismRegistry.cs src/Search/CombatSearchCoordinator.PlanSearch.cs; do
     [[ -f "$repository_root/$plan_source" ]] || violations+=("Plan search boundary missing: $plan_source")
 done
 if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
@@ -131,11 +131,16 @@ if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatS
    ! rg -Fq 'TryRunPlanMember(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Plan search bypasses shared budget, continuation or final quality policy")
 fi
-if ! rg -Fq 'ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+if ! rg -Fq 'PlanMechanismRegistry.Default.DeferredCopies' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
    ! rg -Fq 'BuildOpeningCopyActionsAfterPrefix(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   rg -Fq 'PlanChoiceEffect.Nightmare' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
    rg -Fq 'OpeningCandidatePurpose.NightmareCopyCard' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
    ! rg -Fq 'HasPlayableChoiceEffect(' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
     violations+=("Plan copy discovery must follow registered choice semantics")
+fi
+if ! rg -Fq 'ImmutableArray<DeferredCopyPlanRule>' "$repository_root/src/Search/PlanMechanismRegistry.cs" ||
+   ! rg -Fq 'PlanChoiceEffect.Nightmare' "$repository_root/src/Search/PlanMechanismRegistry.cs"; then
+    violations+=("Deferred copy plan rules must be internally immutable and registered")
 fi
 if ! rg -Fq 'PlanPayoffEvidenceKind' "$repository_root/src/Search/PlanCommitment.cs" ||
    ! rg -Fq 'FreePotionUsed' "$repository_root/src/Search/PlanCommitment.cs" ||
