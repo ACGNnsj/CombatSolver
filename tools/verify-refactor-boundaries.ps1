@@ -121,6 +121,11 @@ if (-not $expansionPlanSource.Contains('AdmitPlannedEndTurnChildren(') -or
 }
 $executorPath = Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionExecutor.cs'
 $phasesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Phases.cs') -Raw
+$admittedExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.AdmittedExpansion.cs') -Raw
+if ($admittedExpansionSource -notmatch '(?m)^    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' -or
+    $admittedExpansionSource -notmatch '(?m)^    private sealed class AdmittedParent\(') {
+    $violations.Add('Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor')
+}
 if (-not (Test-Path -LiteralPath $executorPath -PathType Leaf) -or
     -not ([System.IO.File]::ReadAllText($executorPath)).Contains('private interface IExpansionExecutor') -or
     -not ([System.IO.File]::ReadAllText($executorPath)).Contains('private sealed class SerialExpansionExecutor') -or

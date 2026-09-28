@@ -62,9 +62,9 @@ internal sealed partial class CombatBeamSolver
 
     private sealed partial class ParallelExpansionExecutor
     {
-        private int _activeChoiceWorkers;
-        private int _maximumActiveChoiceWorkers;
-        private int _activePrimaryReplayWorkers;
+        internal int _activeChoiceWorkers;
+        internal int _maximumActiveChoiceWorkers;
+        internal int _activePrimaryReplayWorkers;
 
         // The outer wave has already reserved every parent. Jobs cannot admit another parent,
         // change its choice budget, or establish a GC checkpoint while any lane is active.
@@ -260,14 +260,15 @@ internal sealed partial class CombatBeamSolver
             }
             return outcomes;
         }
+    }
 
-        private readonly record struct ChoiceJob(
+    private readonly record struct ChoiceJob(
             ParallelExpansionWorkProfile.Kind Kind,
             int ItemIndex,
             PrimaryChoiceReplayFrontier? Frontier,
             int ReplayIndex);
 
-        private sealed class AdmittedParent(SearchNode node) : IDisposable
+    private sealed class AdmittedParent(SearchNode node) : IDisposable
         {
             public SearchNode Node { get; } = node;
             public object ForkGate { get; } = new();
@@ -371,7 +372,8 @@ internal sealed partial class CombatBeamSolver
 
             public void Receive(AdmittedJobOutcome outcome)
             {
-                AllocatedBytes = SaturatingAdd(AllocatedBytes, outcome.AllocatedBytes);
+                AllocatedBytes = ParallelExpansionExecutor.SaturatingAdd(
+                    AllocatedBytes, outcome.AllocatedBytes);
                 if (outcome.Job.Kind == ParallelExpansionWorkProfile.Kind.Prepare)
                 {
                     Actions = outcome.Actions
@@ -509,7 +511,7 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        private sealed class AdmittedJobOutcome(AdmittedExpansionJob job, CombatBeamSolver worker)
+    private sealed class AdmittedJobOutcome(AdmittedExpansionJob job, CombatBeamSolver worker)
             : IDisposable
         {
             public AdmittedExpansionJob Job { get; } = job;
@@ -536,7 +538,7 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        private sealed class AdmittedJobWave(int capacity) : IDisposable
+    private sealed class AdmittedJobWave(int capacity) : IDisposable
         {
             private readonly object _gate = new();
             private readonly Queue<AdmittedJobOutcome> _completed = new(capacity);
@@ -575,7 +577,7 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        private sealed record AdmittedExpansionJob(
+    private sealed record AdmittedExpansionJob(
             AdmittedParent Parent,
             ParallelExpansionWorkProfile.Kind Kind,
             int ItemIndex,
@@ -586,21 +588,21 @@ internal sealed partial class CombatBeamSolver
             int LaneIndex,
             PrimaryChoiceReplayFrontier? Frontier,
             int ReplayIndex,
-            int ReplayCount) : IExpansionLaneWorkItem
+            int ReplayCount) : ParallelExpansionExecutor.IExpansionLaneWorkItem
         {
             public void Execute(ParallelExpansionExecutor owner, CombatBeamSolver worker)
             {
                 AdmittedJobOutcome outcome = new(this, worker);
                 long allocatedAtStart = GC.GetAllocatedBytesForCurrentThread();
                 long startedAt = Stopwatch.GetTimestamp();
-                UpdateMaximum(ref owner._maximumActiveWorkers,
+                ParallelExpansionExecutor.UpdateMaximum(ref owner._maximumActiveWorkers,
                     Interlocked.Increment(ref owner._activeWorkers));
                 if (Kind == ParallelExpansionWorkProfile.Kind.Action)
-                    UpdateMaximum(ref owner._maximumActiveActionReplayWorkers,
+                    ParallelExpansionExecutor.UpdateMaximum(ref owner._maximumActiveActionReplayWorkers,
                         Interlocked.Increment(ref owner._activeActionReplayWorkers));
                 if (Kind is ParallelExpansionWorkProfile.Kind.Choice
                     or ParallelExpansionWorkProfile.Kind.PrimaryReplay)
-                    UpdateMaximum(ref owner._maximumActiveChoiceWorkers,
+                    ParallelExpansionExecutor.UpdateMaximum(ref owner._maximumActiveChoiceWorkers,
                         Interlocked.Increment(ref owner._activeChoiceWorkers));
                 if (Kind == ParallelExpansionWorkProfile.Kind.PrimaryReplay)
                     outcome.ActiveKindConcurrency = Interlocked.Increment(ref owner._activePrimaryReplayWorkers);
@@ -690,5 +692,4 @@ internal sealed partial class CombatBeamSolver
 
             public void Signal() => Wave.BackgroundCompleted.Signal();
         }
-    }
 }

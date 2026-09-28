@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 作业状态所有权（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 在 VeryHigh／25,000 节点／DOP8 下同既有 `.local/strategy-refactor-p5/executor-after-dop8` 比较，122 个非时序字段、路线与续用全同：44 战损、69,257 展开、222,131 转移。证据 `.local/strategy-refactor-p5/admitted-parent-outside-executor-dop8`。该结果只验证状态所有权搬迁；串行接入和 P5 全语料尚未执行，Linux 门禁依要求不运行。
+
 ## 策略重构 P5 卡牌回放入口（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release --no-restore` 通过，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p0/corpus.json --out .local/strategy-refactor-p5/choice-dispatch-after-dop1 --case ga-silent-boss` 为 comparable。对 `.local/strategy-refactor-p4/after-p4-20260928` 同根 DOP1 基线比较时，新增的 P8a 归因数组是唯一协议字段差异；排除该后加字段后，质量、完整动作、续用、全部其余非时序指标和剪枝逐位相同。证据 `.local/strategy-refactor-p5/choice-dispatch-compare-dop1`。未跑其余五根、DOP8 或 Linux 门禁；P5 尚未收口。

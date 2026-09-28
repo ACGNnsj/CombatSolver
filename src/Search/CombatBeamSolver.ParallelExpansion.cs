@@ -133,10 +133,10 @@ internal sealed partial class CombatBeamSolver
         private readonly CombatBeamSolver _coordinator;
         private readonly ParallelExpansionWorkProfile _workProfile = new();
         private ExpansionLane[]? _backgroundLanes;
-        private int _activeWorkers;
-        private int _maximumActiveWorkers;
-        private int _activeActionReplayWorkers;
-        private int _maximumActiveActionReplayWorkers;
+        internal int _activeWorkers;
+        internal int _maximumActiveWorkers;
+        internal int _activeActionReplayWorkers;
+        internal int _maximumActiveActionReplayWorkers;
         private bool _disposed;
 
         public ParallelExpansionExecutor(CombatBeamSolver coordinator, int degreeOfParallelism)
@@ -241,10 +241,10 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        private static long SaturatingAdd(long left, long right)
+        internal static long SaturatingAdd(long left, long right)
             => left > long.MaxValue - right ? long.MaxValue : left + right;
 
-        private static void UpdateMaximum(ref int target, int value)
+        internal static void UpdateMaximum(ref int target, int value)
         {
             int observed = Volatile.Read(ref target);
             while (observed < value)
@@ -256,7 +256,7 @@ internal sealed partial class CombatBeamSolver
             }
         }
 
-        private interface IExpansionLaneWorkItem
+        internal interface IExpansionLaneWorkItem
         {
             void Execute(ParallelExpansionExecutor owner, CombatBeamSolver worker);
             void Signal();
