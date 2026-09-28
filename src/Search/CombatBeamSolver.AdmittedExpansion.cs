@@ -319,6 +319,7 @@ internal sealed partial class CombatBeamSolver
             private bool _prepareDispatched;
             private bool _tailDispatched;
             private ExpansionBatch? _endTurnBatch;
+            private bool _endTurnCompleted;
             private IReadOnlyList<CrossTurnStandPatBaseline>? _endTurnBaselines;
             private int _completedActions;
             private int _completedPotions;
@@ -440,7 +441,37 @@ internal sealed partial class CombatBeamSolver
                     {
                         using var outcome = new AdmittedJobOutcome(job, solver)
                         {
-                            Batch = solver.RentExpansionBatch(),
+                            SerialCompletionOnly = true,
+                        };
+                        Receive(outcome);
+                    }
+                }
+            }
+
+            public IEnumerable<SearchNode> RunSerialEndTurnJob(CombatBeamSolver solver)
+            {
+                if (FindChoiceJob() != null
+                    || NextKind != ParallelExpansionWorkProfile.Kind.Tail)
+                    throw new InvalidOperationException("串行回合尾部作业次序错误。");
+                var job = new AdmittedExpansionJob(this,
+                    ParallelExpansionWorkProfile.Kind.Tail, ItemIndex: -1,
+                    Action: null, Potion: null, Probe: null, Wave: null,
+                    LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
+                MarkDispatched(job);
+                bool completed = false;
+                try
+                {
+                    foreach (SearchNode child in solver.BuildAcceptedEndTurnNodes(Node))
+                        yield return child;
+                    completed = true;
+                }
+                finally
+                {
+                    if (completed)
+                    {
+                        using var outcome = new AdmittedJobOutcome(job, solver)
+                        {
+                            SerialCompletionOnly = true,
                         };
                         Receive(outcome);
                     }
@@ -542,10 +573,13 @@ internal sealed partial class CombatBeamSolver
                     }
                     _endTurnFrontier?.Dispose();
                     _endTurnFrontier = null;
-                    _endTurnBatch = outcome.Batch
-                        ?? throw new InvalidOperationException("回合尾部作业没有返回独占候选批次。");
+                    _endTurnBatch = outcome.SerialCompletionOnly
+                        ? null
+                        : outcome.Batch
+                            ?? throw new InvalidOperationException("回合尾部作业没有返回独占候选批次。");
                     outcome.Batch = null;
                     _endTurnBaselines = outcome.EndTurnBaselines;
+                    _endTurnCompleted = true;
                 }
                 else if (outcome.Job.Kind == ParallelExpansionWorkProfile.Kind.PrimaryReplay)
                 {
@@ -573,16 +607,19 @@ internal sealed partial class CombatBeamSolver
                     _potionFrontiers![outcome.Job.ItemIndex]?.Dispose();
                     _potionFrontiers[outcome.Job.ItemIndex] = null;
                     int index = outcome.Job.ItemIndex;
-                    _potionBatches![index] = outcome.Batch
-                        ?? throw new InvalidOperationException("药水作业没有返回候选批次。");
+                    _potionBatches![index] = outcome.SerialCompletionOnly
+                        ? null
+                        : outcome.Batch
+                            ?? throw new InvalidOperationException("药水作业没有返回候选批次。");
                     outcome.Batch = null;
                     _potionCompleted![index] = true;
                     _completedPotions++;
                     while (_nextPotionAppend < Potions!.Count && _potionCompleted[_nextPotionAppend])
                     {
-                        using ExpansionBatch ready = _potionBatches[_nextPotionAppend]!;
-                        foreach (SearchNode candidate in ready.Potions)
-                            ready.TransferPotionTo(Aggregate!, candidate);
+                        using ExpansionBatch? ready = _potionBatches[_nextPotionAppend];
+                        if (ready != null)
+                            foreach (SearchNode candidate in ready.Potions)
+                                ready.TransferPotionTo(Aggregate!, candidate);
                         _potionBatches[_nextPotionAppend] = null;
                         _nextPotionAppend++;
                     }
@@ -616,13 +653,14 @@ internal sealed partial class CombatBeamSolver
 
             private void CompleteIfReady()
             {
-                if (_endTurnBatch == null || _completedActions != Actions!.Count
+                if (!_endTurnCompleted || _completedActions != Actions!.Count
                     || _completedPotions != Potions!.Count)
                     return;
-                using ExpansionBatch endTurn = _endTurnBatch;
+                using ExpansionBatch? endTurn = _endTurnBatch;
                 _endTurnBatch = null;
-                foreach (SearchNode candidate in endTurn.EndTurns)
-                    endTurn.TransferEndTurnTo(Aggregate!, candidate);
+                if (endTurn != null)
+                    foreach (SearchNode candidate in endTurn.EndTurns)
+                        endTurn.TransferEndTurnTo(Aggregate!, candidate);
                 if (_endTurnBaselines != null)
                     PublishCrossTurnStandPatBaselines(Node, _endTurnBaselines);
                 _endTurnBaselines = null;
@@ -661,6 +699,7 @@ internal sealed partial class CombatBeamSolver
             public List<PreparedCardAction>? Actions;
             public List<PreparedPotionAction>? Potions;
             public ExpansionBatch? Batch;
+            public bool SerialCompletionOnly;
             public IReadOnlyList<CrossTurnStandPatBaseline>? EndTurnBaselines;
             public DeferredCardActionProbe? Probe;
             public PrimaryChoiceReplayFrontier? Frontier;

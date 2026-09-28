@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 回合尾部作业（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 在 VeryHigh／25,000 节点／110 秒配置下，DOP1 对 P4 同政策基线排除后加归因字段后逐位相同；DOP8 对 `.local/strategy-refactor-p5/executor-after-dop8` 的 122 个非时序字段、动作和续用全同，均为 44 战损、69,257 展开、222,131 转移。证据 `.local/strategy-refactor-p5/serial-tail-job-dop1` 与 `tail-job-dop8`。其余玩家根与生成根、Linux 门禁未运行。
+
 ## 策略重构 P5 药水作业（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#24 `f88c625680e64a2c99a2ab8844abcbdd` 的 `combat_start` 严格恢复后，VeryHigh／25,000 节点／DOP1／110 秒搜索 `comparable`；同 P4 基线排除后加归因字段后，完整动作、续用、终局、工作量、剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-potion-jobs-report24`。DOP8 药水根、其余语料、Linux 门禁均未运行；P5 尚未收口。

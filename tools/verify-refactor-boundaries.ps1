@@ -127,6 +127,8 @@ if ($admittedExpansionSource -notmatch '(?m)^    }\r?\n\s*\r?\n    private reado
     -not $admittedExpansionSource.Contains('public void RunSerialCardAction(CombatBeamSolver solver)') -or
     -not $admittedExpansionSource.Contains('public void RunSerialChoiceJob(CombatBeamSolver solver)') -or
     -not $admittedExpansionSource.Contains('public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)') -or
+    -not $admittedExpansionSource.Contains('public IEnumerable<SearchNode> RunSerialEndTurnJob(CombatBeamSolver solver)') -or
+    -not $serialExpansionSource.Contains('cardJobs.RunSerialEndTurnJob(this)') -or
     -not $serialExpansionSource.Contains('cardJobs.RunSerialChoiceJob(this)')) {
     $violations.Add('Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor')
 }

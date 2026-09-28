@@ -51,7 +51,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - `ContinuationSearchRequest` 承载现有前缀求解器的政策、进度、药水基线、用药上下界、incumbent 和最早用药回合覆盖。`FrontierContinuationScheduler.CreateSolver` 在业务异常捕获之外构造求解器，只有 `Solve` 期间的指定药水条件异常可按模式跳过。
 - P5 串行与并行药水作业通过 `PreparedPotionChoiceWork` 持有选项、检查点和分支回放，`AdmittedParent` 登记串行派发与完成；两路径在各自原时点调用 `TryAdmitPlannedPotionChild`。串行逐分支交付、根诊断和直接快照释放，与并行批次所有权及原序提交均保持。
 - P5 普通卡牌的已有选择限制和必须空选择由 `ExpansionPlan` 在准备时读取，串行与并行均经 `GeneratePreparedCardAction` 回放；挂起选择由 `AdmittedParent` 派发独立作业。串行作业沿用原完整选择链及预算，并行可将首层回放与续接交给 lane；显示名及候选所有权仍按原执行路径顺序处理。
-- P5 回合尾部候选经 `AdmitPlannedEndTurnChildren` 做唯一转置准入与批次移交；每个调用者保留原来的产出时点和子节点接收顺序，未移交的快照由其原 `ExpansionBatch` 释放。
+- P5 回合尾部作业由 `AdmittedParent` 登记 Tail 派发与完成；串行保留原迭代器逐子节点交付，并行保留固定 lane 与原序批次。候选经 `AdmitPlannedEndTurnChildren` 做唯一转置准入与批次移交，未移交快照由其原 `ExpansionBatch` 释放。
 - P5 `IExpansionExecutor` 只接管已选父节点的子节点接收与完成：串行执行器保留最后预算槽仅产出首个子节点的迭代行为，并行执行器保留固定 lane、原序批次提交和异常排空。阶段循环独占内存准入、波次容量及未派发父节点清理；不要把执行器做成改变候选政策或预算的第二所有者。
 - 回合边界的零费开局与次回合防御追击在原位置完成预算准入和前缀合法性检查，再用 `Dispatch` 运行已定 profile；前一条候选改善后的 `selected` 与八次续搜上限仍由原循环控制。
 - 强制用药开局的前缀续搜和次回合换序保持原 `try/catch` 包围请求构造与执行，继续只跳过 `PotionPolicyUnsatisfiedException`；请求带入原强制药水基线、最低／最多用药及 Boss 最早用药回合。

@@ -151,7 +151,7 @@ internal sealed partial class CombatBeamSolver
             foreach (SearchNode child in cardJobs.RunSerialPotionJob(this))
                 yield return child;
 
-        foreach (SearchNode endNode in BuildAcceptedEndTurnNodes(node))
+        foreach (SearchNode endNode in cardJobs.RunSerialEndTurnJob(this))
             yield return endNode;
     }
 

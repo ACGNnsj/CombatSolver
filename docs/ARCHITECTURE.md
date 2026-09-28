@@ -24,7 +24,7 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 两执行器的药水作业共用 `PreparedPotionChoiceWork` 的选项准备、检查点和分支回放所有权，并通过 `AdmittedParent` 登记派发与完成。串行逐分支交付，保留根诊断和直接快照释放；并行在固定 lane 内生成批次，保留原序移交。周期租约、周期拒绝及转置准入顺序由同一入口实现。
 
-回合尾部候选的转置准入和 `ExpansionBatch` 快照移交由 `AdmitPlannedEndTurnChildren` 独占；串行即时展开、周期出口批次和并行按序提交均消费该迭代入口。未消费的候选继续由原批次释放。
+回合尾部作业的派发与完成经 `AdmittedParent` 的 Tail 状态登记：串行按原迭代器逐子节点交付，并行在固定 lane 生成原序批次。回合尾部候选的转置准入和 `ExpansionBatch` 快照移交由 `AdmitPlannedEndTurnChildren` 独占；未消费的候选继续由原批次释放。
 
 `IExpansionExecutor` 统一父节点子节点接收与完成合同；串行执行器消费 `Expand` 的即时迭代结果，并行执行器消费已准入父节点的固定 lane 批次并在提交前调用原顺序检查。已准入父节点的选择、药水、尾部作业状态和结果所有权由求解器层的 `AdmittedParent` 持有，并行执行器只选择 lane、派发和原序提交。`Phases` 保留内存准入、波次容量和未进入 worker 的父节点清理，子节点不越过原提交顺序。
 
