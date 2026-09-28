@@ -39,4 +39,10 @@
 
 ## 内存条与交付
 
+### #142 — 模组 ID 缓存（对应 Issue #141）
+
+核对 Prefix/Postfix、Ritsu 初始化事件、已冻结注册表及离线 M0.2 初始化顺序，保留 PR 生产修复。新增 ModelIdCacheChecks 链接实际生产补丁，通过两个动态程序集的同名类型依次模拟注册前探测、最终前缀与已完成注册后加载：原 main 源码失败于 `Registration probe cached an unprefixed mod ID`，合并代码 7 项通过，包含并发查询和原版类型独立缓存。Release 与 OfflineSearchHarness 0/0，Windows 门禁通过，架构说明同步修正原来的“只由类型名决定”假设。
+
+原生 ControllerSessions 检查未进入游戏：缩小为单进程夹具并按此前约 1.4 GB 工作集给 1,792 MiB 预约，仍因可用内存不足加系统 2 GiB 余量而准入超时；实例已删除。没有把作者的 macOS 探针或本轮替身合同称作 Windows Ritsu 生命周期实测。缓存行为合同已覆盖此修复的失效条件，原生事件链保留为未验证项。
+
 在前述合并完成后处理。原始证据及临时产物统一位于忽略目录 `.local/audit-20260928/`。本批不运行 Linux 门禁，不启动可见 Steam，不提升版本或上传渠道。

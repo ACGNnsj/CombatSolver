@@ -40,6 +40,11 @@ public static class Entry
         ModTypeDiscoveryHub.RegisterModAssembly(ModId, Assembly.GetExecutingAssembly());
         RitsuLibFramework.SubscribeLifecycle<CombatStartingEvent>(evt => { RunStatistics.Battle(evt.CombatState); SolverController.BeginCombat(evt.CombatState); });
         RitsuLibFramework.SubscribeLifecycle<CombatEndedEvent>(_ => SolverController.Reset("combat_ended"));
+        // 模组类型的 ModelId 在注册冻结前还会被内容库改写，GetId 缓存要等注册表初始化完成才收模组类型。
+        RitsuLibFramework.SubscribeLifecycle<ModelRegistryInitializedEvent>(
+            _ => ModelDbGetIdCachePatch.MarkModelRegistryInitialized());
+        if (STS2RitsuLib.Content.ModContentRegistry.IsFrozen)
+            ModelDbGetIdCachePatch.MarkModelRegistryInitialized();
         CombatManager.Instance.TurnStarted += OnTurnStarted;
 
         var patcher = RitsuLibFramework.CreatePatcher(ModId, "combat-solver", "战斗路线求解器");

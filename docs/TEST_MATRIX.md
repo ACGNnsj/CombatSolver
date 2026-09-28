@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #142 合并验证（2026-09-28）
+
+`dotnet run --project tools/ModelIdCacheChecks/ModelIdCacheChecks.csproj -c Release`：7 项通过。链接原 main 生产补丁时明确失败于注册前无前缀缓存；最终补丁核对原版、两个动态程序集同名类型、注册前／后、晚加载、并发与 null 原生入口。替身只提供模型 ID 和补丁元数据，缓存逻辑直接链接生产文件。主项目及离线宿主 Release 0/0，Windows 门禁通过。`PR142-MODEL-REGISTRY` 在主机准入阶段超时、实例删除，Windows 原生初始化事件尚未实测。
+
 ## PR #139 合并验证（2026-09-28）
 
 `TurnPhaseMirrorChecks` 的默认／`--seal`／`--start`／`--start --seal`／`--after-player-start`／`--after-player-start --seal` 六组分别 28、3、27、2、52、5 项通过。合并时补齐具体模型忽略登记与复合登记原子性：红灯为 `Ignored accepted an abstract model`；绿灯覆盖抽象、无关类型、重复、失败后 Early 正常登记及派发。Release 0/0；Windows 结构门禁通过。未运行原生第三方 Mod 或 Linux 门禁。
@@ -206,6 +210,10 @@ Release 0/0、Windows 结构门禁 238；GA-SILENT-BOSS-00 与本轮重构基线
 - 基线的战损／用药依次为 #24 0/1、#37 1/0、#79 50/0、#81 31/0、#85 74/0、#89 9/0；生成场景 `GA-IRONCLAD-ELITE-00` 74/1、`GA-SILENT-BOSS-00` 44/0。这是固定短搜口径，不能与历史 180 秒策略成果直接比较。
 - `python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p0/baseline --right .local/strategy-refactor-p0/after --out .local/strategy-refactor-p0/comparison`：#24、#37、#81、#89 与两个生成场景的动作、结果、续用、expanded、transitions、choice branches 及剪枝逐位相同。#79、#85 的 P0 基线分别用时 109,992 和 109,985 毫秒，贴近 110,000 毫秒限时；两根标为不可比较，不将工作量漂移算作纯重构差异。四个有效玩家根已达到最低门槛，备用 #56/#63 未运行。
 - `python tools/StrategyCorpus/test_compare.py` 的分类、根身份、时限合同通过；最终 Release 构建 0 警告、0 错误。Windows/Linux 结构门禁均通过，Linux 侧 `rg` 解包于系统临时目录运行，无系统安装。未做完整自动战斗或大批量回归。
+## GetId 缓存与模组注册时序（#141，2026-09-27）
+
+- macOS 克隆游戏 + 隔离 HOME + `--force-steam=off`，mod_list 为 RitsuLib → CombatSolver → 探针。探针是最小 RitsuLib 内容模组：一张普通卡，在 `ModelRegistryInitializedEvent` 里打印 `GetId`；另编一个含与原版同名 `Leap` 卡的版本。不装求解器：`CARD.GET_ID_PROBE_CARD_PROBE_UNIQUE`，同名版正常启动；工坊 0.47.0：`CARD.PROBE_UNIQUE`，同名版 `DuplicateModelException` 启动失败；修复版：两种都与不装求解器一致。
+- 控制器会话合同新增：进入战斗时注册表初始化信号已送达，且门控对原版类型始终放行、对模组类型只在信号后放行。该合同需要 Linux/Windows 无头入口，本机未重跑；macOS Release 构建 0 警告、0 错误，结构门禁通过。
 
 ## 0.47.1 紧急回归修复（2026-09-27）
 
