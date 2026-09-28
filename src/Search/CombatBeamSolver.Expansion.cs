@@ -42,21 +42,15 @@ internal sealed partial class CombatBeamSolver
         foreach (PreparedCardAction planned in EnumeratePlannedCardActions(
                      new ExpansionPlan(node, CardNameFirst: false)))
         {
-                PlanAction action = planned.Action;
-                using CardChoiceReplayCapture? cardCapture = PrepareCardChoiceCapture(node, action);
-                SimulationSnapshot probeSnapshot = ReplayAction(node, action, cardChoiceCapture: cardCapture);
-
-                if (!TryResolvePlannedCardChoices(node, planned, probeSnapshot,
-                        out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
-                    continue;
-                resolvedBranches = WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches);
-                foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
-                {
-                    SearchNode child = CreatePlannedCardChild(node, finalAction, finalSnapshot);
-                    ProcessExpandedCardCandidate(node,
-                        new RawCardCandidate(child, planned.CardType, planned.TargetCombatId),
-                        nonDominated, ref deferredCycleCandidates, batch: null);
-                }
+            List<ActionCandidate>? deferred = deferredCycleCandidates;
+            DeferredCardActionProbe? probe = GeneratePreparedCardAction(
+                node, planned, seed: null, replayForkGate: null, batch: null,
+                allowPendingChoiceDeferral: false,
+                acceptCandidate: raw => ProcessExpandedCardCandidate(
+                    node, raw, nonDominated, ref deferred, batch: null));
+            if (probe != null)
+                throw new InvalidOperationException("串行卡牌展开意外返回延迟选择作业。");
+            deferredCycleCandidates = deferred;
         }
 
         if (cycleExitBatch != null)

@@ -41,15 +41,15 @@ if ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBe
    ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card/potion paths do not share the expansion plan")
 fi
-for child_method in CreatePlannedCardChild CreatePlannedPotionChild; do
-    if ! rg -Fq "$child_method(" "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
-       ! rg -Fq "$child_method(" "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
-        violations+=("Serial and parallel paths duplicate card/potion child construction: $child_method")
-    fi
-done
-if ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+if ! rg -Fq 'GeneratePreparedCardAction(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'CreatePlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'CreatePlannedCardChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   ! rg -Fq 'CreatePlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Card and potion children must use the shared construction path")
+fi
+if ! rg -Fq 'GeneratePreparedCardAction(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
-    violations+=("Serial and parallel paths duplicate ordinary card choice dispatch")
+    violations+=("Serial and parallel paths must share ordinary card choice dispatch")
 fi
 if ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'TryAdmitExpansionParent(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
@@ -81,9 +81,10 @@ if [[ ! -f "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ]
 fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
-   ! rg -Fq 'TryResolvePlannedCardChoices(node, planned, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'GeneratePreparedCardAction(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(node, action, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
-    violations+=("Card choice requirements must come from the shared expansion plan")
+    violations+=("Card choice replay and requirements must use the shared planned action path")
 fi
 if ! rg -Fq 'DirectSearchPurpose' "$repository_root/src/Search/SearchRequestWorkTotals.cs" ||
    ! rg -Fq 'DirectSearchPurpose? directSearchPurpose' "$repository_root/src/Search/CombatBeamSolver.cs" ||

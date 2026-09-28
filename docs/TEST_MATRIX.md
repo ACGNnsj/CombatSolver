@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 卡牌回放入口（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release --no-restore` 通过，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p0/corpus.json --out .local/strategy-refactor-p5/choice-dispatch-after-dop1 --case ga-silent-boss` 为 comparable。对 `.local/strategy-refactor-p4/after-p4-20260928` 同根 DOP1 基线比较时，新增的 P8a 归因数组是唯一协议字段差异；排除该后加字段后，质量、完整动作、续用、全部其余非时序指标和剪枝逐位相同。证据 `.local/strategy-refactor-p5/choice-dispatch-compare-dop1`。未跑其余五根、DOP8 或 Linux 门禁；P5 尚未收口。
+
 ## 策略重构 P8c 同根路线首分歧（2026-09-28）
 
 - `python tools/StrategyCorpus/route_divergence.py --baseline .local/strategy-refactor-p7c/baseline-97 --witness .local/strategy-refactor-p7c/target-reps-97-retry --out .local/strategy-refactor-p7c/route-divergence-97.json` 成功；两份旧实验结果的根戳记和执行政策相同，质量顺序判定见证路线更好。共同前缀为首张精神过载，第 2 步从灵体变为致死性；旧路线 21 战损／0 药，见证路线 9 战损／0 药。与 #81 不同根配对时明确拒绝。该命令只读取已有证据，未启动游戏、未验证当前源码可重现 9 战损，也未定位搜索内的首个丢路阶段；Linux 门禁未运行。

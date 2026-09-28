@@ -465,9 +465,12 @@ internal sealed partial class CombatBeamSolver
         PreparedCardAction action,
         ReplayForkSeed? seed,
         object? replayForkGate,
-        ExpansionBatch batch,
-        bool allowPendingChoiceDeferral)
+        ExpansionBatch? batch,
+        bool allowPendingChoiceDeferral,
+        Action<RawCardCandidate>? acceptCandidate = null)
     {
+        if ((batch == null) == (acceptCandidate == null))
+            throw new ArgumentException("卡牌候选必须有且仅有一个接收者。");
         if (_parallelActionReplayForkGate != null)
             throw new InvalidOperationException("不能嵌套并行卡牌动作 replay 上下文。");
         _parallelActionReplayForkGate = replayForkGate;
@@ -499,7 +502,8 @@ internal sealed partial class CombatBeamSolver
                     out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                 return null;
             AddResolvedCardCandidates(node, action,
-                WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches), batch);
+                WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches),
+                batch, acceptCandidate);
             return null;
         }
         finally
@@ -512,18 +516,25 @@ internal sealed partial class CombatBeamSolver
         SearchNode node,
         PreparedCardAction action,
         IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches,
-        ExpansionBatch batch)
+        ExpansionBatch? batch,
+        Action<RawCardCandidate>? acceptCandidate = null)
     {
         foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
         {
+            if (batch == null)
+            {
+                SearchNode immediateChild = CreatePlannedCardChild(node, finalAction, finalSnapshot);
+                acceptCandidate!(new RawCardCandidate(
+                    immediateChild, action.CardType, action.TargetCombatId));
+                continue;
+            }
             bool published = false;
             try
             {
                 SearchNode child = CreatePlannedCardChild(node, finalAction, finalSnapshot);
-                batch.Add(new RawCardCandidate(
-                    child,
-                    action.CardType,
-                    action.TargetCombatId));
+                RawCardCandidate candidate = new(
+                    child, action.CardType, action.TargetCombatId);
+                batch.Add(candidate);
                 published = true;
             }
             finally
