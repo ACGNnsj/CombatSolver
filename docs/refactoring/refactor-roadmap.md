@@ -10,7 +10,7 @@
 
 ## 策略重构 P7a（进行中）
 
-建立单项 Beam 权重灵敏度入口：无人测试请求在 Testing 校验项目和倍率，Runtime 冻结到搜索 profile；语料运行器可选择固定根，专用对照器只允许该扰动造成政策差异。矩阵工具可复用一次基线汇总多个已采集扰动。#24 玩家根与 GA-SILENT-BOSS-00 在 `CurrentEnergy:0.8` 下均为质量不变；当前源码的 GA-SILENT-BOSS-00 在 `EnemyHp:0.8` 和 `PersistentBuffDelta:1.2` 下均保持 44 战损／0 药，但终局 score 低 1，按冻结质量顺序为变差。证据不足以调整默认权重。P6 的长线续期尚缺实际触发样本。
+建立单项 Beam 权重灵敏度入口：无人测试请求在 Testing 校验项目和倍率，Runtime 冻结到搜索 profile；语料运行器可选择固定根，专用对照器只允许该扰动造成政策差异。矩阵工具可复用一次基线汇总多个已采集扰动。#24 玩家根与 GA-SILENT-BOSS-00 在 `CurrentEnergy:0.8` 下均为质量不变；GA-SILENT-BOSS-00 在 `EnemyHp:0.8` 和 `PersistentBuffDelta:1.2` 下均保持 44 战损／0 药，但末位 score 低 1。P6 收口源码的 #100 在同根同预算的 `PersistentBuffDelta:1.5` 下由 22 升到 55 战损、仍用 2 药，故不改默认权重。阈值维度和其他根的校准仍待证据；P6 地平线尚缺实际触发样本。
 
 ## 策略重构 P7b（部分完成）
 

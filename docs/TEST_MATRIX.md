@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P7a 单项持续效果权重（2026-09-28）
+
+- `pwsh -NoProfile -File tools/run-unattended-test.ps1 -CheckpointArchivePath .local/issue-bundles/worldline-top150-20260926/raw/88619c63f91b48998737d7a9d623e2df.zip -CheckpointSelector start -ReplayMode SearchOnly -FixedSearchBudget -PerformancePresetForTest VeryHigh -SearchBudgetOverrideMilliseconds 180000 -SearchMaxDegreeOfParallelismForTest 8 -EnableNoGcRegionForTest 0 -BeamWeightTermForTest PersistentBuffDelta -BeamWeightScaleForTest 1.5 -TimeoutSeconds 240 -EvidenceDirectory .local/strategy-refactor-p7a/persistent-1p5-100 -CleanupInstanceOnExit` Passed，实例清理。对 `.local/strategy-refactor-p6/cross-turn-100`，根戳记及除该扰动外的政策相同；战损 22→55 HP，药水 2→2，结束回合 17→25。默认值不变，不追加同系数扫描；本轮未运行 Linux 门禁或其他权重组合。
+
 ## 策略重构 P6 收口对照（2026-09-28）
 
 - #90、#100、#101 均用 `pwsh -NoProfile -File tools/run-unattended-test.ps1 -CheckpointArchivePath <对应原包> -CheckpointSelector start -ReplayMode SearchOnly -FixedSearchBudget -PerformancePresetForTest VeryHigh -SearchBudgetOverrideMilliseconds 180000 -SearchMaxDegreeOfParallelismForTest 8 -EnableNoGcRegionForTest 0 -TimeoutSeconds 240 -EvidenceDirectory <对应目录> -CleanupInstanceOnExit` 顺序运行，均 Passed、实例清理。证据为 `.local/strategy-refactor-p6/potion-plan-90`、`final-100`、`final-101`。#90 对 P7b 原结果的动作、质量、续用、剪枝和请求展开／转移／选择分支全同，0 战损／最终 49 HP；#100、#101 对先前 P6 同根结果的这些字段全同，分别 22 战损／2 药、58 战损／1 药。对 P6 前同根同政策基线，#100 为 41→22 战损，#101 为死亡→胜利。跨回合计划类型改动后单独重跑 #100，证据 `.local/strategy-refactor-p6/cross-turn-100`，动作、质量、续用、剪枝与工作量继续全同。
