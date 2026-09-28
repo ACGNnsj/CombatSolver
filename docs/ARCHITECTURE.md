@@ -54,6 +54,8 @@ P8a 请求账本将经 `FrontierContinuationScheduler` 派发的成员按既有 
 
 P8c 的离线首个丢路查询只消费 `SearchPathObserver` 已写出的值观察，按求解器身份与边界编号配对 GlobalRetention／RetentionPoolFinal；未观察到的前缀、采集截断边界和同状态别名保持未知，不把前缀落选当作最优状态消失。
 
+`StrategyCorpus/route_divergence.py` 先核对两个已捕获结果的开战根与执行政策，再比较完整动作身份；它只提供待追踪的首个不同前缀，不推断候选在哪个搜索阶段消失。分层丢路结论仍须由实际路径观察或严格回放给出。
+
 主 Pass 的前缀补搜用 `SearchPassContext.SliceWindow` 在原采样点同时取得轮次剩余时间和请求剩余节点，随后以原常数生成成员 profile；主搜及药水审计的其他预算分配仍按原顺序执行。
 
 夜魇开局补搜沿用配置 profile 的时间帽，只从请求账本读取剩余节点；`SearchBudgetLedger.ProfileWindow` 按该原口径生成单成员切片。默认关闭的前两回合探索保留其显式实验额度。
