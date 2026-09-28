@@ -75,11 +75,17 @@ internal static partial class SearchGcPolicy
                 }
                 else if (!IsRecoverableNoGcOutcome(outcome))
                 {
-                    // A classification the probe cannot act on (for example unsupported region
-                    // sizing) still must not strand the running search: keep the allowance so a
-                    // later drained boundary can try again under different conditions.
-                    signal.UseDefaultGcFallback(systemHeadroomConstrained: false, allowNoGcRecovery: true);
+                    // A classification the probe cannot act on. Region sizing and platform
+                    // support do not change while the process runs, and DefaultGcRequested is
+                    // an explicit decision to stop holding a region, so retrying only repeats
+                    // the same failure. Drop the allowance and let ordinary collection carry
+                    // the rest of this search. The memory-driven classifications opposite this
+                    // branch keep the allowance and are retried at a later drained boundary.
+                    signal.UseDefaultGcFallback(systemHeadroomConstrained: false);
                 }
+                // A memory-driven failure needs no action here: the allowance is still set and
+                // the probe stays installed, so the next drained boundary re-evaluates it
+                // against whatever headroom exists then.
                 Entry.Logger.Info($"[CombatSolver/Test] GC_NO_GC_RECOVERY attempt={backoff.Attempts} " +
                     $"outcome={FormatStartOutcome(outcome)} budget={budget} loh_budget={lohBudget} " +
                     $"next_commit_reserve={reservedBytes} physical_load={load} system_limit={systemLimit} " +
@@ -111,12 +117,23 @@ internal static partial class SearchGcPolicy
 
     internal sealed class NoGcRecoveryBackoff
     {
-        // Recovery is a cooldown, not a one-way door. A long multi-unit encounter can fail
-        // several attempts while its retention set keeps growing; stopping after a fixed
-        // attempt count would leave the rest of that search with no allocation ceiling at
-        // all, which is strictly worse than retrying at a slower rate. The delay saturates
-        // instead, so the retry rate stays bounded while the search keeps every chance to
-        // re-establish a region.
+        // Recovery is a cooldown, not a one-way door.
+        //
+        // Attempts accumulates across fallback segments: RecordRecovery only re-arms the
+        // observer, so a search that falls back, recovers, and falls back again keeps
+        // counting. A fixed cap therefore does not bound one segment — it retires the
+        // probe for the whole scope once a handful of segments have come and gone.
+        //
+        // Sampled recovery logs show this is not hypothetical. Across 233 combat journals
+        // the success count by attempt is 64/14/6/5/5/5/3/2/1/1 for attempts 1..10, every
+        // one of them outcome=started. Twenty-two of those successes happened at attempt
+        // four or later, where the old cap had already stopped observing, and one scope
+        // recorded six consecutive successful recoveries while physical load climbed from
+        // 5.56 GB to 10.55 GB and the region budget shrank from 3142 MB to 586 MB. Those
+        // searches kept an allocation ceiling only because the retry still happened.
+        //
+        // The delay saturates instead, so the retry rate stays bounded while the search
+        // keeps every chance to re-establish a region.
         private const long MaximumObservationDelayMilliseconds = 60_000;
 
         // 2_000L << 5 == 64_000 already exceeds the saturated delay, so a small exponent is
@@ -178,4 +195,16 @@ internal static partial class SearchGcPolicy
 
         public void RecordRecovery() => _armed = false;
     }
+
+    /// <summary>
+    /// Exposes the recoverability classification to the policy checks without widening the
+    /// enum's visibility, so the split between memory-driven and structural failures can be
+    /// asserted directly.
+    /// </summary>
+    internal static bool IsRecoverableOutcomeForTesting(string outcomeName)
+        => Enum.TryParse(outcomeName, ignoreCase: false, out NoGcRegionStartOutcome parsed)
+            && IsRecoverableNoGcOutcome(parsed);
+
+    internal static bool IsKnownOutcomeNameForTesting(string outcomeName)
+        => Enum.TryParse(outcomeName, ignoreCase: false, out NoGcRegionStartOutcome _);
 }

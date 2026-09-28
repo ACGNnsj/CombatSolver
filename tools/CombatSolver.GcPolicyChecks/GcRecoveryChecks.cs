@@ -143,6 +143,73 @@ internal static class GcRecoveryChecks
             PolicyCheck.Require(backoff.Attempts == 44,
                 "Attempts keeps counting past the old cap so the delay, not a hard stop, bounds the rate.");
         });
+        PolicyCheck.Run("attempts accumulate across fallback segments so a later segment keeps its ceiling", () =>
+        {
+            // RecordRecovery only re-arms the observer; it does not reset the counter. A
+            // search that falls back and recovers repeatedly must therefore keep observing
+            // past the third segment. Sampled journals show six consecutive successful
+            // recoveries inside one scope while physical load climbed, so a cap applied to
+            // the cumulative count would have retired the probe mid-search.
+            SearchGcPolicy.NoGcRecoveryBackoff backoff = new();
+            long now = 0;
+            long gen2 = 100;
+            for (int segment = 1; segment <= 6; segment++)
+            {
+                // A segment begins with a fallback and waits for a completed collection.
+                // The first observation of a fresh arming only records the baseline.
+                backoff.ArmFallback(now, gen2);
+                // Each recorded attempt lengthens the cooldown (2_000 << attempts, saturating),
+                // so wait out the current delay before expecting an observation.
+                now += 60_000;
+                gen2++;
+                PolicyCheck.Require(backoff.ObserveCompletedCollection(now, gen2),
+                    $"Segment {segment} must observe once its cooldown and a newer collection are both present.");
+                backoff.RecordAttempt(now, gen2);
+                backoff.RecordRecovery();
+            }
+            PolicyCheck.Require(backoff.Attempts == 6,
+                "Six fallback segments must produce six recorded attempts.");
+            // The decisive part: a cumulative cap of three would leave the probe retired here,
+            // so the sixth segment could never have observed at all.
+            now += 60_000;
+            gen2++;
+            PolicyCheck.Require(backoff.ShouldObserve(now),
+                "The probe must still be observing after more segments than the old cumulative cap allowed, so a later segment keeps its allocation ceiling.");
+        });
+        PolicyCheck.Run("only memory-driven outcomes stay recoverable", () =>
+        {
+            // The probe can act on a classification whose cause changes while the process
+            // runs. Region sizing, platform support and an explicit request for ordinary
+            // collection do not change, so retrying them only repeats the same failure.
+            foreach (string recoverable in new[]
+                     {
+                         "InsufficientMemory",
+                         "SystemHeadroomInsufficient",
+                         "SkippedAfterUnexpectedLoss",
+                     })
+            {
+                PolicyCheck.Require(
+                    SearchGcPolicy.IsKnownOutcomeNameForTesting(recoverable),
+                    $"{recoverable} must remain a known start outcome.");
+                PolicyCheck.Require(
+                    SearchGcPolicy.IsRecoverableOutcomeForTesting(recoverable),
+                    $"A {recoverable} failure depends on memory, which can improve; the probe must retry it.");
+            }
+            foreach (string structural in new[]
+                     {
+                         "RegionSizeUnsupported",
+                         "PlatformUnsupported",
+                         "DefaultGcRequested",
+                     })
+            {
+                PolicyCheck.Require(
+                    SearchGcPolicy.IsKnownOutcomeNameForTesting(structural),
+                    $"{structural} must remain a known start outcome.");
+                PolicyCheck.Require(
+                    !SearchGcPolicy.IsRecoverableOutcomeForTesting(structural),
+                    $"A {structural} failure cannot change while the process runs, so the search must stay on ordinary collection.");
+            }
+        });
         PolicyCheck.Run("no-progress reclaim rule stays off at limit zero", () =>
         {
             SearchMemoryPressureSignal signal = new();
@@ -229,3 +296,4 @@ internal static class GcRecoveryChecks
         });
     }
 }
+
