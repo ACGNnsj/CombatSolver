@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 串行挂起选择作业（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#89 `10d01cc2d1f7445c8ff72e76e783aeb0` 严格恢复 `combat_start` 后，以 VeryHigh／25,000 节点／DOP1／110 秒固定配置取得 `comparable`；同 P4 基线比较，排除后加的 `searchWorkAttributions` 后完整动作、续用、终局、工作量及剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-choice-jobs-report89`。未跑其余语料、DOP8 或 Linux 门禁；药水与尾部作业尚未迁移。
+
 ## 策略重构 P5 串行卡牌作业（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 的 DOP1、VeryHigh／25,000 节点／110 秒搜索 `comparable`；同 P4 同政策基线比较，排除后来新增的工作归因数组后，完整动作、续用、终局、工作量及剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-card-jobs-dop1`。只覆盖串行卡牌作业；未跑其余五根、DOP8 或 Linux 门禁，P5 未收口。

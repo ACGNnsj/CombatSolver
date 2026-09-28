@@ -81,7 +81,9 @@ if [[ ! -f "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ]
 fi
 if ! rg -Uq '    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
    ! rg -q '^    private sealed class AdmittedParent\(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'public void RunSerialCardAction(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs"; then
+   ! rg -Fq 'public void RunSerialCardAction(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public void RunSerialChoiceJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'cardJobs.RunSerialChoiceJob(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
     violations+=("Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor")
 fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||

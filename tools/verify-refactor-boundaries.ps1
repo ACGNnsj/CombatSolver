@@ -124,7 +124,9 @@ $phasesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/
 $admittedExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.AdmittedExpansion.cs') -Raw
 if ($admittedExpansionSource -notmatch '(?m)^    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' -or
     $admittedExpansionSource -notmatch '(?m)^    private sealed class AdmittedParent\(' -or
-    -not $admittedExpansionSource.Contains('public void RunSerialCardAction(CombatBeamSolver solver)')) {
+    -not $admittedExpansionSource.Contains('public void RunSerialCardAction(CombatBeamSolver solver)') -or
+    -not $admittedExpansionSource.Contains('public void RunSerialChoiceJob(CombatBeamSolver solver)') -or
+    -not $serialExpansionSource.Contains('cardJobs.RunSerialChoiceJob(this)')) {
     $violations.Add('Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor')
 }
 if (-not (Test-Path -LiteralPath $executorPath -PathType Leaf) -or

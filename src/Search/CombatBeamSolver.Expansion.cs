@@ -42,9 +42,13 @@ internal sealed partial class CombatBeamSolver
         using AdmittedParent cardJobs = new(node);
         cardJobs.PrepareSerialCards(this);
         int processedCards = 0;
-        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Action)
+        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Action
+            || cardJobs.FindChoiceJob() != null)
         {
-            cardJobs.RunSerialCardAction(this);
+            if (cardJobs.FindChoiceJob() != null)
+                cardJobs.RunSerialChoiceJob(this);
+            else
+                cardJobs.RunSerialCardAction(this);
             ExpansionBatch cards = cardJobs.Aggregate!;
             while (processedCards < cards.Cards.Count)
             {

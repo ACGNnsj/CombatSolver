@@ -32,6 +32,39 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    private ExpansionBatch EvaluateSerialDeferredChoices(
+        SearchNode parent, DeferredCardActionProbe probe)
+    {
+        ExpansionBatch batch = RentExpansionBatch();
+        bool completed = false;
+        SimulationSnapshot? snapshot = probe.TakeSnapshot();
+        CardChoiceReplayCheckpoint? checkpoint = probe.TakeCheckpoint();
+        try
+        {
+            if (!TryResolvePlannedCardChoices(parent, probe.Action, snapshot,
+                    out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> branches))
+            {
+                snapshot = null; // The choice resolver released the rejected probe.
+                completed = true;
+                return batch;
+            }
+            IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolved =
+                WithCardChoiceCheckpoint(checkpoint, branches);
+            snapshot = null; // The branch iterator owns the probe once enumeration begins.
+            checkpoint = null;
+            AddResolvedCardCandidates(parent, probe.Action, resolved, batch);
+            completed = true;
+            return batch;
+        }
+        finally
+        {
+            snapshot?.ReleaseSimulator();
+            checkpoint?.Dispose();
+            if (!completed)
+                batch.Dispose();
+        }
+    }
+
     private PreparedChoiceEvaluation EvaluatePreparedPotionAction(
         SearchNode parent,
         PreparedPotionAction action,
@@ -333,14 +366,41 @@ internal sealed partial class CombatBeamSolver
                     Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 PreparedCardActionEvaluation evaluation = solver.EvaluatePreparedCardAction(
-                    Node, Actions[index], seed: null, ForkGate,
-                    allowPendingChoiceDeferral: false);
+                    Node, Actions[index], seed: null, ForkGate);
                 using var outcome = new AdmittedJobOutcome(job, solver)
                 {
                     Batch = evaluation.Batch,
                     Probe = evaluation.DeferredProbe,
                 };
                 Receive(outcome);
+            }
+
+            public void RunSerialChoiceJob(CombatBeamSolver solver)
+            {
+                ChoiceJob choice = FindChoiceJob()
+                    ?? throw new InvalidOperationException("串行选择作业缺少挂起选择。");
+                if (choice.Kind != ParallelExpansionWorkProfile.Kind.Choice
+                    || choice.Frontier != null)
+                    throw new InvalidOperationException("串行选择作业意外进入并行回放 frontier。");
+                DeferredCardActionProbe probe = Probes![choice.ItemIndex]
+                    ?? throw new InvalidOperationException("串行选择探针已被消费。");
+                var job = new AdmittedExpansionJob(this,
+                    ParallelExpansionWorkProfile.Kind.Choice, choice.ItemIndex,
+                    Action: null, Potion: null, probe,
+                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
+                MarkDispatched(job);
+                try
+                {
+                    using var outcome = new AdmittedJobOutcome(job, solver)
+                    {
+                        Batch = solver.EvaluateSerialDeferredChoices(Node, probe),
+                    };
+                    Receive(outcome);
+                }
+                finally
+                {
+                    probe.Dispose();
+                }
             }
 
             public ChoiceJob? FindChoiceJob()
