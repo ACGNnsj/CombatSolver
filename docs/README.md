@@ -24,6 +24,8 @@
 
 | 要查什么 | 入口 |
 |---|---|
+| 0.47.2 开发中：跨回合路线、战前预报、模组兼容与内存显示 | [0.47.2 更新日志](releases/0.47.2-RELEASE_NOTES.md) |
+| 0.47.1 紧急回归修复 | [0.47.1 更新日志](releases/0.47.1-RELEASE_NOTES.md) |
 | 0.47.0 策略优化 Part 1 | [0.47.0 更新日志](releases/0.47.0-RELEASE_NOTES.md) |
 | 0.46.4 战损路线筛选与 Loadout 兼容的玩家说明 | [0.46.4 更新日志](releases/0.46.4-RELEASE_NOTES.md) |
 | 0.46.3 玩家更新内容 | [0.46.3 更新日志](releases/0.46.3-RELEASE_NOTES.md) |

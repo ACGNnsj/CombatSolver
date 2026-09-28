@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 0.47.2 版本与日志登记（2026-09-28）
+
+本轮仅修改版本与文档，行为源码及依赖保持 `3ad5ec33` 的已验证状态。复用下文 #140 原生生命周期、#143 四项原生合同、内存条 ServerGC 开／关和相关登记合同，不重复运行行为测试。核对 manifest/csproj 版本一致、中英条目和贡献者链接对应、相对文档链接及 diff；按版本变化执行一次 Release 构建与本地五文件部署，不触发完整门禁、Linux、打包、标签或渠道上传。
+
 ## PR #144 正文更新后的复审（2026-09-28）
 
 远端 head 保持 `6498169c`；以 `main@1471c296` 集成后运行候选的 `CombatSolver.GcPolicyChecks -- recovery`（9 项）、`-- recovery-lifecycle`（2 项，实际 CLR starts=1/restarts=1/forced=0）、`-- checkpoint`（1 项），全部通过。覆盖已有恢复、取消、显式退出和释放边界；未声称覆盖 RegionSizeUnsupported/PlatformUnsupported 后重试，或证明取消每 scope 三次限制的收益。没有重跑全部八套件。候选仍未合入，具体调用链审计见 [合并审计](refactoring/merge-audit-20260928.md)。
