@@ -1,5 +1,13 @@
 # CombatSolver 测试清单
 
+## 内存条与 PR 阻塞验证（2026-09-28）
+
+`MEMORY-DISPLAY-CONTRACT` 在两个自有隔离游戏进程通过：`cad74c8a0c664b3d89679cbc967e7469` 实际 ServerGC=False，`90a36a763671460eaed1bf5a2da535fd` 实际 ServerGC=True；各一节点／四转移，25.5/24.8 秒，实例均删除。真实采样的物理已用超过 GC 压力阈值，已用＋可用等于物理总量。固定快照覆盖空闲、搜索、回收、超阈值、未知物理数据和 GC 阈值不改变物理条形；回收显示合同不代表人为制造高压回收。
+
+OfflineSearchHarness 环境变量 `OFFLINE_HARNESS_MEMORY_DISPLAY_CHECKS=1`，`--milestone M1 --language eng|zhs|zht` 分别通过；设为 `baseline` 并通过 `OFFLINE_HARNESS_COMBATSOLVER_DLL` 指向旧 DLL，生产入口直接复现 6 GB／4 GB。Release 与离线宿主 0/0、Windows 边界 238 通过。没有 Linux／可见性能结论。
+
+#140 修复后的工具合同 11 项通过，但原生 worker 生命周期仍受资源阻塞，未合入。#144 候选在原三次尝试上限合同失败，未合入；最终 main 的 GC `recovery` 9 项、`recovery-lifecycle` 2 项通过，不混用两个版本的结论。详情及证据边界见 [合并审计](refactoring/merge-audit-20260928.md)。
+
 ## PR #143 合并验证（2026-09-28）
 
 本轮最终候选 Release 0/0、Windows 边界 238 通过。离线 Infused Core 14 项与 N4/N8/N17 独立前缀 oracle 通过。资源恢复后原生 FIXED-PREFIX-TURN-OUTCOMES、OPENING-DISCARD-CHOICE-VALUE、TURN-SETUP-FIXED-PREFIX-STAMPEDE、INITIAL-TOOLBOX-INFUSED-CORE 四项通过，分别 47.9/28.6/30.2/26.6 秒；包括固定前缀三回合实际续用、七表缓存、完整续用戳、弃牌 DOP1/DOP2 和初始原生选择。runId 与具体边界见 [合并审计](refactoring/merge-audit-20260928.md)。实例全部清理，未跑全量 CoverageCatalog 或性能大样本。
