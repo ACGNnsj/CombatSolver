@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #138 合并验证（2026-09-28）
+
+Release 0/0、Windows 结构门禁 238；GA-SILENT-BOSS-00 与本轮重构基线逐位相同，证据 `.local/audit-20260928/pr138-comparison`。`GENERIC-LOOP-HELLRAISER-PILLAGE-SINGLE-CURRENT-V0111` 原生请求 `0eaff0f74d134a0aa7e4e4bb453cbc8e` Passed，固定 5 秒搜索、DOP1、增量验证，首动作 PILLAGE、0 战损、首回合击杀；1 展开／2 转移，覆盖动作内部循环，不覆盖循环租约。120 秒请求内完成、实例删除。未运行批量性能或 Linux 门禁。
+
 ## 合并审计：并行失败作业记账（2026-09-28）
 
 - 最终源码 `StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --case ga-silent-boss --out .local/audit-20260928/refactor-sentinel` 为 comparable；与 `.local/strategy-refactor-p6/final-sentinel` 比较逐位相同。最终 Windows 结构门禁 238 通过。
@@ -272,6 +276,11 @@
 - Windows Release 主项目和 CheckpointTool 构建均 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=210`；`git diff --check` 通过。Linux 脚本入口已同步，本轮未运行 Linux 门禁。180 秒超时分类未用真包等到上限，仅静态核对工具分支，不能称为实测通过。
 - 本轮结束前精确覆盖本地游戏 `mods/CombatSolver` 的 manifest、Release DLL、Windows MemoryCleaner、许可证与第三方声明；未启动可见 Steam。
 - 最终接线 `scaffold-final`：启动后 PID 25648，`b642c1ccc4074802a40e4abcc97396a9` 使用示例 C# 脚本和空参数搜索 `search_completed`，`reusedProcess=true`，墙钟 89.1 秒；开战检查点恢复通过。结果中的主 DLL／脚本／参数哈希与请求逐项一致，有效政策记录 `VeryHigh`、DOP 8、`softTimeBudgetMilliseconds=180000`。`stop` 成功，私有实例目录不存在。最终接线没有再重复做两版脚本 A/B；那项证据见上一条。
+## 未发布：搜索热路径 CPU 复查（2026-09-26）
+
+- 基于 PR #138 的最终生产 DLL，Linux `perf record` 在静默猎手精英固定预算根得到 84,345 个无丢样 CPU 样本；另对 Regent 首领生产预算根得到 3,107,070 个无丢样样本。采样只用于热点归因，不用于耗时 A/B。
+- 单因素试验将 `ReplayAction` 的捕获委托改为直接异常守卫，12 个五角色固定根各 ABBA（48 次独立进程，High、DOP8、Coordinator/组合、Smart、Server GC、5000 节点、120 秒）全部 Passed、无时间边界；路线哈希、展开、转移、战损、分数逐根一致。分配中位数之和少 0.41%，墙钟中位数之和多 2.37%；试验已撤回，未修改当前生产行为。逐根口径见[性能报告](performance/search-hotpath-allocation-20260925.md#后续-perf-cpu-复查2026-09-26)，[48 份逐次结果](performance/search-hotpath-cpu-20260926-rejected-trial.json)可复算。
+- 本批没有启动可见 Steam 会话，也没有把无头样本当作帧时间或玩家可感知提速证据。
 
 ## 0.46.4：战损路线筛选与 Loadout 兼容（2026-09-25）
 
