@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #144 正文更新后的复审（2026-09-28）
+
+远端 head 保持 `6498169c`；以 `main@1471c296` 集成后运行候选的 `CombatSolver.GcPolicyChecks -- recovery`（9 项）、`-- recovery-lifecycle`（2 项，实际 CLR starts=1/restarts=1/forced=0）、`-- checkpoint`（1 项），全部通过。覆盖已有恢复、取消、显式退出和释放边界；未声称覆盖 RegionSizeUnsupported/PlatformUnsupported 后重试，或证明取消每 scope 三次限制的收益。没有重跑全部八套件。候选仍未合入，具体调用链审计见 [合并审计](refactoring/merge-audit-20260928.md)。
+
 ## PR #140 资源恢复后的原生复审（2026-09-28）
 
 当前 main `afeb0e01` 上集成原候选；Release 0/0、Windows 边界 238 通过。`PR140-PRECOMBAT-WORKER -VerifyPreCombatForecastApi -StopAfterCombatRootSnapshotAssertion -TimeoutSeconds 120` 请求 `0a76d46e5d9545d4816840bbd80f0d0f`，75.3 秒 Passed。覆盖完整预测、同进程复用、显式中断活动请求、随后新 worker 模拟成功、自动关闭、Mod 写入隔离、设置令牌失效，以及原跑局/RNG不变；WorkerStarts=2、WorkerReuses=3。启动器已删除实例 `.local/headless-instances/audit-pr140-recheck`，原始证据 `.local/audit-recheck-20260928/pr140-worker`。11 项请求工具合同复用前轮同源码结果，不重复运行；未运行 Linux 或可见性能测试。
@@ -10,7 +14,7 @@
 
 OfflineSearchHarness 环境变量 `OFFLINE_HARNESS_MEMORY_DISPLAY_CHECKS=1`，`--milestone M1 --language eng|zhs|zht` 分别通过；设为 `baseline` 并通过 `OFFLINE_HARNESS_COMBATSOLVER_DLL` 指向旧 DLL，生产入口直接复现 6 GB／4 GB。Release 与离线宿主 0/0、Windows 边界 238 通过。没有 Linux／可见性能结论。
 
-#140 修复后的工具合同 11 项通过，但原生 worker 生命周期仍受资源阻塞，未合入。#144 候选在原三次尝试上限合同失败，未合入；最终 main 的 GC `recovery` 9 项、`recovery-lifecycle` 2 项通过，不混用两个版本的结论。详情及证据边界见 [合并审计](refactoring/merge-audit-20260928.md)。
+首轮 #140 修复后的工具合同 11 项通过，原生 worker 生命周期当时受资源阻塞；后续复审已通过并合入，见本文件上方记录。#144 候选在原三次尝试上限合同失败，未合入；最终 main 的 GC `recovery` 9 项、`recovery-lifecycle` 2 项通过，不混用两个版本的结论。详情及证据边界见 [合并审计](refactoring/merge-audit-20260928.md)。
 
 ## PR #143 合并验证（2026-09-28）
 
