@@ -88,3 +88,11 @@
 - 两次实际搜索样本都超过压力阈值 21,846,584,370 B，物理已用＋可用仍等于物理总量。两次原生搜索各 1 展开／4 转移；两个实例均删除。空闲／搜索／前后台回收／超阈值／未知样本的显示合同使用固定快照，真实搜索另有实时采样；未制造高压回收，未做可见排版或游戏性能验收。
 
 原始证据统一位于忽略目录 `.local/audit-20260928/`。本批不运行 Linux 门禁、不启动可见 Steam、不做性能大样本、不提升版本或上传渠道。P7/P8 停止继续开发，未达到阶段退出标准。
+
+### 最终交付
+
+内存条修复为 `30e6cd03`，已正常推送 main。远端最终核对：#138/#139/#142/#143 为 MERGED，#140/#144 仍 OPEN，目标都为 main。没有改写贡献者分支或强推；已有其他 worktree 未修改。
+
+版本保持 0.47.1。复用上述两次原生验证的 Release DLL，一次部署至 `D:\Steam\steamapps\common\Slay the Spire 2\mods\CombatSolver`，精确覆盖 CombatSolver.json、CombatSolver.dll、CombatSolver.MemoryCleaner.exe、LICENSE、THIRD_PARTY_NOTICES.md；五项源／目标 SHA256 一致，收据 `.local/audit-20260928/deployment.json`。DLL SHA256 为 `59B5B19DE263B15BF3A7022DA690941B8CCA1140A5BC195464B27101C6D1334B`。后续仅补交付记录，源码与产物不变，不重复构建或复制。
+
+本轮所有启动器实例均已清理；临时旧源码／旧 DLL 探针删除，原始结果日志保留。未创建实验 worktree；两个阻塞 PR 的本地候选分支保留作可审阅证据。未打包、建标签、发版或上传渠道。
