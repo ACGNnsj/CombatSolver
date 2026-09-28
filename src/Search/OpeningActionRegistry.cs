@@ -3,7 +3,6 @@ namespace CombatSolver;
 internal enum OpeningCandidatePurpose
 {
     GeneratedPowerCard,
-    NightmareCopyCard,
     DelayedDamageCopyPotion,
 }
 
@@ -17,7 +16,6 @@ internal sealed class OpeningActionRegistry
     internal static OpeningActionRegistry Default { get; } = new(
     [
         new(OpeningCandidatePurpose.GeneratedPowerCard, PlanActionKind.PlayCard, "WHITE_NOISE"),
-        new(OpeningCandidatePurpose.NightmareCopyCard, PlanActionKind.PlayCard, "NIGHTMARE"),
         new(OpeningCandidatePurpose.DelayedDamageCopyPotion, PlanActionKind.UsePotion, "DUPLICATOR"),
     ]);
 

@@ -42,7 +42,7 @@ internal static partial class CombatSearchCoordinator
             openings.Add(setup);
             foreach (PlanAction[] opening in openings)
             {
-                IReadOnlyList<PlanAction> nightmareActions = builder.BuildOpeningNightmareActionsAfterPrefix(opening);
+                IReadOnlyList<PlanAction> nightmareActions = builder.BuildOpeningCopyActionsAfterPrefix(opening);
                 foreach (PlanAction nightmare in nightmareActions)
                 {
                     SearchBudgetWindow routeWindow = context.Budget.ProfileWindow(profile);

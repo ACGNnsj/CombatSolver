@@ -130,6 +130,12 @@ if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatS
    ! rg -Fq 'IsBetterPotionPolicyResult(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Plan search bypasses shared budget, continuation or final quality policy")
 fi
+if ! rg -Fq 'ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'BuildOpeningCopyActionsAfterPrefix(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   rg -Fq 'OpeningCandidatePurpose.NightmareCopyCard' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'HasPlayableChoiceEffect(' "$repository_root/src/Search/CombatBeamSolver.Expansion.Opening.cs"; then
+    violations+=("Plan copy discovery must follow registered choice semantics")
+fi
 if ! rg -Fq 'RunDeferredPowerPlanSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
    ! rg -Fq 'EarlyTurnScoutDepth = 1' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Deferred power plan must use the ordered post-search continuation")

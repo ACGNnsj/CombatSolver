@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 复制效果提名（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#101 `a422c1c56022446c85f6ce00962019c4` 的 `combat_start` 在 VeryHigh／180 秒／DOP8 下严格恢复并 Passed；与 `.local/strategy-refactor-p6/horizon-101` 相比，根戳记、执行政策、完整动作与冻结质量全同，均为胜利、58 战损／1 药、第 16 回合结束。新证据 `.local/strategy-refactor-p6/semantic-copy-101`；实例由启动器清理。尚无新增优化量，未运行 Linux 门禁。
+
 ## 策略重构 P5 共享调度收口（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p0/corpus.json --out .local/strategy-refactor-p5/final-shared-scheduler-dop1 --case report-24 --case report-37 --case report-81 --case report-89 --case ga-ironclad-elite --case ga-silent-boss` 六根均 `comparable`。对 `.local/strategy-refactor-p4/after-p4-20260928` 同政策基线，排除后加的 P8a `searchWorkAttributions` 后，六根完整动作、续用、终局、工作量及剪枝逐位相同；原始比较证据 `.local/strategy-refactor-p5/final-shared-scheduler-comparison`。GA-SILENT-BOSS-00 的 DOP8 对 `.local/strategy-refactor-p5/executor-after-dop8` 的 122 个非时序字段、动作和续用全同；搜索耗时 24,053.0502→24,091.1489 ms，worker 分配 11,885,994,992→11,879,940,960 字节，均仅作单样本观测。DOP8 证据 `.local/strategy-refactor-p5/final-shared-scheduler-dop8`；无头实例已清理。Linux 门禁依用户要求未运行。

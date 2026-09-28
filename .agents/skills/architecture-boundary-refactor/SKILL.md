@@ -34,7 +34,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - Search 只接收快照、policy、diagnostics、frame signal 和 cancellation；不引用 Runtime 全局、UI 或 Testing。
 - P2 外层补搜的双药、强制用药开局、回合边界、零费开局、战斗中精炼、回合末选牌及提前复制模式属于 `CombatSearchCoordinator.PostSearch`；`SearchRequestPipeline` 在主 Pass 和升级之后调用后处理，`Solve` 保留预览回调及最终结果字段填充。各模式共用 `SearchPassContext` 与请求账本，候选次序、原终局政策和诊断标签保持不变。
 - `SearchBudgetWindow` 只冻结一次请求余量并套用既有成员上限，模式专用准入与候选合法性仍在对应 Pass；迁移预算读取时保持时钟和工作量采样顺序。
-- P6 的 `PlanCommitment` 由模拟后的开局动作发现，经 `FrontierContinuationScheduler` 与同一请求账本有界续搜；Smart 无主动用药梯度先于计划成员完成，终局仍交给既有质量与药水政策。计划专属 Beam 代表不进入状态键或普通搜索。
+- P6 的 `PlanCommitment` 由已登记选牌效果、能力承诺描述及模拟后的开局动作提名；复制候选按 `PlanChoiceEffect.Nightmare` 和分支可达性识别，不用复制牌 ID。前缀经 `FrontierContinuationScheduler` 与同一请求账本有界续搜；Smart 无主动用药梯度先于计划成员完成，终局仍交给既有质量与药水政策。计划专属 Beam 代表不进入状态键或普通搜索。
 - P7a 单项 Beam 权重扰动由 Testing 的请求宿主校验，Runtime 捕获为不可变 profile；Search 不读取请求宿主或运行中设置。普通请求不注入扰动，敏感度结果只用于中途保路评估，不改变终局或状态等价。
 - P7b 生成药水链从合法早期前缀模拟识别零成本生成药，可在已选首张牌后加入合法进攻跟进，最多提名两条固定前缀并经 `FrontierContinuationScheduler` 消耗请求剩余额度。来源标记属于 `SimulatedCombatState`，Search 只读该分支事实；强制用药仍由原政策校验，终局比较保持单一权威入口。
 - 首回合计划发现数量由请求级 `SearchPlanDiscoveryState` 在审计与 `PostSearch` 间共享；常规后验结束后才探测第二回合可打能力并用剩余账本续搜，未改善时保留先前完整结果。不得把该成员提前到 Smart 无药基线之前。

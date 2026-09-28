@@ -184,6 +184,12 @@ if (-not $planSearchSource.Contains('context.Budget.RequestWindow(') -or
     -not $planSearchSource.Contains('IsBetterPotionPolicyResult(')) {
     $violations.Add('Plan search bypasses shared budget, continuation or final quality policy')
 }
+if (-not $planSearchSource.Contains('ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)') -or
+    -not $planSearchSource.Contains('BuildOpeningCopyActionsAfterPrefix(') -or
+    $planSearchSource.Contains('OpeningCandidatePurpose.NightmareCopyCard') -or
+    -not $openingSource.Contains('HasPlayableChoiceEffect(')) {
+    $violations.Add('Plan copy discovery must follow registered choice semantics')
+}
 $postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
 if (-not $postSearchSource.Contains('RunDeferredPowerPlanSearchPass(') -or
     -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1')) {

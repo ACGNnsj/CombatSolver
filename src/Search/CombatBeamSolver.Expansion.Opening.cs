@@ -236,7 +236,7 @@ internal sealed partial class CombatBeamSolver
         => BuildPotionActionsAfterPrefix([]);
 
     internal IReadOnlyList<PlanAction> BuildOpeningPlanPotionActions(
-        OpeningCandidatePurpose targetPurpose,
+        PlanChoiceEffect desiredEffect,
         int maximumActions)
     {
         SimulationSnapshot rootSnapshot = Replay([]);
@@ -248,7 +248,7 @@ internal sealed partial class CombatBeamSolver
             var candidates = children
                 .Where(node => node.Action?.Kind == PlanActionKind.UsePotion)
                 .Select(node => (Node: node,
-                    Reach: OpeningPlanPotionReachability(node.Snapshot, targetPurpose)))
+                    Reach: OpeningPlanPotionReachability(node.Snapshot, desiredEffect)))
                 .ToArray();
             var selected = candidates
                 .OrderByDescending(candidate => candidate.Reach.Rank)
@@ -278,21 +278,21 @@ internal sealed partial class CombatBeamSolver
 
     private (int Rank, int RetainedPowers, int DrawDistance) OpeningPlanPotionReachability(
         SimulationSnapshot snapshot,
-        OpeningCandidatePurpose targetPurpose)
+        PlanChoiceEffect desiredEffect)
     {
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
         SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
         SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
         int retainedPowers = player.Hand.Cards.Count(card =>
             PowerCardValuationModels.Registry.ContainsCardId(card.Preview.Id.Entry));
-        if (HasPlayableOpeningCandidate(snapshot, targetPurpose))
+        if (HasPlayableChoiceEffect(snapshot, desiredEffect))
             return (3, retainedPowers, 0);
 
         int drawDistance = int.MaxValue;
         for (int index = 0; index < player.DrawPile.Cards.Count; index++)
         {
-            if (!OpeningActionRegistry.Default.MatchesId(
-                    targetPurpose, player.DrawPile.Cards[index].Preview.Id.Entry))
+            if (CardChoiceSupport.GetSpec(simulator, player.DrawPile.Cards[index])?.Effect
+                != desiredEffect)
                 continue;
             drawDistance = index;
             break;
@@ -313,7 +313,7 @@ internal sealed partial class CombatBeamSolver
         return (rank, retainedPowers, drawDistance);
     }
 
-    internal IReadOnlyList<PlanAction> BuildOpeningNightmareActionsAfterPrefix(
+    internal IReadOnlyList<PlanAction> BuildOpeningCopyActionsAfterPrefix(
         IReadOnlyList<PlanAction> prefix,
         int maximumPowerTargets = 1,
         int maximumActions = 4)
@@ -324,17 +324,16 @@ internal sealed partial class CombatBeamSolver
         {
             CombatPredictionSimulator simulator = (CombatPredictionSimulator)seed.Snapshot.Simulator;
             SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
-            if (!HasPlayableOpeningCandidate(seed.Snapshot,
-                    OpeningCandidatePurpose.NightmareCopyCard))
+            if (!HasPlayableChoiceEffect(seed.Snapshot, PlanChoiceEffect.Nightmare))
                 return [];
             children.AddRange(ExpandOpeningSeed(seed));
             int nextTurnEnergy = Math.Max(0,
                 PersistentPowerSupport.GetModifiedMaxEnergy(
                     (SimulatedCombatState)simulator.State.CombatState, _player));
             var candidates = children
-                .Where(node => node.Action is { Choice: { Cards.Count: 1 } } action
-                    && OpeningActionRegistry.Default.Matches(
-                        OpeningCandidatePurpose.NightmareCopyCard, action))
+                .Where(node => node.Action is
+                    { Kind: PlanActionKind.PlayCard,
+                      Choice: { Effect: PlanChoiceEffect.Nightmare, Cards.Count: 1 } })
                 .Select(node => (Node: node, Token: node.Action!.Choice!.Cards[0]))
                 .Select(item => (item.Node, item.Token,
                     Card: player.Hand.Cards.First(card => CardChoiceSupport.MatchesToken(card, item.Token))))
@@ -342,7 +341,7 @@ internal sealed partial class CombatBeamSolver
                     && !item.Card.HasKeyword(simulator.State, CardKeyword.Unplayable))
                 .Select(item => (item.Node, item.Token,
                     Type: item.Card.Preview.Type,
-                    Value: NightmareCopyTargetValue(item.Card, nextTurnEnergy)))
+                    Value: DeferredCopyTargetValue(item.Card, nextTurnEnergy)))
                 .Where(item => item.Value > 0)
                 .DistinctBy(item => item.Token.StateKey)
                 .OrderByDescending(item => item.Value)
@@ -373,7 +372,7 @@ internal sealed partial class CombatBeamSolver
     internal IReadOnlyList<PlanAction> BuildOpeningHandSetupActions(
         IReadOnlyList<PlanAction>? prefix = null,
         int maximumActions = 3,
-        OpeningCandidatePurpose? desiredFollowUp = null)
+        PlanChoiceEffect? desiredFollowUpEffect = null)
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix ?? [], SearchRouteTraits.None);
         List<SearchNode> children = [];
@@ -395,9 +394,9 @@ internal sealed partial class CombatBeamSolver
                 .ThenByDescending(node => node.Score)
                 .DistinctBy(node => (node.Action!.CardId,
                     node.Action.Choice?.Cards.FirstOrDefault()?.StateKey));
-            if (desiredFollowUp is { } purpose)
-                ordered = ordered.OrderByDescending(node => HasPlayableOpeningCandidate(
-                    node.Snapshot, purpose));
+            if (desiredFollowUpEffect is { } effect)
+                ordered = ordered.OrderByDescending(node => HasPlayableChoiceEffect(
+                    node.Snapshot, effect));
             return ordered
                 .Take(maximumActions)
                 .Select(node => node.Action!)
@@ -411,15 +410,29 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
-    private bool HasPlayableOpeningCandidate(
-        SimulationSnapshot snapshot,
-        OpeningCandidatePurpose purpose)
+    internal bool ContainsChoiceEffectInRoot(PlanChoiceEffect effect)
+    {
+        SimulationSnapshot snapshot = Replay([]);
+        try
+        {
+            CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
+            return simulator.State.GetPlayerCombatState(_player).AllCards.Any(card =>
+                CardChoiceSupport.GetSpec(simulator, card)?.Effect == effect);
+        }
+        finally
+        {
+            snapshot.ReleaseSimulator();
+        }
+    }
+
+    private bool HasPlayableChoiceEffect(
+        SimulationSnapshot snapshot, PlanChoiceEffect effect)
     {
         CombatPredictionSimulator simulator = (CombatPredictionSimulator)snapshot.Simulator;
         SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
         return simulator.State.GetPlayerCombatState(_player).Hand.Cards.Any(card =>
-            OpeningActionRegistry.Default.MatchesId(purpose, card.Preview.Id.Entry)
-            && combat.CanPlayCard(simulator, card));
+            combat.CanPlayCard(simulator, card)
+            && CardChoiceSupport.GetSpec(simulator, card)?.Effect == effect);
     }
 
     internal IReadOnlyList<PlanAction> BuildOpeningHandCycleActionsAfterPrefix(
@@ -487,7 +500,7 @@ internal sealed partial class CombatBeamSolver
         return CardChoiceSupport.CardValue(card.Preview);
     }
 
-    private static int NightmareCopyTargetValue(PredictedCard card, int nextTurnEnergy)
+    private static int DeferredCopyTargetValue(PredictedCard card, int nextTurnEnergy)
     {
         int cost = Math.Max(0, card.Preview.EnergyCost.GetWithModifiers(CostModifiers.Local));
         int playableCopies = cost == 0

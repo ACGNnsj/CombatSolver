@@ -207,10 +207,13 @@ internal static partial class CombatSearchCoordinator
         SearchPassContext context)
     {
         CombatRootSnapshot root = context.Root;
-        bool hasNightmare = root.PlayerCardIds.Any(cardId => OpeningActionRegistry.Default.MatchesId(
-            OpeningCandidatePurpose.NightmareCopyCard, cardId));
         bool hasPower = root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId);
-        if (!hasNightmare && !hasPower)
+        CombatBeamSolver builder = new(root, context.DisplayNames, context.BattleDamage,
+            context.Policy, context.CancellationToken, context.ProgressCallback, context.Profile,
+            potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
+            maximumPotionUses: 1);
+        bool hasDeferredCopy = builder.ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare);
+        if (!hasDeferredCopy && !hasPower)
             return [];
 
         List<PlanCommitment> plans = [];
@@ -227,29 +230,25 @@ internal static partial class CombatSearchCoordinator
             perPayoff[(kind, payoff)] = perPayoff.GetValueOrDefault((kind, payoff)) + 1;
         }
 
-        CombatBeamSolver builder = new(root, context.DisplayNames, context.BattleDamage,
-            context.Policy, context.CancellationToken, context.ProgressCallback, context.Profile,
-            potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
-            maximumPotionUses: 1);
         int potionOpenings = 0;
         int setupOpenings = 0;
         int copyOptions = 0;
-        if (hasNightmare && context.Policy.PotionPolicy != SolverPotionPolicy.Disabled)
+        if (hasDeferredCopy && context.Policy.PotionPolicy != SolverPotionPolicy.Disabled)
         {
             IReadOnlyList<PlanAction> selectedPotions = builder.BuildOpeningPlanPotionActions(
-                OpeningCandidatePurpose.NightmareCopyCard, maximumActions: 6);
+                PlanChoiceEffect.Nightmare, maximumActions: 6);
             foreach (PlanAction potion in selectedPotions)
             {
                 potionOpenings++;
                 List<PlanAction[]> openings = [[potion]];
                 openings.AddRange(builder.BuildOpeningHandSetupActions([potion],
                         maximumActions: 5,
-                        desiredFollowUp: OpeningCandidatePurpose.NightmareCopyCard)
+                        desiredFollowUpEffect: PlanChoiceEffect.Nightmare)
                     .Select(setup => new[] { potion, setup }));
                 setupOpenings += openings.Count - 1;
                 foreach (PlanAction[] opening in openings)
                 {
-                    foreach (PlanAction copy in builder.BuildOpeningNightmareActionsAfterPrefix(
+                    foreach (PlanAction copy in builder.BuildOpeningCopyActionsAfterPrefix(
                                  opening, maximumPowerTargets: 3, maximumActions: 8))
                     {
                         copyOptions++;
