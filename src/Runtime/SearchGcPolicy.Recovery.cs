@@ -75,7 +75,10 @@ internal static partial class SearchGcPolicy
                 }
                 else if (!IsRecoverableNoGcOutcome(outcome))
                 {
-                    signal.UseDefaultGcFallback(systemHeadroomConstrained: false);
+                    // A classification the probe cannot act on (for example unsupported region
+                    // sizing) still must not strand the running search: keep the allowance so a
+                    // later drained boundary can try again under different conditions.
+                    signal.UseDefaultGcFallback(systemHeadroomConstrained: false, allowNoGcRecovery: true);
                 }
                 Entry.Logger.Info($"[CombatSolver/Test] GC_NO_GC_RECOVERY attempt={backoff.Attempts} " +
                     $"outcome={FormatStartOutcome(outcome)} budget={budget} loh_budget={lohBudget} " +
@@ -108,12 +111,24 @@ internal static partial class SearchGcPolicy
 
     internal sealed class NoGcRecoveryBackoff
     {
+        // Recovery is a cooldown, not a one-way door. A long multi-unit encounter can fail
+        // several attempts while its retention set keeps growing; stopping after a fixed
+        // attempt count would leave the rest of that search with no allocation ceiling at
+        // all, which is strictly worse than retrying at a slower rate. The delay saturates
+        // instead, so the retry rate stays bounded while the search keeps every chance to
+        // re-establish a region.
+        private const long MaximumObservationDelayMilliseconds = 60_000;
+
+        // 2_000L << 5 == 64_000 already exceeds the saturated delay, so a small exponent is
+        // enough; clamping well below 63 keeps the shift well defined for any attempt count.
+        private const int MaximumObservationExponent = 5;
+
         private long _nextObservation;
         private long _lastGen2Index;
         private bool _armed;
         public int Attempts { get; private set; }
 
-        public bool ShouldObserve(long now) => Attempts < 3 && now >= _nextObservation;
+        public bool ShouldObserve(long now) => now >= _nextObservation;
 
         public void ArmFallback(long now, long gen2Index)
         {
@@ -154,7 +169,11 @@ internal static partial class SearchGcPolicy
         {
             Attempts++;
             _lastGen2Index = gen2Index;
-            _nextObservation = now + (2_000L << Attempts);
+            // Attempts is no longer capped, so the shift count must be clamped before it can
+            // wrap, and the deadline must saturate instead of overflowing past long.MaxValue.
+            int shift = Math.Min(Attempts, MaximumObservationExponent);
+            long delay = Math.Min(MaximumObservationDelayMilliseconds, 2_000L << shift);
+            _nextObservation = now > long.MaxValue - delay ? long.MaxValue : now + delay;
         }
 
         public void RecordRecovery() => _armed = false;

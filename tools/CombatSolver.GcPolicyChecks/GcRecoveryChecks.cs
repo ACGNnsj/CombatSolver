@@ -112,7 +112,7 @@ internal static class GcRecoveryChecks
             PolicyCheck.Require(!backoff.ShouldObserve(7_999), "Failed reservations back off.");
             PolicyCheck.Require(!backoff.ObserveCompletedCollection(8_000, 11), "Do not retry the same heap after a failed reservation.");
         });
-        PolicyCheck.Run("successful recovery does not reset the per-search attempt cap", () =>
+        PolicyCheck.Run("recovery attempts stay bounded in rate but never stop permanently", () =>
         {
             SearchGcPolicy.NoGcRecoveryBackoff backoff = new();
             long now = 0;
@@ -125,8 +125,23 @@ internal static class GcRecoveryChecks
                 backoff.RecordRecovery();
                 now += 2_000L << backoff.Attempts;
             }
-            PolicyCheck.Require(backoff.Attempts == 3 && !backoff.ShouldObserve(long.MaxValue),
-                "Repeated external collections cannot cause an unbounded restart loop.");
+            PolicyCheck.Require(backoff.Attempts == 3 && backoff.ShouldObserve(long.MaxValue),
+                "A long encounter must keep every chance to re-establish a region instead of running the rest of the search with no allocation ceiling at all.");
+            // Rate, not a hard stop, is what keeps a restart loop bounded: the delay saturates.
+            long cooldownStart = 10_000_000;
+            backoff.RecordAttempt(cooldownStart, 11);
+            // Attempts is 4 here, so the delay is 2_000 << 4.
+            const long expectedDelay = 2_000L << 4;
+            PolicyCheck.Require(!backoff.ShouldObserve(cooldownStart + expectedDelay - 1)
+                && backoff.ShouldObserve(cooldownStart + expectedDelay),
+                "An attempt still waits out its own cooldown before the next observation.");
+            for (int i = 0; i < 40; i++)
+                backoff.RecordAttempt(cooldownStart, 11);
+            PolicyCheck.Require(!backoff.ShouldObserve(cooldownStart + 59_999)
+                && backoff.ShouldObserve(cooldownStart + 60_000),
+                "The retry delay saturates at one minute, so attempts cannot spin or overflow.");
+            PolicyCheck.Require(backoff.Attempts == 44,
+                "Attempts keeps counting past the old cap so the delay, not a hard stop, bounds the rate.");
         });
         PolicyCheck.Run("no-progress reclaim rule stays off at limit zero", () =>
         {

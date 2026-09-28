@@ -2215,9 +2215,17 @@ internal static partial class SearchGcPolicy
                     RestoreLatencyModeLocked();
                     if (!cancellationToken.IsCancellationRequested)
                         restartOutcome = NoGcRegionStartOutcome.DefaultGcRequested;
+                    // An in-search fallback must stay recoverable. DisableLimits() clears the
+                    // recovery allowance but deliberately keeps the probe and its armed
+                    // fallback observer, so declaring the fallback recoverable is enough for
+                    // the probe to re-establish a region at a later drained boundary. Leaving
+                    // it one-way strands the rest of this search with no allocation ceiling at
+                    // all: a multi-unit encounter keeps growing its unbounded retention set
+                    // until the process is starved.
                     signal.UseDefaultGcFallback(
                         !cancellationToken.IsCancellationRequested
-                        && fallbackSystemHeadroomConstrained);
+                        && fallbackSystemHeadroomConstrained,
+                        allowNoGcRecovery: !cancellationToken.IsCancellationRequested);
                 }
                 else
                 {
