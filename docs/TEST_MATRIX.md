@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 共享调度收口（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。`python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p0/corpus.json --out .local/strategy-refactor-p5/final-shared-scheduler-dop1 --case report-24 --case report-37 --case report-81 --case report-89 --case ga-ironclad-elite --case ga-silent-boss` 六根均 `comparable`。对 `.local/strategy-refactor-p4/after-p4-20260928` 同政策基线，排除后加的 P8a `searchWorkAttributions` 后，六根完整动作、续用、终局、工作量及剪枝逐位相同；原始比较证据 `.local/strategy-refactor-p5/final-shared-scheduler-comparison`。GA-SILENT-BOSS-00 的 DOP8 对 `.local/strategy-refactor-p5/executor-after-dop8` 的 122 个非时序字段、动作和续用全同；搜索耗时 24,053.0502→24,091.1489 ms，worker 分配 11,885,994,992→11,879,940,960 字节，均仅作单样本观测。DOP8 证据 `.local/strategy-refactor-p5/final-shared-scheduler-dop8`；无头实例已清理。Linux 门禁依用户要求未运行。
+
 ## 策略重构 P5 回合尾部作业（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 在 VeryHigh／25,000 节点／110 秒配置下，DOP1 对 P4 同政策基线排除后加归因字段后逐位相同；DOP8 对 `.local/strategy-refactor-p5/executor-after-dop8` 的 122 个非时序字段、动作和续用全同，均为 44 战损、69,257 展开、222,131 转移。证据 `.local/strategy-refactor-p5/serial-tail-job-dop1` 与 `tail-job-dop8`。其余玩家根与生成根、Linux 门禁未运行。

@@ -35,19 +35,19 @@ if (( strategy_id_literal_count > 645 )); then
     violations+=("Search strategy ID literals increased: $strategy_id_literal_count > 645")
 fi
 [[ -f "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ]] || violations+=("Shared expansion plan missing")
-if ! rg -Fq 'cardJobs.PrepareSerialCards(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+if ! rg -Fq 'cardJobs.PrepareSerialCards(this,' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
    ! rg -Fq 'cardJobs.PrepareSerialPotions(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'EnumeratePlannedPotionActions(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel card/potion paths do not share the expansion plan")
 fi
-if ! rg -Fq 'cardJobs.RunSerialCardAction(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+if ! rg -Fq 'cardJobs.RunSerialCardAction(this, cardJob)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'CreatePlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'CreatePlannedCardChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
    ! rg -Fq 'CreatePlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Card and potion children must use the shared construction path")
 fi
-if ! rg -Fq 'cardJobs.RunSerialCardAction(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+if ! rg -Fq 'cardJobs.RunSerialCardAction(this, cardJob)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel paths must share ordinary card choice dispatch")
 fi
@@ -81,12 +81,17 @@ if [[ ! -f "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ]
 fi
 if ! rg -Uq '    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
    ! rg -q '^    private sealed class AdmittedParent\(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'public void RunSerialCardAction(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'public void RunSerialChoiceJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'public IEnumerable<SearchNode> RunSerialEndTurnJob(CombatBeamSolver solver)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
-   ! rg -Fq 'cardJobs.RunSerialEndTurnJob(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
-   ! rg -Fq 'cardJobs.RunSerialChoiceJob(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
+   ! rg -Fq 'private sealed class AdmittedJobScheduler(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public void RunSerialCardAction(CombatBeamSolver solver, AdmittedExpansionJob job)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public void RunSerialChoiceJob(CombatBeamSolver solver, AdmittedExpansionJob job)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public IEnumerable<SearchNode> RunSerialPotionJob(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'public IEnumerable<SearchNode> RunSerialEndTurnJob(' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'scheduler.NextJob(laneIndex)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   rg -Fq 'AdmittedExpansionJob? NextJob(int laneIndex)' "$repository_root/src/Search/CombatBeamSolver.AdmittedExpansion.cs" ||
+   ! rg -Fq 'scheduler.NextJob(0, SerialJobPhase.Prepare)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'scheduler.NextJob(0, SerialJobPhase.Card)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'scheduler.NextJob(0, SerialJobPhase.Potion)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'scheduler.NextJob(0, SerialJobPhase.Tail)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs"; then
     violations+=("Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor")
 fi
 if ! rg -Fq 'private sealed class PreparedPotionChoiceWork(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
@@ -96,7 +101,7 @@ if ! rg -Fq 'private sealed class PreparedPotionChoiceWork(' "$repository_root/s
 fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
-   ! rg -Fq 'cardJobs.RunSerialCardAction(this)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'cardJobs.RunSerialCardAction(this, cardJob)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    rg -Fq 'TryResolvePlannedCardChoices(' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(node, action, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Card choice replay and requirements must use the shared planned action path")

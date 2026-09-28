@@ -40,15 +40,16 @@ internal sealed partial class CombatBeamSolver
         List<ActionCandidate> nonDominated = new(16);
         List<ActionCandidate>? deferredCycleCandidates = null;
         using AdmittedParent cardJobs = new(node);
-        cardJobs.PrepareSerialCards(this);
+        AdmittedJobScheduler scheduler = new([cardJobs], degreeOfParallelism: 1, wave: null);
+        cardJobs.PrepareSerialCards(this, scheduler.NextJob(0, SerialJobPhase.Prepare)
+            ?? throw new InvalidOperationException("串行父节点缺少准备作业。"));
         int processedCards = 0;
-        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Action
-            || cardJobs.FindChoiceJob() != null)
+        while (scheduler.NextJob(0, SerialJobPhase.Card) is { } cardJob)
         {
-            if (cardJobs.FindChoiceJob() != null)
-                cardJobs.RunSerialChoiceJob(this);
+            if (cardJob.Kind == ParallelExpansionWorkProfile.Kind.Choice)
+                cardJobs.RunSerialChoiceJob(this, cardJob);
             else
-                cardJobs.RunSerialCardAction(this);
+                cardJobs.RunSerialCardAction(this, cardJob);
             ExpansionBatch cards = cardJobs.Aggregate!;
             while (processedCards < cards.Cards.Count)
             {
@@ -147,11 +148,13 @@ internal sealed partial class CombatBeamSolver
                 }))}");
         }
         cardJobs.PrepareSerialPotions(this);
-        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Potion)
-            foreach (SearchNode child in cardJobs.RunSerialPotionJob(this))
+        while (scheduler.NextJob(0, SerialJobPhase.Potion) is { } potionJob)
+            foreach (SearchNode child in cardJobs.RunSerialPotionJob(this, potionJob))
                 yield return child;
 
-        foreach (SearchNode endNode in cardJobs.RunSerialEndTurnJob(this))
+        AdmittedExpansionJob tailJob = scheduler.NextJob(0, SerialJobPhase.Tail)
+            ?? throw new InvalidOperationException("串行父节点缺少回合尾部作业。");
+        foreach (SearchNode endNode in cardJobs.RunSerialEndTurnJob(this, tailJob))
             yield return endNode;
     }
 

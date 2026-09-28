@@ -108,11 +108,11 @@ internal sealed partial class CombatBeamSolver
             ExpansionLane[] lanes = EnsureBackgroundLanes();
             using AdmittedJobWave wave = new(DegreeOfParallelism);
             AdmittedParent?[] parents = new AdmittedParent?[nodes.Count];
+            AdmittedJobScheduler scheduler = new(parents, DegreeOfParallelism, wave);
             ExpansionWorkerOutcome[] outcomes = new ExpansionWorkerOutcome[nodes.Count];
             Stack<int> idleLanes = new(DegreeOfParallelism);
             for (int index = DegreeOfParallelism - 1; index >= 0; index--)
                 idleLanes.Push(index);
-            int cursor = 0;
             int active = 0;
             int committed = 0;
             int actionsDispatched = 0;
@@ -120,53 +120,12 @@ internal sealed partial class CombatBeamSolver
             long waitTicks = 0;
             ExceptionDispatchInfo? firstError = null;
 
-            AdmittedExpansionJob? NextJob(int laneIndex)
-            {
-                // Resolve completed probes first, so pending simulators cannot accumulate behind
-                // more initial probes. Round robin across this fixed parent window avoids putting
-                // every lane behind the same parent's short, mandatory Fork serialization gate.
-                for (int pass = 0; pass < 2; pass++)
-                {
-                    for (int offset = 0; offset < parents.Length; offset++)
-                    {
-                        int index = (cursor + offset) % parents.Length;
-                        AdmittedParent parent = parents[index]!;
-                        ChoiceJob? choice = pass == 0 ? parent.FindChoiceJob() : null;
-                        ParallelExpansionWorkProfile.Kind? kind = choice != null
-                            ? choice.Value.Kind
-                            : pass == 0 ? null : parent.NextKind;
-                        if (kind == null)
-                            continue;
-                        int actionIndex = kind == ParallelExpansionWorkProfile.Kind.Potion
-                            ? parent.NextPotion : choice?.ItemIndex ?? parent.NextAction;
-                        PreparedCardAction? action = kind == ParallelExpansionWorkProfile.Kind.Action
-                            ? parent.Actions![actionIndex] : null;
-                        PreparedPotionAction? potion = kind == ParallelExpansionWorkProfile.Kind.Potion
-                            ? parent.Potions![actionIndex] : null;
-                        DeferredCardActionProbe? probe = choice is { Frontier: null }
-                            ? parent.Probes![actionIndex] : null;
-                        cursor = (index + 1) % parents.Length;
-                        // Tiny first replays otherwise turn into hundreds of thousands of
-                        // mailbox round trips. Keep at least DOP chunks for a wide singleton,
-                        // capped at four independent replays per lane work item.
-                        int replayCount = kind == ParallelExpansionWorkProfile.Kind.PrimaryReplay
-                            ? Math.Min(Math.Clamp(choice!.Value.Frontier!.Actions.Length / DegreeOfParallelism, 1, 4),
-                                choice.Value.Frontier.Actions.Length - choice.Value.ReplayIndex)
-                            : 0;
-                        return new AdmittedExpansionJob(
-                            parent, kind.Value, actionIndex, action, potion, probe, wave, laneIndex,
-                            choice?.Frontier, choice?.ReplayIndex ?? -1, replayCount);
-                    }
-                }
-                return null;
-            }
-
             void DispatchAvailable()
             {
                 while (firstError == null && idleLanes.TryPeek(out int laneIndex))
                 {
                     _coordinator.SearchCancellationToken.ThrowIfCancellationRequested();
-                    AdmittedExpansionJob? job = NextJob(laneIndex);
+                    AdmittedExpansionJob? job = scheduler.NextJob(laneIndex);
                     if (job == null)
                         return;
                     bool registered = false;
@@ -295,6 +254,62 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
+    private enum SerialJobPhase { Prepare, Card, Potion, Tail }
+
+    private sealed class AdmittedJobScheduler(
+        AdmittedParent?[] parents, int degreeOfParallelism, AdmittedJobWave? wave)
+    {
+        private int _cursor;
+
+        public AdmittedExpansionJob? NextJob(int laneIndex, SerialJobPhase? serialPhase = null)
+        {
+            // Completed choices take priority; the fixed parent window rotates independently
+            // of which lane receives the next work item.
+            for (int pass = 0; pass < 2; pass++)
+            {
+                for (int offset = 0; offset < parents.Length; offset++)
+                {
+                    int index = (_cursor + offset) % parents.Length;
+                    AdmittedParent parent = parents[index]!;
+                    ChoiceJob? choice = pass == 0 ? parent.FindChoiceJob() : null;
+                    ParallelExpansionWorkProfile.Kind? kind = choice != null
+                        ? choice.Value.Kind
+                        : pass == 0 ? null : parent.NextKind;
+                    if (kind == null || serialPhase is { } phase && !Allows(phase, kind.Value))
+                        continue;
+                    int actionIndex = kind == ParallelExpansionWorkProfile.Kind.Potion
+                        ? parent.NextPotion : choice?.ItemIndex ?? parent.NextAction;
+                    PreparedCardAction? action = kind == ParallelExpansionWorkProfile.Kind.Action
+                        ? parent.Actions![actionIndex] : null;
+                    PreparedPotionAction? potion = kind == ParallelExpansionWorkProfile.Kind.Potion
+                        ? parent.Potions![actionIndex] : null;
+                    DeferredCardActionProbe? probe = choice is { Frontier: null }
+                        ? parent.Probes![actionIndex] : null;
+                    _cursor = (index + 1) % parents.Length;
+                    int replayCount = kind == ParallelExpansionWorkProfile.Kind.PrimaryReplay
+                        ? Math.Min(Math.Clamp(choice!.Value.Frontier!.Actions.Length / degreeOfParallelism, 1, 4),
+                            choice.Value.Frontier.Actions.Length - choice.Value.ReplayIndex)
+                        : 0;
+                    return new AdmittedExpansionJob(
+                        parent, kind.Value, actionIndex, action, potion, probe, wave, laneIndex,
+                        choice?.Frontier, choice?.ReplayIndex ?? -1, replayCount);
+                }
+            }
+            return null;
+        }
+
+        private static bool Allows(SerialJobPhase phase, ParallelExpansionWorkProfile.Kind kind)
+            => phase switch
+            {
+                SerialJobPhase.Prepare => kind == ParallelExpansionWorkProfile.Kind.Prepare,
+                SerialJobPhase.Card => kind is ParallelExpansionWorkProfile.Kind.Action
+                    or ParallelExpansionWorkProfile.Kind.Choice,
+                SerialJobPhase.Potion => kind == ParallelExpansionWorkProfile.Kind.Potion,
+                SerialJobPhase.Tail => kind == ParallelExpansionWorkProfile.Kind.Tail,
+                _ => throw new InvalidOperationException("非法的串行作业阶段。"),
+            };
+    }
+
     private readonly record struct ChoiceJob(
             ParallelExpansionWorkProfile.Kind Kind,
             int ItemIndex,
@@ -339,14 +354,13 @@ internal sealed partial class CombatBeamSolver
                 : NextAction < Actions.Count ? ParallelExpansionWorkProfile.Kind.Action
                 : !_tailDispatched ? ParallelExpansionWorkProfile.Kind.Tail : null;
 
-            public void PrepareSerialCards(CombatBeamSolver solver)
+            public void PrepareSerialCards(CombatBeamSolver solver, AdmittedExpansionJob job)
             {
-                if (Aggregate != null || _prepareDispatched)
+                if (Aggregate != null || _prepareDispatched
+                    || !ReferenceEquals(job.Parent, this)
+                    || job.Kind != ParallelExpansionWorkProfile.Kind.Prepare)
                     throw new InvalidOperationException("串行父节点重复准备作业。");
                 Aggregate = solver.RentExpansionBatch();
-                var job = new AdmittedExpansionJob(this,
-                    ParallelExpansionWorkProfile.Kind.Prepare, 0, null, null, null,
-                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 using var outcome = new AdmittedJobOutcome(job, solver)
                 {
@@ -356,18 +370,18 @@ internal sealed partial class CombatBeamSolver
                 Receive(outcome);
             }
 
-            public void RunSerialCardAction(CombatBeamSolver solver)
+            public void RunSerialCardAction(CombatBeamSolver solver, AdmittedExpansionJob job)
             {
                 if (FindChoiceJob() != null
-                    || NextKind != ParallelExpansionWorkProfile.Kind.Action)
+                    || NextKind != ParallelExpansionWorkProfile.Kind.Action
+                    || !ReferenceEquals(job.Parent, this)
+                    || job.Kind != ParallelExpansionWorkProfile.Kind.Action
+                    || job.ItemIndex != NextAction)
                     throw new InvalidOperationException("串行卡牌作业次序错误。");
                 int index = NextAction;
-                var job = new AdmittedExpansionJob(this,
-                    ParallelExpansionWorkProfile.Kind.Action, index, Actions![index], null, null,
-                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 PreparedCardActionEvaluation evaluation = solver.EvaluatePreparedCardAction(
-                    Node, Actions[index], seed: null, ForkGate);
+                    Node, Actions![index], seed: null, ForkGate);
                 using var outcome = new AdmittedJobOutcome(job, solver)
                 {
                     Batch = evaluation.Batch,
@@ -376,19 +390,17 @@ internal sealed partial class CombatBeamSolver
                 Receive(outcome);
             }
 
-            public void RunSerialChoiceJob(CombatBeamSolver solver)
+            public void RunSerialChoiceJob(CombatBeamSolver solver, AdmittedExpansionJob job)
             {
                 ChoiceJob choice = FindChoiceJob()
                     ?? throw new InvalidOperationException("串行选择作业缺少挂起选择。");
                 if (choice.Kind != ParallelExpansionWorkProfile.Kind.Choice
-                    || choice.Frontier != null)
+                    || choice.Frontier != null
+                    || !ReferenceEquals(job.Parent, this)
+                    || job.Kind != choice.Kind || job.ItemIndex != choice.ItemIndex)
                     throw new InvalidOperationException("串行选择作业意外进入并行回放 frontier。");
                 DeferredCardActionProbe probe = Probes![choice.ItemIndex]
                     ?? throw new InvalidOperationException("串行选择探针已被消费。");
-                var job = new AdmittedExpansionJob(this,
-                    ParallelExpansionWorkProfile.Kind.Choice, choice.ItemIndex,
-                    Action: null, Potion: null, probe,
-                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 try
                 {
@@ -416,22 +428,22 @@ internal sealed partial class CombatBeamSolver
                 _potionFrontiers = new PrimaryChoiceReplayFrontier?[Potions.Count];
             }
 
-            public IEnumerable<SearchNode> RunSerialPotionJob(CombatBeamSolver solver)
+            public IEnumerable<SearchNode> RunSerialPotionJob(
+                CombatBeamSolver solver, AdmittedExpansionJob job)
             {
                 if (NextKind != ParallelExpansionWorkProfile.Kind.Potion
-                    || FindChoiceJob() != null)
+                    || FindChoiceJob() != null
+                    || !ReferenceEquals(job.Parent, this)
+                    || job.Kind != ParallelExpansionWorkProfile.Kind.Potion
+                    || job.ItemIndex != NextPotion)
                     throw new InvalidOperationException("串行药水作业次序错误。");
                 int index = NextPotion;
-                var job = new AdmittedExpansionJob(this,
-                    ParallelExpansionWorkProfile.Kind.Potion, index, Action: null,
-                    Potions![index], Probe: null, Wave: null, LaneIndex: 0,
-                    Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 bool completed = false;
                 try
                 {
                     foreach (SearchNode child in solver.EnumerateSerialPotionChildren(
-                                 Node, Potions[index]))
+                                 Node, Potions![index]))
                         yield return child;
                     completed = true;
                 }
@@ -448,15 +460,14 @@ internal sealed partial class CombatBeamSolver
                 }
             }
 
-            public IEnumerable<SearchNode> RunSerialEndTurnJob(CombatBeamSolver solver)
+            public IEnumerable<SearchNode> RunSerialEndTurnJob(
+                CombatBeamSolver solver, AdmittedExpansionJob job)
             {
                 if (FindChoiceJob() != null
-                    || NextKind != ParallelExpansionWorkProfile.Kind.Tail)
+                    || NextKind != ParallelExpansionWorkProfile.Kind.Tail
+                    || !ReferenceEquals(job.Parent, this)
+                    || job.Kind != ParallelExpansionWorkProfile.Kind.Tail)
                     throw new InvalidOperationException("串行回合尾部作业次序错误。");
-                var job = new AdmittedExpansionJob(this,
-                    ParallelExpansionWorkProfile.Kind.Tail, ItemIndex: -1,
-                    Action: null, Potion: null, Probe: null, Wave: null,
-                    LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
                 MarkDispatched(job);
                 bool completed = false;
                 try

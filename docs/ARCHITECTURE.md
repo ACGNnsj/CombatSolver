@@ -26,7 +26,7 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 回合尾部作业的派发与完成经 `AdmittedParent` 的 Tail 状态登记：串行按原迭代器逐子节点交付，并行在固定 lane 生成原序批次。回合尾部候选的转置准入和 `ExpansionBatch` 快照移交由 `AdmitPlannedEndTurnChildren` 独占；未消费的候选继续由原批次释放。
 
-`IExpansionExecutor` 统一父节点子节点接收与完成合同；串行执行器消费 `Expand` 的即时迭代结果，并行执行器消费已准入父节点的固定 lane 批次并在提交前调用原顺序检查。已准入父节点的选择、药水、尾部作业状态和结果所有权由求解器层的 `AdmittedParent` 持有，并行执行器只选择 lane、派发和原序提交。`Phases` 保留内存准入、波次容量和未进入 worker 的父节点清理，子节点不越过原提交顺序。
+`IExpansionExecutor` 统一父节点子节点接收与完成合同；`AdmittedJobScheduler` 从共享 `AdmittedParent` 状态选择准备、动作、挂起选择、药水与 Tail 作业。串行执行器消费 `Expand` 的即时迭代结果，并行执行器消费固定 lane 批次并在提交前调用原顺序检查；串行分阶段停在卡牌候选交付及逐药水分支，保留最后预算槽行为。`Phases` 保留内存准入、波次容量和未进入 worker 的父节点清理，子节点不越过原提交顺序。
 
 `PlanCommitment` 保存从固定根可回放的开局计划及收益牌；`CombatSearchCoordinator.PlanSearch` 从模拟动作识别夜魇复制和开局能力过牌，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标牌可达性筛选药水和过牌分支，不改变普通开局候选上限。
 
