@@ -101,6 +101,12 @@ if (-not $serialExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
     $violations.Add('Serial and parallel card admission remains duplicated')
 }
 $expansionPlanSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionPlan.cs') -Raw
+if (-not $expansionPlanSource.Contains('IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(') -or
+    $expansionPlanSource.Contains('PredictedCard? sourceCard') -or
+    -not $serialExpansionSource.Contains('TryResolvePlannedCardChoices(node, planned, probeSnapshot,') -or
+    -not $parallelExpansionSource.Contains('TryResolvePlannedCardChoices(node, action, probeSnapshot,')) {
+    $violations.Add('Card choice requirements must come from the shared expansion plan')
+}
 if (-not $expansionPlanSource.Contains('TryAdmitPlannedPotionChild(') -or
     -not $serialExpansionSource.Contains('TryAdmitPlannedPotionChild(') -or
     -not $parallelExpansionSource.Contains('TryAdmitPlannedPotionChild(')) {

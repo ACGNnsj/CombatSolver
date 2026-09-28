@@ -8,7 +8,7 @@ namespace CombatSolver;
 
 internal sealed partial class CombatBeamSolver
 {
-    private readonly record struct ExpansionPlan(SearchNode Parent, bool PrepareChoiceMetadata);
+    private readonly record struct ExpansionPlan(SearchNode Parent, bool CardNameFirst);
 
     private bool TryAdmitExpansionParent(SearchNode node, SimulationSnapshot snapshot, bool parallel)
     {
@@ -37,7 +37,7 @@ internal sealed partial class CombatBeamSolver
         return true;
     }
 
-    private IEnumerable<(PreparedCardAction Action, PredictedCard Card)> EnumeratePlannedCardActions(
+    private IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(
         ExpansionPlan plan)
     {
         cancellationToken.ThrowIfCancellationRequested();
@@ -82,11 +82,10 @@ internal sealed partial class CombatBeamSolver
             }
             seenCards[seenCardCount++] = playableKey;
             string cardStateKey = CardChoiceSupport.ChoiceCardKey(card);
-            bool requiresUnsupportedExistingChoice = plan.PrepareChoiceMetadata
-                && CardChoiceSupport.RequiresUnsupportedExistingChoice(card.Preview);
-            PlanCardChoice? requiredEmptyChoice = plan.PrepareChoiceMetadata
-                ? CardChoiceSupport.BuildRequiredEmptyChoice(card.Preview)
-                : null;
+            bool requiresUnsupportedExistingChoice =
+                CardChoiceSupport.RequiresUnsupportedExistingChoice(card.Preview);
+            PlanCardChoice? requiredEmptyChoice =
+                CardChoiceSupport.BuildRequiredEmptyChoice(card.Preview);
             int cardStateOccurrence = 0;
             for (int priorIndex = 0; priorIndex < handIndex; priorIndex++)
             {
@@ -104,7 +103,7 @@ internal sealed partial class CombatBeamSolver
                     continue;
                 string cardTitle;
                 string targetName;
-                if (plan.PrepareChoiceMetadata)
+                if (plan.CardNameFirst)
                 {
                     cardTitle = displayNames.Card(card.Preview);
                     targetName = displayNames.Creature(target, simulatedCombat.KnownEnemies);
@@ -128,12 +127,12 @@ internal sealed partial class CombatBeamSolver
                     CardStateOccurrence: cardStateOccurrence,
                     CardEnchantmentId: card.Preview.Enchantment?.Id.Entry ?? "",
                     CardUpgradeLevel: card.Preview.CurrentUpgradeLevel);
-                yield return (new PreparedCardAction(
+                yield return new PreparedCardAction(
                     action,
                     card.Preview.Type,
                     target?.CombatId,
                     requiresUnsupportedExistingChoice,
-                    requiredEmptyChoice), card);
+                    requiredEmptyChoice);
             }
         }
     }
@@ -218,22 +217,17 @@ internal sealed partial class CombatBeamSolver
     private bool TryResolvePlannedCardChoices(
         SearchNode node,
         PreparedCardAction action,
-        PredictedCard? sourceCard,
         SimulationSnapshot probeSnapshot,
         out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches)
     {
         CardChoiceSpec? choiceSpec = BuildPrimaryCardChoiceSpec(probeSnapshot);
-        if (choiceSpec == null && (sourceCard == null
-                ? action.RequiresUnsupportedExistingChoice
-                : CardChoiceSupport.RequiresUnsupportedExistingChoice(sourceCard.Preview)))
+        if (choiceSpec == null && action.RequiresUnsupportedExistingChoice)
         {
             probeSnapshot.ReleaseSimulator();
             resolvedBranches = [];
             return false;
         }
-        PlanCardChoice? requiredEmptyChoice = sourceCard == null
-            ? action.RequiredEmptyChoice
-            : CardChoiceSupport.BuildRequiredEmptyChoice(sourceCard.Preview);
+        PlanCardChoice? requiredEmptyChoice = action.RequiredEmptyChoice;
         CardChoiceSpec? primaryChoiceSpec = choiceSpec
             ?? BuildRequiredEmptyChoiceSpec(requiredEmptyChoice);
         resolvedBranches = HasChoiceBeforePrimary(probeSnapshot, primaryChoiceSpec)

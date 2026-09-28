@@ -436,8 +436,8 @@ internal sealed partial class CombatBeamSolver
     private List<PreparedCardAction> PrepareCardActions(SearchNode node)
     {
         List<PreparedCardAction> actions = [];
-        foreach ((PreparedCardAction action, _) in EnumeratePlannedCardActions(
-                     new ExpansionPlan(node, PrepareChoiceMetadata: true)))
+        foreach (PreparedCardAction action in EnumeratePlannedCardActions(
+                     new ExpansionPlan(node, CardNameFirst: true)))
             actions.Add(action);
         return actions;
     }
@@ -477,7 +477,7 @@ internal sealed partial class CombatBeamSolver
                     throw;
                 }
             }
-            if (!TryResolvePlannedCardChoices(node, action, sourceCard: null, probeSnapshot,
+            if (!TryResolvePlannedCardChoices(node, action, probeSnapshot,
                     out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                 return null;
             AddResolvedCardCandidates(node, action,
@@ -638,7 +638,7 @@ internal sealed partial class CombatBeamSolver
     {
         List<PreparedPotionAction> actions = [];
         foreach (PreparedPotionAction action in EnumeratePlannedPotionActions(
-                     new ExpansionPlan(node, PrepareChoiceMetadata: true)))
+                     new ExpansionPlan(node, CardNameFirst: true)))
             actions.Add(action);
         return actions;
     }

@@ -39,14 +39,14 @@ internal sealed partial class CombatBeamSolver
 
         List<ActionCandidate> nonDominated = new(16);
         List<ActionCandidate>? deferredCycleCandidates = null;
-        foreach ((PreparedCardAction planned, PredictedCard card) in EnumeratePlannedCardActions(
-                     new ExpansionPlan(node, PrepareChoiceMetadata: false)))
+        foreach (PreparedCardAction planned in EnumeratePlannedCardActions(
+                     new ExpansionPlan(node, CardNameFirst: false)))
         {
                 PlanAction action = planned.Action;
                 using CardChoiceReplayCapture? cardCapture = PrepareCardChoiceCapture(node, action);
                 SimulationSnapshot probeSnapshot = ReplayAction(node, action, cardChoiceCapture: cardCapture);
 
-                if (!TryResolvePlannedCardChoices(node, planned, card, probeSnapshot,
+                if (!TryResolvePlannedCardChoices(node, planned, probeSnapshot,
                         out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                     continue;
                 resolvedBranches = WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches);
@@ -155,7 +155,7 @@ internal sealed partial class CombatBeamSolver
                 }))}");
         }
         foreach (PreparedPotionAction planned in EnumeratePlannedPotionActions(
-                     new ExpansionPlan(node, PrepareChoiceMetadata: false)))
+                     new ExpansionPlan(node, CardNameFirst: false)))
         {
                 PotionModel potion = planned.Potion;
                 PlanAction baseAction = planned.Action;

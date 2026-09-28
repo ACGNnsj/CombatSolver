@@ -22,6 +22,8 @@ VOLATILE_METRICS = {
     "managedHeapBytes", "managedLiveBytes", "managedFragmentedBytes", "workingSetBytes",
     "privateMemoryBytes", "totalGen0Collections", "totalGen1Collections",
     "totalGen2Collections", "totalGcPauseMilliseconds", "maxGcPauseMilliseconds",
+    "gen0Collections", "gen1Collections", "gen2Collections", "gcPauseMilliseconds",
+    "maxObservedGcPauseMilliseconds",
     "gcLifecycle", "gcLifecycleAttribution", "gcLatencyMode", "noGcRegionActive",
     "noGcRegionBudgetBytes", "noGcRegionRolloverCount", "configuredNoGcRegionEnabled",
     "configuredNoGcRegionBudgetBytes",

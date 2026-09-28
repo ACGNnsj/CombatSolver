@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 普通卡牌选择计划（2026-09-28）
+
+- 改动前单次采集 GA-SILENT-BOSS-00 的 DOP8 固定根；改动后同根、VeryHigh、25,000 节点、110 秒，DOP8 的路线与 122 个非时序字段一致，均胜利、44 战损／0 药、请求总展开 69,257、转移 222,131。当前源码 DOP1 对前次同源码构建的基线，质量、动作、续用和非时序指标全同。证据 `.local/strategy-refactor-p5/choice-plan-baseline-dop8`、`choice-plan-after-dop8`、`choice-plan-after-dop1`。离线与语料比较器已将新工作归因数组里的 GC 次数／暂停作为波动字段排除；首次未经排除的对照只在这些字段报差异，没有重跑搜索。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`；Linux 门禁依用户要求不运行。
+
 ## 策略重构 P8a 主 Beam 工作归因（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`。离线 GA-SILENT-BOSS-00 当前源码单次请求 `comparable`，70,460 个展开节点归为 `PrimaryBeam` 9,017、`RefinementBeam` 15,983、`OpeningPowerRouteMember` 45,460，合计与请求总数一致。与 `.local/strategy-refactor-p8a/attribution-silent` 相比，身份、动作、质量、结果、旧非时序指标及剪枝计数完全相同，只有 `searchWorkAttributions` 分类变化；证据 `.local/strategy-refactor-p8a/primary-attribution-silent` 与 `primary-attribution-comparison`。未运行 Linux 门禁或超时包。

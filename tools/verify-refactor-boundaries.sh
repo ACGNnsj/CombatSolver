@@ -65,6 +65,12 @@ if ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBea
    ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel potion admission remains duplicated")
 fi
+if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
+   rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
+   ! rg -Fq 'TryResolvePlannedCardChoices(node, planned, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'TryResolvePlannedCardChoices(node, action, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("Card choice requirements must come from the shared expansion plan")
+fi
 if ! rg -Fq 'DirectSearchPurpose' "$repository_root/src/Search/SearchRequestWorkTotals.cs" ||
    ! rg -Fq 'DirectSearchPurpose? directSearchPurpose' "$repository_root/src/Search/CombatBeamSolver.cs" ||
    ! rg -Fq 'DirectSearchPurpose.RefinementBeam' "$repository_root/src/Search/CombatSearchCoordinator.cs" ||
