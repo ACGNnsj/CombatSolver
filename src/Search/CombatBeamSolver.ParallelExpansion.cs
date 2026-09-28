@@ -128,7 +128,7 @@ internal sealed partial class CombatBeamSolver
     /// coordinator 独占按序提交；自然单父节点使用同一调度器，不嵌套线程池。
     /// 候选只在各 lane 内物化，transposition/dominance 仍按父节点原序提交。
     /// </summary>
-    private sealed partial class ParallelExpansionExecutor : IDisposable
+    private sealed partial class ParallelExpansionExecutor : IExpansionExecutor, IDisposable
     {
         private readonly CombatBeamSolver _coordinator;
         private readonly ParallelExpansionWorkProfile _workProfile = new();
@@ -152,6 +152,24 @@ internal sealed partial class CombatBeamSolver
         public int DegreeOfParallelism { get; }
 
         public int MaximumQueuedParents => SearchWaveMemoryPolicy.MaximumQueuedParents(DegreeOfParallelism);
+
+        public ExpansionWorkerOutcome[] Execute(
+            IReadOnlyList<SearchNode> nodes,
+            Action<SearchNode, SearchNode> acceptChild,
+            Action<SearchNode> finishParent,
+            Action<int, ExpansionBatch>? beforeCommit = null)
+        {
+            ArgumentNullException.ThrowIfNull(beforeCommit);
+            return Evaluate(nodes, (index, batch) =>
+            {
+                beforeCommit(index, batch);
+                SearchNode parent = nodes[index];
+                _coordinator.CommitExpansionBatch(parent, batch,
+                    child => acceptChild(parent, child));
+                batch.Dispose();
+                finishParent(parent);
+            });
+        }
 
         public ExpansionWorkerOutcome[] Evaluate(
             IReadOnlyList<SearchNode> nodes,

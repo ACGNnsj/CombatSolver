@@ -180,6 +180,7 @@ internal sealed partial class CombatBeamSolver
         using ParallelExpansionExecutor? parallelExpansionExecutor = expansionParallelism > 1
             ? new ParallelExpansionExecutor(this, expansionParallelism)
             : null;
+        IExpansionExecutor serialExpansionExecutor = new SerialExpansionExecutor(this);
         long lastProgressMs = -100;
         SolverInterimResult? currentBestResult = null;
         SearchNode? currentBestNode = null;
@@ -1756,6 +1757,9 @@ internal sealed partial class CombatBeamSolver
                     }
                 }
 
+                SearchNode[] serialParent = new SearchNode[1];
+                Action<SearchNode, SearchNode> acceptExpandedChild = AcceptExpandedChild;
+                Action<SearchNode> finishExpandedParent = FinishExpandedParent;
                 void ExpandNextSerially()
                 {
                     SearchMemoryPressureSignal signal = policy.MemoryPressureSignal;
@@ -1767,13 +1771,16 @@ internal sealed partial class CombatBeamSolver
                         ended.Count);
                     long allocatedBefore = signal.AllocatedBytes;
                     SearchNode node = active[activeIndex];
-                    foreach (SearchNode child in Expand(node))
+                    serialParent[0] = node;
+                    try
                     {
-                        AcceptExpandedChild(node, child);
-                        if (_run.Expanded >= _profile.MaxExpandedNodes)
-                            break;
+                        serialExpansionExecutor.Execute(
+                            serialParent, acceptExpandedChild, finishExpandedParent);
                     }
-                    FinishExpandedParent(node);
+                    finally
+                    {
+                        serialParent[0] = null!;
+                    }
                     activeIndex++;
                     ObserveParentAllocation(Math.Max(0, signal.AllocatedBytes - allocatedBefore));
                     ReclaimAfterCommittedWork("after_serial_parent");
@@ -1860,9 +1867,15 @@ internal sealed partial class CombatBeamSolver
                         TimeSpan wavePauseBefore = GC.GetTotalPauseDuration();
                         try
                         {
-                            outcomes = parallelExpansionExecutor!.Evaluate(
+                            outcomes = parallelExpansionExecutor!.Execute(
                                 workerNodes,
-                                commitOrdered: (workerIndex, batch) =>
+                                acceptExpandedChild,
+                                node =>
+                                {
+                                    FinishExpandedParent(node);
+                                    finishedEntryCount++;
+                                },
+                                beforeCommit: (workerIndex, batch) =>
                                 {
                                     rawCandidateCount += batch.Cards.Count + batch.Potions.Count + batch.EndTurns.Count;
                                     while (entries[finishedEntryCount].WorkerIndex < 0)
@@ -1873,13 +1886,6 @@ internal sealed partial class CombatBeamSolver
                                     (SearchNode node, int expectedWorker) = entries[finishedEntryCount];
                                     if (expectedWorker != workerIndex)
                                         throw new InvalidOperationException("并行展开提交顺序与父节点顺序不一致。");
-                                    CommitExpansionBatch(
-                                        node,
-                                        batch,
-                                        child => AcceptExpandedChild(node, child));
-                                    batch.Dispose();
-                                    FinishExpandedParent(node);
-                                    finishedEntryCount++;
                                 });
                             while (finishedEntryCount < entries.Count)
                             {

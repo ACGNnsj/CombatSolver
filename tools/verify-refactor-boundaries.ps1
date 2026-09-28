@@ -118,6 +118,16 @@ if (-not $expansionPlanSource.Contains('AdmitPlannedEndTurnChildren(') -or
     -not $parallelExpansionSource.Contains('AdmitPlannedEndTurnChildren(batch)')) {
     $violations.Add('End-turn candidate admission has multiple owners')
 }
+$executorPath = Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionExecutor.cs'
+$phasesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Phases.cs') -Raw
+if (-not (Test-Path -LiteralPath $executorPath -PathType Leaf) -or
+    -not ([System.IO.File]::ReadAllText($executorPath)).Contains('private interface IExpansionExecutor') -or
+    -not ([System.IO.File]::ReadAllText($executorPath)).Contains('private sealed class SerialExpansionExecutor') -or
+    -not $parallelExpansionSource.Contains('ParallelExpansionExecutor : IExpansionExecutor') -or
+    -not $phasesSource.Contains('serialExpansionExecutor.Execute(') -or
+    -not $phasesSource.Contains('parallelExpansionExecutor!.Execute(')) {
+    $violations.Add('Serial and parallel expansion do not share the executor contract')
+}
 $workTotalsSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestWorkTotals.cs') -Raw
 $beamSolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.cs') -Raw
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw
@@ -1012,6 +1022,7 @@ $expectedBeamFiles = @(
     "CombatBeamSolver.Expansion.Candidates.cs",
     "CombatBeamSolver.Expansion.Choices.cs",
     "CombatBeamSolver.Expansion.Opening.cs",
+    "CombatBeamSolver.ExpansionExecutor.cs",
     "CombatBeamSolver.ExpansionPlan.cs",
     "CombatBeamSolver.Expansion.Replay.cs",
     "CombatBeamSolver.FinalPlanOrdering.cs",
@@ -1103,7 +1114,7 @@ $beamStructureChecks = @(
     @{ File = "CombatBeamSolver.Transpositions.cs"; Text = "private readonly record struct TranspositionLabel(" },
     @{ File = "CombatBeamSolver.Models.cs"; Text = "private sealed class SearchRunContext(" },
     @{ File = "CombatBeamSolver.Models.cs"; Text = "private readonly record struct SearchFeatures(" },
-    @{ File = "CombatBeamSolver.ParallelExpansion.cs"; Text = "private sealed partial class ParallelExpansionExecutor : IDisposable" },
+    @{ File = "CombatBeamSolver.ParallelExpansion.cs"; Text = "private sealed partial class ParallelExpansionExecutor : IExpansionExecutor, IDisposable" },
     @{ File = "CombatBeamSolver.ParallelExpansion.cs"; Text = "public ExpansionWorkerOutcome[] Evaluate(" },
     @{ File = "CombatBeamSolver.ParallelExpansion.cs"; Text = "public int MaximumQueuedParents => SearchWaveMemoryPolicy.MaximumQueuedParents(DegreeOfParallelism);" },
     @{ File = "CombatBeamSolver.ParallelExpansion.cs"; Text = "List<ExpansionLane> lanes = new(DegreeOfParallelism);" },

@@ -71,6 +71,14 @@ if ! rg -Fq 'AdmitPlannedEndTurnChildren(' "$repository_root/src/Search/CombatBe
    ! rg -Fq 'AdmitPlannedEndTurnChildren(batch)' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("End-turn candidate admission has multiple owners")
 fi
+if [[ ! -f "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ]] ||
+   ! rg -Fq 'private interface IExpansionExecutor' "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ||
+   ! rg -Fq 'private sealed class SerialExpansionExecutor' "$repository_root/src/Search/CombatBeamSolver.ExpansionExecutor.cs" ||
+   ! rg -Fq 'ParallelExpansionExecutor : IExpansionExecutor' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs" ||
+   ! rg -Fq 'serialExpansionExecutor.Execute(' "$repository_root/src/Search/CombatBeamSolver.Phases.cs" ||
+   ! rg -Fq 'parallelExpansionExecutor!.Execute(' "$repository_root/src/Search/CombatBeamSolver.Phases.cs"; then
+    violations+=("Serial and parallel expansion do not share the executor contract")
+fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(node, planned, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
@@ -904,6 +912,7 @@ expected_beam_files=(
     CombatBeamSolver.Expansion.Candidates.cs
     CombatBeamSolver.Expansion.Choices.cs
     CombatBeamSolver.Expansion.Opening.cs
+    CombatBeamSolver.ExpansionExecutor.cs
     CombatBeamSolver.ExpansionPlan.cs
     CombatBeamSolver.Expansion.Replay.cs
     CombatBeamSolver.FinalPlanOrdering.cs
@@ -963,7 +972,7 @@ CombatBeamSolver.BeamRetentionPolicy.cs	ReturnRoutingChoiceScratch(scratch);
 CombatBeamSolver.Transpositions.cs	private readonly record struct TranspositionLabel(
 CombatBeamSolver.Models.cs	private sealed class SearchRunContext(
 CombatBeamSolver.Models.cs	private readonly record struct SearchFeatures(
-CombatBeamSolver.ParallelExpansion.cs	private sealed partial class ParallelExpansionExecutor : IDisposable
+CombatBeamSolver.ParallelExpansion.cs	private sealed partial class ParallelExpansionExecutor : IExpansionExecutor, IDisposable
 CombatBeamSolver.ParallelExpansion.cs	public ExpansionWorkerOutcome[] Evaluate(
 CombatBeamSolver.ParallelExpansion.cs	public int MaximumQueuedParents => SearchWaveMemoryPolicy.MaximumQueuedParents(DegreeOfParallelism);
 CombatBeamSolver.ParallelExpansion.cs	List<ExpansionLane> lanes = new(DegreeOfParallelism);
