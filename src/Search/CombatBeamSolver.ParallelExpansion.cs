@@ -936,16 +936,8 @@ internal sealed partial class CombatBeamSolver
             acceptChild(child);
         }
 
-        foreach (SearchNode child in batch.EndTurns)
-        {
-            if (!TryAcceptTransposition(child))
-            {
-                batch.Release(child.Snapshot);
-                continue;
-            }
-            batch.Transfer(child.Snapshot);
+        foreach (SearchNode child in AdmitPlannedEndTurnChildren(batch))
             acceptChild(child);
-        }
     }
 
     private void PruneCommittedCrossTurnCandidates(

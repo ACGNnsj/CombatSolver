@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 回合尾部准入（2026-09-28）
+
+- Release 构建 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`。GA-SILENT-BOSS-00 同根 VeryHigh／25,000 节点／110 秒，DOP8 与本轮改动前的路线及 122 个非时序字段全同，均胜利、44 战损／0 药、请求总展开 69,257、转移 222,131；DOP1 的质量、动作、续用和非时序指标全同。证据 `.local/strategy-refactor-p5/choice-plan-after-dop8`、`endturn-admission-after-dop8`、`choice-plan-after-dop1`、`endturn-admission-after-dop1`。该场景不证明周期出口批次路径命中；未跑 Linux 门禁或其他包。
+
 ## 策略重构 P5 普通卡牌选择计划（2026-09-28）
 
 - 改动前单次采集 GA-SILENT-BOSS-00 的 DOP8 固定根；改动后同根、VeryHigh、25,000 节点、110 秒，DOP8 的路线与 122 个非时序字段一致，均胜利、44 战损／0 药、请求总展开 69,257、转移 222,131。当前源码 DOP1 对前次同源码构建的基线，质量、动作、续用和非时序指标全同。证据 `.local/strategy-refactor-p5/choice-plan-baseline-dop8`、`choice-plan-after-dop8`、`choice-plan-after-dop1`。离线与语料比较器已将新工作归因数组里的 GC 次数／暂停作为波动字段排除；首次未经排除的对照只在这些字段报差异，没有重跑搜索。Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=236`；Linux 门禁依用户要求不运行。

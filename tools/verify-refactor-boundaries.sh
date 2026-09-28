@@ -65,6 +65,12 @@ if ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBea
    ! rg -Fq 'TryAdmitPlannedPotionChild(' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
     violations+=("Serial and parallel potion admission remains duplicated")
 fi
+if ! rg -Fq 'AdmitPlannedEndTurnChildren(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
+   ! rg -Fq 'AdmitPlannedEndTurnChildren(cycleExitBatch)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'AdmitPlannedEndTurnChildren(batch)' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||
+   ! rg -Fq 'AdmitPlannedEndTurnChildren(batch)' "$repository_root/src/Search/CombatBeamSolver.ParallelExpansion.cs"; then
+    violations+=("End-turn candidate admission has multiple owners")
+fi
 if ! rg -Fq 'IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    rg -Fq 'PredictedCard? sourceCard' "$repository_root/src/Search/CombatBeamSolver.ExpansionPlan.cs" ||
    ! rg -Fq 'TryResolvePlannedCardChoices(node, planned, probeSnapshot,' "$repository_root/src/Search/CombatBeamSolver.Expansion.cs" ||

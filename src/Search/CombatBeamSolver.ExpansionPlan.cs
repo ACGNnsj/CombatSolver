@@ -283,6 +283,20 @@ internal sealed partial class CombatBeamSolver
         return !rejectedByCycle && TryAcceptTransposition(child);
     }
 
+    private IEnumerable<SearchNode> AdmitPlannedEndTurnChildren(ExpansionBatch batch)
+    {
+        foreach (SearchNode child in batch.EndTurns)
+        {
+            if (!TryAcceptTransposition(child))
+            {
+                batch.Release(child.Snapshot);
+                continue;
+            }
+            batch.Transfer(child.Snapshot);
+            yield return child;
+        }
+    }
+
     private void ProcessExpandedCardCandidate(
         SearchNode parent,
         RawCardCandidate raw,

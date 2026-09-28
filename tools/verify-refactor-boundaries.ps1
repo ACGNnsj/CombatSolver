@@ -112,6 +112,12 @@ if (-not $expansionPlanSource.Contains('TryAdmitPlannedPotionChild(') -or
     -not $parallelExpansionSource.Contains('TryAdmitPlannedPotionChild(')) {
     $violations.Add('Serial and parallel potion admission remains duplicated')
 }
+if (-not $expansionPlanSource.Contains('AdmitPlannedEndTurnChildren(') -or
+    -not $serialExpansionSource.Contains('AdmitPlannedEndTurnChildren(cycleExitBatch)') -or
+    -not $serialExpansionSource.Contains('AdmitPlannedEndTurnChildren(batch)') -or
+    -not $parallelExpansionSource.Contains('AdmitPlannedEndTurnChildren(batch)')) {
+    $violations.Add('End-turn candidate admission has multiple owners')
+}
 $workTotalsSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/SearchRequestWorkTotals.cs') -Raw
 $beamSolverSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.cs') -Raw
 $coordinatorSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.cs') -Raw

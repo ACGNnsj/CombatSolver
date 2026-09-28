@@ -51,6 +51,7 @@ description: 重构 CombatSolver 的 Search、Runtime 会话、UI snapshot、无
 - `ContinuationSearchRequest` 承载现有前缀求解器的政策、进度、药水基线、用药上下界、incumbent 和最早用药回合覆盖。`FrontierContinuationScheduler.CreateSolver` 在业务异常捕获之外构造求解器，只有 `Solve` 期间的指定药水条件异常可按模式跳过。
 - P5 串行与并行药水候选在各自生成与提交时点调用 `TryAdmitPlannedPotionChild`；周期租约、周期拒绝和转置准入顺序共用，串行根诊断、直接快照释放与并行批次所有权仍由各执行路径持有。
 - P5 普通卡牌的已有选择限制和必须空选择由 `ExpansionPlan` 在准备时读取，串行与并行选择分派只消费 `PreparedCardAction`；显示名、模拟、选择预算及候选所有权仍按原执行路径顺序处理。
+- P5 回合尾部候选经 `AdmitPlannedEndTurnChildren` 做唯一转置准入与批次移交；每个调用者保留原来的产出时点和子节点接收顺序，未移交的快照由其原 `ExpansionBatch` 释放。
 - 回合边界的零费开局与次回合防御追击在原位置完成预算准入和前缀合法性检查，再用 `Dispatch` 运行已定 profile；前一条候选改善后的 `selected` 与八次续搜上限仍由原循环控制。
 - 强制用药开局的前缀续搜和次回合换序保持原 `try/catch` 包围请求构造与执行，继续只跳过 `PotionPolicyUnsatisfiedException`；请求带入原强制药水基线、最低／最多用药及 Boss 最早用药回合。
 - 战斗中精炼与免费追击的可选后验通过 `DispatchOptional` 构造并求解，求解器构造在已定义药水异常捕获之外；前一条改善后，第二条的用药上下界仍从当前 `selected` 读取。

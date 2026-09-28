@@ -214,7 +214,7 @@ SearchRequestPipeline.Run(root, policy, budgetLedger)
 
 **实施核对（2026-09-28）**：P4 基线的 GA-SILENT-BOSS-00 在 DOP1、DOP8 下均胜利且战损 44，但第 6 回合动作次序和 expanded／transitions 已不同。P5 的纯重构逐位门槛按相同 DOP 分别对 P4 基线执行；跨 DOP 比较胜负与最终质量，旧有动作／工作量差异单列，不当作 P5 回归。
 
-**实施状态（2026-09-28）**：串行与并行普通卡牌选择现消费同一份 `PreparedCardAction`，不再由串行路径在回放后重复读取牌型选择要求。同根 DOP1 全字段及 DOP8 的 122 个非时序字段分别与改动前一致。完整 `IExpansionExecutor`、选择作业与回合尾部调度仍未统一，P5 尚未退出。
+**实施状态（2026-09-28）**：串行与并行普通卡牌选择现消费同一份 `PreparedCardAction`，不再由串行路径在回放后重复读取牌型选择要求；回合尾部候选的转置准入和批次快照移交也收敛到一处。同根 DOP1 全字段及 DOP8 的 122 个非时序字段分别与各边界改动前一致。完整 `IExpansionExecutor`、选择作业与回合尾部调度仍未统一，P5 尚未退出。
 
 **退出标准**：双路径消除，行为等价。
 

@@ -131,16 +131,8 @@ internal sealed partial class CombatBeamSolver
                 cycleExitBatch.Transfer(child.Snapshot);
                 yield return child;
             }
-            foreach (SearchNode child in cycleExitBatch.EndTurns)
-            {
-                if (!TryAcceptTransposition(child))
-                {
-                    cycleExitBatch.Release(child.Snapshot);
-                    continue;
-                }
-                cycleExitBatch.Transfer(child.Snapshot);
+            foreach (SearchNode child in AdmitPlannedEndTurnChildren(cycleExitBatch))
                 yield return child;
-            }
             yield break;
         }
 
@@ -303,16 +295,8 @@ internal sealed partial class CombatBeamSolver
                 batch.EndTurns,
                 _run.CycleFamilyLedger);
         }
-        foreach (SearchNode endNode in batch.EndTurns)
-        {
-            if (!TryAcceptTransposition(endNode))
-            {
-                batch.Release(endNode.Snapshot);
-                continue;
-            }
-            batch.Transfer(endNode.Snapshot);
+        foreach (SearchNode endNode in AdmitPlannedEndTurnChildren(batch))
             yield return endNode;
-        }
     }
 
 }
