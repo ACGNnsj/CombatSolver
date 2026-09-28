@@ -5,6 +5,14 @@ internal static partial class CombatSearchCoordinator
     private const int MaximumPlanCommitments = 4;
     private const int MaximumDiscoveredPlanCommitments = 18;
 
+    private readonly record struct PlanMemberExecution(
+        int MaximumNodes,
+        int MaximumMilliseconds,
+        bool AggressivePowerCommitment,
+        SolverPotionPolicy? PotionPolicyOverride,
+        int? MaximumPotionUses,
+        bool AllowUnsatisfiedPotion);
+
     private static SolverResult RunPlanSearchPass(SearchPassContext context, SolverResult baseline)
     {
         if (baseline.ResultScope != SolverResultScope.SearchCompletion
@@ -20,7 +28,6 @@ internal static partial class CombatSearchCoordinator
             return baseline;
 
         SearchPolicySnapshot policy = context.Policy;
-        SolverSearchProfile profile = context.Profile;
         SolverResult selected = baseline;
         FrontierContinuationScheduler scheduler = new(context);
         int attempted = 0;
@@ -52,28 +59,15 @@ internal static partial class CombatSearchCoordinator
         }
         foreach (PlanCommitment plan in scheduled)
         {
-            SearchBudgetWindow window = context.Budget.RequestWindow(profile);
-            if (!window.CanStart(7_000))
+            if (!TryRunPlanMember(context, scheduler, plan,
+                    new PlanMemberExecution(60_000, 20_000,
+                        plan.Kind == PlanCommitmentKind.CopyPower,
+                        plan.UsesPotion ? SolverPotionPolicy.RequireAtLeastOne
+                            : SolverPotionPolicy.Disabled,
+                        plan.UsesPotion ? 1 : 0,
+                        AllowUnsatisfiedPotion: true),
+                    out SolverResult? candidate))
                 break;
-            SolverSearchProfile memberProfile = window.Limit(profile,
-                maximumNodes: 60_000, maximumMilliseconds: 20_000,
-                reserveMilliseconds: 2_000) with
-            {
-                AggressivePowerCommitment = plan.Kind == PlanCommitmentKind.CopyPower,
-            };
-            SolverResult? candidate = scheduler.DispatchOptional(
-                new ContinuationSearchRequest(context,
-                    ContinuationPurpose.PlanCommitment,
-                    plan.Prefix,
-                    memberProfile,
-                    plan.UsesPotion ? SolverPotionPolicy.RequireAtLeastOne
-                        : SolverPotionPolicy.Disabled,
-                    plan.UsesPotion ? 1 : 0,
-                    null)
-                {
-                    Commitment = plan,
-                },
-                "PlanCommitment");
             attempted++;
             if (candidate == null)
                 continue;
@@ -177,21 +171,15 @@ internal static partial class CombatSearchCoordinator
             return baseline;
         }
 
-        SearchBudgetWindow memberWindow = context.Budget.RequestWindow(context.Profile);
-        if (!memberWindow.CanStart(7_000))
+        if (!TryRunPlanMember(context, scheduler, plan,
+                new PlanMemberExecution(120_000, 60_000,
+                    AggressivePowerCommitment: true,
+                    PotionPolicyOverride: null,
+                    MaximumPotionUses: null,
+                    AllowUnsatisfiedPotion: false),
+                out SolverResult? memberResult))
             return baseline;
-        SolverSearchProfile memberProfile = memberWindow.Limit(context.Profile,
-            maximumNodes: 120_000, maximumMilliseconds: 60_000,
-            reserveMilliseconds: 2_000) with
-        {
-            AggressivePowerCommitment = true,
-        };
-        SolverResult candidate = scheduler.Dispatch(new ContinuationSearchRequest(
-            context, ContinuationPurpose.PlanCommitment, plan.Prefix, memberProfile,
-            null, null, null)
-        {
-            Commitment = plan,
-        });
+        SolverResult candidate = memberResult!;
         if (candidate.ResultScope != SolverResultScope.SearchCompletion)
             return candidate;
         PopulateSingleSessionTotals(candidate);
@@ -203,6 +191,38 @@ internal static partial class CombatSearchCoordinator
             $"hp_lost={candidate.ProjectedBattleHpLost} potions={candidate.PotionCount} " +
             $"expanded={candidate.ExpandedNodes} selected={improved}");
         return improved ? candidate : baseline;
+    }
+
+    private static bool TryRunPlanMember(
+        SearchPassContext context,
+        FrontierContinuationScheduler scheduler,
+        PlanCommitment plan,
+        PlanMemberExecution execution,
+        out SolverResult? candidate)
+    {
+        SearchBudgetWindow window = context.Budget.RequestWindow(context.Profile);
+        if (!window.CanStart(7_000))
+        {
+            candidate = null;
+            return false;
+        }
+        SolverSearchProfile memberProfile = window.Limit(context.Profile,
+            maximumNodes: execution.MaximumNodes,
+            maximumMilliseconds: execution.MaximumMilliseconds,
+            reserveMilliseconds: 2_000) with
+        {
+            AggressivePowerCommitment = execution.AggressivePowerCommitment,
+        };
+        ContinuationSearchRequest request = new(context,
+            ContinuationPurpose.PlanCommitment, plan.Prefix, memberProfile,
+            execution.PotionPolicyOverride, execution.MaximumPotionUses, null)
+        {
+            Commitment = plan,
+        };
+        candidate = execution.AllowUnsatisfiedPotion
+            ? scheduler.DispatchOptional(request, "PlanCommitment")
+            : scheduler.Dispatch(request);
+        return true;
     }
 
     private static IReadOnlyList<PlanCommitment> DiscoverOpeningPlanCommitments(

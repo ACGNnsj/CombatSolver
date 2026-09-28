@@ -181,7 +181,8 @@ foreach ($relative in @('src/Search/PlanCommitment.cs', 'src/Search/CombatSearch
 $planSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PlanSearch.cs') -Raw
 if (-not $planSearchSource.Contains('context.Budget.RequestWindow(') -or
     -not $planSearchSource.Contains('ContinuationPurpose.PlanCommitment') -or
-    -not $planSearchSource.Contains('IsBetterPotionPolicyResult(')) {
+    -not $planSearchSource.Contains('IsBetterPotionPolicyResult(') -or
+    -not $planSearchSource.Contains('TryRunPlanMember(')) {
     $violations.Add('Plan search bypasses shared budget, continuation or final quality policy')
 }
 if (-not $planSearchSource.Contains('ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)') -or

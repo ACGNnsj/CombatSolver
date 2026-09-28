@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 共用计划成员派发（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 输出 `REFACTOR_BOUNDARIES_OK search_files=237`。未运行 Linux 门禁。现有游戏进程运行且主机可用内存不足以取得无头实例租约，未执行 #100／#101 同根结果对照；当前仅有静态与编译证据，不宣称行为逐位一致。
+
 ## 策略重构 P6 类型化收益证据（2026-09-28）
 
 - Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。#101 首次同根请求在写结果前以 `-1073741819` 退出，证据 `.local/strategy-refactor-p6/typed-payoff-101/launcher-result.json`，无崩溃堆栈，原因未定位；启动器清理了实例。同源码同配置重试 Passed，根戳记、执行政策、完整动作、冻结质量与 `.local/strategy-refactor-p6/semantic-copy-101` 全同，均为胜利、58 战损／1 药，证据 `.local/strategy-refactor-p6/typed-payoff-101-retry`。重试进程日志中出现 Godot 的 `Invalid Task ID` 与对象终结器断开信号错误，但仍完成请求，无法据此归因首次崩溃。Linux 门禁未运行。

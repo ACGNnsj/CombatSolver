@@ -127,7 +127,8 @@ for plan_source in src/Search/PlanCommitment.cs src/Search/CombatSearchCoordinat
 done
 if ! rg -Fq 'context.Budget.RequestWindow(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
    ! rg -Fq 'ContinuationPurpose.PlanCommitment' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
-   ! rg -Fq 'IsBetterPotionPolicyResult(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
+   ! rg -Fq 'IsBetterPotionPolicyResult(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'TryRunPlanMember(' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Plan search bypasses shared budget, continuation or final quality policy")
 fi
 if ! rg -Fq 'ContainsChoiceEffectInRoot(PlanChoiceEffect.Nightmare)' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
