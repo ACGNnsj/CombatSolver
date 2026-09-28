@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P5 串行卡牌作业（2026-09-28）
+
+- Release 编译 0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 的 DOP1、VeryHigh／25,000 节点／110 秒搜索 `comparable`；同 P4 同政策基线比较，排除后来新增的工作归因数组后，完整动作、续用、终局、工作量及剪枝逐位相同。证据 `.local/strategy-refactor-p5/serial-card-jobs-dop1`。只覆盖串行卡牌作业；未跑其余五根、DOP8 或 Linux 门禁，P5 未收口。
+
 ## 策略重构 P5 作业状态所有权（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release --no-restore` 成功，0 警告、0 错误；Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=237`。GA-SILENT-BOSS-00 在 VeryHigh／25,000 节点／DOP8 下同既有 `.local/strategy-refactor-p5/executor-after-dop8` 比较，122 个非时序字段、路线与续用全同：44 战损、69,257 展开、222,131 转移。证据 `.local/strategy-refactor-p5/admitted-parent-outside-executor-dop8`。该结果只验证状态所有权搬迁；串行接入和 P5 全语料尚未执行，Linux 门禁依要求不运行。

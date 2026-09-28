@@ -75,19 +75,19 @@ if (-not (Test-Path -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBe
 }
 $serialExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Expansion.cs') -Raw
 $parallelExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ParallelExpansion.cs') -Raw
-if (-not $serialExpansionSource.Contains('EnumeratePlannedCardActions(') -or
+if (-not $serialExpansionSource.Contains('cardJobs.PrepareSerialCards(this)') -or
     -not $parallelExpansionSource.Contains('EnumeratePlannedCardActions(') -or
     -not $serialExpansionSource.Contains('EnumeratePlannedPotionActions(') -or
     -not $parallelExpansionSource.Contains('EnumeratePlannedPotionActions(')) {
     $violations.Add('Serial and parallel card/potion paths do not share the expansion plan')
 }
-if (-not $serialExpansionSource.Contains('GeneratePreparedCardAction(') -or
+if (-not $serialExpansionSource.Contains('cardJobs.RunSerialCardAction(this)') -or
     -not $serialExpansionSource.Contains('CreatePlannedPotionChild(') -or
     -not $parallelExpansionSource.Contains('CreatePlannedCardChild(') -or
     -not $parallelExpansionSource.Contains('CreatePlannedPotionChild(')) {
     $violations.Add('Card and potion children must use the shared construction path')
 }
-if (-not $serialExpansionSource.Contains('GeneratePreparedCardAction(') -or
+if (-not $serialExpansionSource.Contains('cardJobs.RunSerialCardAction(this)') -or
     -not $parallelExpansionSource.Contains('TryResolvePlannedCardChoices(')) {
     $violations.Add('Serial and parallel paths must share ordinary card choice dispatch')
 }
@@ -103,7 +103,7 @@ if (-not $serialExpansionSource.Contains('ProcessExpandedCardCandidate(') -or
 $expansionPlanSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.ExpansionPlan.cs') -Raw
 if (-not $expansionPlanSource.Contains('IEnumerable<PreparedCardAction> EnumeratePlannedCardActions(') -or
     $expansionPlanSource.Contains('PredictedCard? sourceCard') -or
-    -not $serialExpansionSource.Contains('GeneratePreparedCardAction(') -or
+    -not $serialExpansionSource.Contains('cardJobs.RunSerialCardAction(this)') -or
     $serialExpansionSource.Contains('TryResolvePlannedCardChoices(') -or
     -not $parallelExpansionSource.Contains('TryResolvePlannedCardChoices(node, action, probeSnapshot,')) {
     $violations.Add('Card choice replay and requirements must use the shared planned action path')
@@ -123,7 +123,8 @@ $executorPath = Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Expansion
 $phasesSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.Phases.cs') -Raw
 $admittedExpansionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.AdmittedExpansion.cs') -Raw
 if ($admittedExpansionSource -notmatch '(?m)^    }\r?\n\s*\r?\n    private readonly record struct ChoiceJob\(' -or
-    $admittedExpansionSource -notmatch '(?m)^    private sealed class AdmittedParent\(') {
+    $admittedExpansionSource -notmatch '(?m)^    private sealed class AdmittedParent\(' -or
+    -not $admittedExpansionSource.Contains('public void RunSerialCardAction(CombatBeamSolver solver)')) {
     $violations.Add('Admitted parent job state must belong to CombatBeamSolver, outside the parallel executor')
 }
 if (-not (Test-Path -LiteralPath $executorPath -PathType Leaf) -or

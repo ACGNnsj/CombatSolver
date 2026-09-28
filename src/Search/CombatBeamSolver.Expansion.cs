@@ -39,18 +39,20 @@ internal sealed partial class CombatBeamSolver
 
         List<ActionCandidate> nonDominated = new(16);
         List<ActionCandidate>? deferredCycleCandidates = null;
-        foreach (PreparedCardAction planned in EnumeratePlannedCardActions(
-                     new ExpansionPlan(node, CardNameFirst: false)))
+        using AdmittedParent cardJobs = new(node);
+        cardJobs.PrepareSerialCards(this);
+        int processedCards = 0;
+        while (cardJobs.NextKind == ParallelExpansionWorkProfile.Kind.Action)
         {
-            List<ActionCandidate>? deferred = deferredCycleCandidates;
-            DeferredCardActionProbe? probe = GeneratePreparedCardAction(
-                node, planned, seed: null, replayForkGate: null, batch: null,
-                allowPendingChoiceDeferral: false,
-                acceptCandidate: raw => ProcessExpandedCardCandidate(
-                    node, raw, nonDominated, ref deferred, batch: null));
-            if (probe != null)
-                throw new InvalidOperationException("串行卡牌展开意外返回延迟选择作业。");
-            deferredCycleCandidates = deferred;
+            cardJobs.RunSerialCardAction(this);
+            ExpansionBatch cards = cardJobs.Aggregate!;
+            while (processedCards < cards.Cards.Count)
+            {
+                RawCardCandidate raw = cards.Cards[processedCards++];
+                cards.Transfer(raw.Node.Snapshot);
+                ProcessExpandedCardCandidate(node, raw,
+                    nonDominated, ref deferredCycleCandidates, batch: null);
+            }
         }
 
         if (cycleExitBatch != null)

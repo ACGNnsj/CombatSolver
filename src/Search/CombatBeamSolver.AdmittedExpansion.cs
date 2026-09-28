@@ -305,6 +305,44 @@ internal sealed partial class CombatBeamSolver
                 : NextAction < Actions.Count ? ParallelExpansionWorkProfile.Kind.Action
                 : !_tailDispatched ? ParallelExpansionWorkProfile.Kind.Tail : null;
 
+            public void PrepareSerialCards(CombatBeamSolver solver)
+            {
+                if (Aggregate != null || _prepareDispatched)
+                    throw new InvalidOperationException("串行父节点重复准备作业。");
+                Aggregate = solver.RentExpansionBatch();
+                var job = new AdmittedExpansionJob(this,
+                    ParallelExpansionWorkProfile.Kind.Prepare, 0, null, null, null,
+                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
+                MarkDispatched(job);
+                using var outcome = new AdmittedJobOutcome(job, solver)
+                {
+                    Actions = solver.PrepareCardActions(Node, cardNameFirst: false),
+                    Potions = [],
+                };
+                Receive(outcome);
+            }
+
+            public void RunSerialCardAction(CombatBeamSolver solver)
+            {
+                if (FindChoiceJob() != null
+                    || NextKind != ParallelExpansionWorkProfile.Kind.Action)
+                    throw new InvalidOperationException("串行卡牌作业次序错误。");
+                int index = NextAction;
+                var job = new AdmittedExpansionJob(this,
+                    ParallelExpansionWorkProfile.Kind.Action, index, Actions![index], null, null,
+                    Wave: null, LaneIndex: 0, Frontier: null, ReplayIndex: -1, ReplayCount: 0);
+                MarkDispatched(job);
+                PreparedCardActionEvaluation evaluation = solver.EvaluatePreparedCardAction(
+                    Node, Actions[index], seed: null, ForkGate,
+                    allowPendingChoiceDeferral: false);
+                using var outcome = new AdmittedJobOutcome(job, solver)
+                {
+                    Batch = evaluation.Batch,
+                    Probe = evaluation.DeferredProbe,
+                };
+                Receive(outcome);
+            }
+
             public ChoiceJob? FindChoiceJob()
             {
                 for (int family = 0; family < 2; family++)
@@ -584,7 +622,7 @@ internal sealed partial class CombatBeamSolver
             PreparedCardAction? Action,
             PreparedPotionAction? Potion,
             DeferredCardActionProbe? Probe,
-            AdmittedJobWave Wave,
+            AdmittedJobWave? Wave,
             int LaneIndex,
             PrimaryChoiceReplayFrontier? Frontier,
             int ReplayIndex,
@@ -686,10 +724,10 @@ internal sealed partial class CombatBeamSolver
                     outcome.AllocatedBytes = Math.Max(
                         0, GC.GetAllocatedBytesForCurrentThread() - allocatedAtStart);
                     outcome.ElapsedTicks = Stopwatch.GetTimestamp() - startedAt;
-                    Wave.Publish(outcome);
+                    Wave!.Publish(outcome);
                 }
             }
 
-            public void Signal() => Wave.BackgroundCompleted.Signal();
+            public void Signal() => Wave!.BackgroundCompleted.Signal();
         }
 }

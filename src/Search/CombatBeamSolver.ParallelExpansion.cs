@@ -422,7 +422,8 @@ internal sealed partial class CombatBeamSolver
         SearchNode parent,
         PreparedCardAction action,
         ReplayForkSeed? seed,
-        object replayForkGate)
+        object replayForkGate,
+        bool allowPendingChoiceDeferral = true)
     {
         ExpansionBatch batch = RentExpansionBatch();
         bool completed = false;
@@ -434,7 +435,7 @@ internal sealed partial class CombatBeamSolver
                 seed,
                 replayForkGate,
                 batch,
-                allowPendingChoiceDeferral: true);
+                allowPendingChoiceDeferral);
             if (deferredProbe != null)
             {
                 batch.Dispose();
@@ -451,11 +452,12 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
-    private List<PreparedCardAction> PrepareCardActions(SearchNode node)
+    private List<PreparedCardAction> PrepareCardActions(
+        SearchNode node, bool cardNameFirst = true)
     {
         List<PreparedCardAction> actions = [];
         foreach (PreparedCardAction action in EnumeratePlannedCardActions(
-                     new ExpansionPlan(node, CardNameFirst: true)))
+                     new ExpansionPlan(node, CardNameFirst: cardNameFirst)))
             actions.Add(action);
         return actions;
     }
@@ -465,12 +467,9 @@ internal sealed partial class CombatBeamSolver
         PreparedCardAction action,
         ReplayForkSeed? seed,
         object? replayForkGate,
-        ExpansionBatch? batch,
-        bool allowPendingChoiceDeferral,
-        Action<RawCardCandidate>? acceptCandidate = null)
+        ExpansionBatch batch,
+        bool allowPendingChoiceDeferral)
     {
-        if ((batch == null) == (acceptCandidate == null))
-            throw new ArgumentException("卡牌候选必须有且仅有一个接收者。");
         if (_parallelActionReplayForkGate != null)
             throw new InvalidOperationException("不能嵌套并行卡牌动作 replay 上下文。");
         _parallelActionReplayForkGate = replayForkGate;
@@ -502,8 +501,7 @@ internal sealed partial class CombatBeamSolver
                     out IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches))
                 return null;
             AddResolvedCardCandidates(node, action,
-                WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches),
-                batch, acceptCandidate);
+                WithCardChoiceCheckpoint(cardCapture?.Take(), resolvedBranches), batch);
             return null;
         }
         finally
@@ -516,18 +514,10 @@ internal sealed partial class CombatBeamSolver
         SearchNode node,
         PreparedCardAction action,
         IEnumerable<(PlanAction Action, SimulationSnapshot Snapshot)> resolvedBranches,
-        ExpansionBatch? batch,
-        Action<RawCardCandidate>? acceptCandidate = null)
+        ExpansionBatch batch)
     {
         foreach ((PlanAction finalAction, SimulationSnapshot finalSnapshot) in resolvedBranches)
         {
-            if (batch == null)
-            {
-                SearchNode immediateChild = CreatePlannedCardChild(node, finalAction, finalSnapshot);
-                acceptCandidate!(new RawCardCandidate(
-                    immediateChild, action.CardType, action.TargetCombatId));
-                continue;
-            }
             bool published = false;
             try
             {
