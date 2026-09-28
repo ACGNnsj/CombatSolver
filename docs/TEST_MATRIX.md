@@ -1,5 +1,10 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 收口对照（2026-09-28）
+
+- #90、#100、#101 均用 `pwsh -NoProfile -File tools/run-unattended-test.ps1 -CheckpointArchivePath <对应原包> -CheckpointSelector start -ReplayMode SearchOnly -FixedSearchBudget -PerformancePresetForTest VeryHigh -SearchBudgetOverrideMilliseconds 180000 -SearchMaxDegreeOfParallelismForTest 8 -EnableNoGcRegionForTest 0 -TimeoutSeconds 240 -EvidenceDirectory <对应目录> -CleanupInstanceOnExit` 顺序运行，均 Passed、实例清理。证据为 `.local/strategy-refactor-p6/potion-plan-90`、`final-100`、`final-101`。#90 对 P7b 原结果的动作、质量、续用、剪枝和请求展开／转移／选择分支全同，0 战损／最终 49 HP；#100、#101 对先前 P6 同根结果的这些字段全同，分别 22 战损／2 药、58 战损／1 药。对 P6 前同根同政策基线，#100 为 41→22 战损，#101 为死亡→胜利。跨回合计划类型改动后单独重跑 #100，证据 `.local/strategy-refactor-p6/cross-turn-100`，动作、质量、续用、剪枝与工作量继续全同。
+- `python tools/StrategyCorpus/run.py --manifest coverage/strategy-refactor-p0/corpus.json --out .local/strategy-refactor-p6/final-sentinel --case ga-silent-boss` 为 `comparable`；`python tools/StrategyCorpus/compare.py --left .local/strategy-refactor-p5/final-shared-scheduler-dop1 --right .local/strategy-refactor-p6/final-sentinel --out .local/strategy-refactor-p6/final-sentinel-comparison` 对 GA-SILENT-BOSS-00 判定“逐位相同”。左侧另外五根未在右侧运行，比较器标注“缺少一侧”，不参与本轮哨兵判定。最终源码 Release 编译 0 警告、0 错误，Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=238`；Linux 门禁未运行。
+
 ## 策略重构 P6 免费药计划证据（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 输出 `REFACTOR_BOUNDARIES_OK search_files=238`。未运行 Linux 门禁。#90 同根和已达标哨兵尚未执行：用户游戏进程正在运行，依约不启动无头实例。本次改变计划成员的地平线资格，静态与编译结果不能证明行为或质量保持。

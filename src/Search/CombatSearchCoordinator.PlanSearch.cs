@@ -157,7 +157,7 @@ internal static partial class CombatSearchCoordinator
             if (power == null)
                 continue;
             PlanAction[] prefix = [.. frontier.Actions, power];
-            plan = new(PlanCommitmentKind.PowerCycle, prefix,
+            plan = new(PlanCommitmentKind.CrossTurnBenefit, prefix,
                 context.Root.StartTurnNumber,
                 new PlanPayoffEvidence(PlanPayoffEvidenceKind.CardPlayed,
                     power.CardId!, context.Root.StartTurnNumber),

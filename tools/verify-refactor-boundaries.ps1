@@ -212,7 +212,8 @@ if (-not $potionChainSource.Contains('PlanCommitmentKind.PotionChain') -or
 }
 $postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
 if (-not $postSearchSource.Contains('RunDeferredPowerPlanSearchPass(') -or
-    -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1')) {
+    -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1') -or
+    -not $planSearchSource.Contains('PlanCommitmentKind.CrossTurnBenefit')) {
     $violations.Add('Deferred power plan must use the ordered post-search continuation')
 }
 $planRetentionSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatBeamSolver.BeamRetentionPolicy.cs') -Raw

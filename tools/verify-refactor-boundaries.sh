@@ -154,7 +154,8 @@ if ! rg -Fq 'PlanCommitmentKind.PotionChain' "$repository_root/src/Search/Combat
     violations+=("Generated free-potion chain must carry plan payoff evidence")
 fi
 if ! rg -Fq 'RunDeferredPowerPlanSearchPass(' "$repository_root/src/Search/CombatSearchCoordinator.PostSearch.cs" ||
-   ! rg -Fq 'EarlyTurnScoutDepth = 1' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
+   ! rg -Fq 'EarlyTurnScoutDepth = 1' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs" ||
+   ! rg -Fq 'PlanCommitmentKind.CrossTurnBenefit' "$repository_root/src/Search/CombatSearchCoordinator.PlanSearch.cs"; then
     violations+=("Deferred power plan must use the ordered post-search continuation")
 fi
 if ! rg -Fq 'AdmitPlanCommitmentRepresentatives(' "$repository_root/src/Search/CombatBeamSolver.BeamRetentionPolicy.cs" ||
