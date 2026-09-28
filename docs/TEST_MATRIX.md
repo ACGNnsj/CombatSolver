@@ -1,5 +1,13 @@
 # CombatSolver 测试清单
 
+## 合并审计：并行失败作业记账（2026-09-28）
+
+- 最终源码 `StrategyCorpus/run.py --manifest coverage/strategy-refactor-p2/corpus.json --case ga-silent-boss --out .local/audit-20260928/refactor-sentinel` 为 comparable；与 `.local/strategy-refactor-p6/final-sentinel` 比较逐位相同。最终 Windows 结构门禁 238 通过。
+
+- `pwsh -NoProfile -File tools/run-unattended-test.ps1 -ScenarioId ADMITTED-JOB-FAILURE-ACCOUNTING -EnemyCurrentHp 999 -VerifyPredictionFailureBoundaries -StopAfterCombatRootSnapshotAssertion -TimeoutSeconds 120 -HeadlessInstance <独立实例> -EvidenceDirectory <证据目录> -CleanupInstanceOnExit`。
+- 未修复生产代码时 `8a6d697c8a404adeb39e6ac12c9a2018` Failed：worker 分配 67,108,888 字节，请求仅记录 116,856。修复后 `747fc356ae864a31b69459e1627ef400` Passed，覆盖取消、原异常、已发生分配记账、排空及同根后续 DOP2；普通预测失败边界也通过。实例均已删除。原始证据 `.local/audit-20260928/refactor-red`、`refactor-green`。
+- Release 构建 0/0；Windows 结构门禁 238；StrategyCorpus 比较工具 5 项、first_loss 1 项、PowerCardValuationChecks 104 项通过。历史 P4/P5 六根原始结果仅排除后加归因字段后逐位一致，本次未重跑六根。Linux 与可见性能未执行。
+
 ## 策略重构 P7a 单项持续效果权重（2026-09-28）
 
 - `pwsh -NoProfile -File tools/run-unattended-test.ps1 -CheckpointArchivePath .local/issue-bundles/worldline-top150-20260926/raw/88619c63f91b48998737d7a9d623e2df.zip -CheckpointSelector start -ReplayMode SearchOnly -FixedSearchBudget -PerformancePresetForTest VeryHigh -SearchBudgetOverrideMilliseconds 180000 -SearchMaxDegreeOfParallelismForTest 8 -EnableNoGcRegionForTest 0 -BeamWeightTermForTest PersistentBuffDelta -BeamWeightScaleForTest 1.5 -TimeoutSeconds 240 -EvidenceDirectory .local/strategy-refactor-p7a/persistent-1p5-100 -CleanupInstanceOnExit` Passed，实例清理。对 `.local/strategy-refactor-p6/cross-turn-100`，根戳记及除该扰动外的政策相同；战损 22→55 HP，药水 2→2，结束回合 17→25。默认值不变，不追加同系数扫描；本轮未运行 Linux 门禁或其他权重组合。

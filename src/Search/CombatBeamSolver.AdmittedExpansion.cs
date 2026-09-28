@@ -186,12 +186,14 @@ internal sealed partial class CombatBeamSolver
                     active--;
                     idleLanes.Push(outcome.Job.LaneIndex);
                     _workProfile.Record(outcome.Job.Kind, outcome.ElapsedTicks, outcome.ActiveKindConcurrency);
+                    // Every completed job owns work, including a failed job and siblings
+                    // drained after it. Account it once before deciding whether to accept results.
+                    _coordinator.MergeExpansionWorker(outcome.Worker, outcome.AllocatedBytes);
                     firstError ??= outcome.Error;
                     if (firstError != null)
                         continue;
                     // A lane's caches and counters may be reused only after this drain. The
                     // published batch/probe lease has a separate owner and can wait for its turn.
-                    _coordinator.MergeExpansionWorker(outcome.Worker, outcome.AllocatedBytes);
                     AdmittedParent parent = outcome.Job.Parent;
                     parent.Receive(outcome);
                     if (parent.TailCompleted)
@@ -216,9 +218,7 @@ internal sealed partial class CombatBeamSolver
                     {
                         using (pending)
                         {
-                            if (pending!.Error != null)
-                                continue;
-                            _coordinator.MergeExpansionWorker(pending.Worker, pending.AllocatedBytes);
+                            _coordinator.MergeExpansionWorker(pending!.Worker, pending.AllocatedBytes);
                         }
                     }
                 }

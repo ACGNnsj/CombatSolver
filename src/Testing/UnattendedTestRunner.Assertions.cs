@@ -179,6 +179,12 @@ internal sealed partial class UnattendedTestRunner
                 AssertPredictionFailureBoundaries(scenario.CombatState, scenario.Player);
                 runner._completedChecks.Add("PredictionFailureBoundaries");
             }
+            if (request.ScenarioId == "ADMITTED-JOB-FAILURE-ACCOUNTING")
+            {
+                runner.SetStage("admitted_job_failure_accounting");
+                await AssertAdmittedJobFailureAccountingAsync(scenario.CombatState);
+                runner._completedChecks.Add("AdmittedJobFailureAccounting");
+            }
             if (request.ScenarioId == "LAZY-RNG-FORK")
             {
                 runner.SetStage("lazy_rng_fork");

@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [策略重构与 PR 合并审计](refactoring/merge-audit-20260928.md)：本轮源码审查、修复、合并及验证边界。
+
 - [更优世界线逐包策略记录](strategy/strategy-optimization-20260923.md)：逐包同根基线、人工对照和优化结果。
 - [策略优化 Part 1 交接](strategy/strategy-optimization-part1-handoff-20260927.md)：实验开关、已测作用、剩余包与继续排查口径。
 - [日志站更优世界线前 150 包](strategy/worldline-top150-20260926.md)：按站点战损下降值固定的处理顺序。
