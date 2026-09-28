@@ -204,6 +204,12 @@ if (-not $planCommitmentSource.Contains('PlanPayoffEvidenceKind') -or
     $planCommitmentSource.Contains('PayoffCardId')) {
     $violations.Add('Plan payoff evidence must be typed and shared across mechanisms')
 }
+$potionChainSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PotionChain.cs') -Raw
+if (-not $potionChainSource.Contains('PlanCommitmentKind.PotionChain') -or
+    -not $potionChainSource.Contains('PlanPayoffEvidenceKind.FreePotionUsed') -or
+    -not $potionChainSource.Contains('Commitment = plan')) {
+    $violations.Add('Generated free-potion chain must carry plan payoff evidence')
+}
 $postSearchSource = Get-Content -LiteralPath (Join-Path $repositoryRoot 'src/Search/CombatSearchCoordinator.PostSearch.cs') -Raw
 if (-not $postSearchSource.Contains('RunDeferredPowerPlanSearchPass(') -or
     -not $planSearchSource.Contains('EarlyTurnScoutDepth = 1')) {

@@ -81,10 +81,21 @@ internal static partial class CombatSearchCoordinator
                     maximumNodes: 50_000, maximumMilliseconds: 15_000,
                     reserveMilliseconds: 2_000);
                 int potionUses = prefix.Count(action => action.Kind == PlanActionKind.UsePotion);
+                PlanCommitment plan = new(
+                    PlanCommitmentKind.PotionChain,
+                    prefix,
+                    prefix[0].Turn,
+                    new PlanPayoffEvidence(PlanPayoffEvidenceKind.FreePotionUsed,
+                        first.PotionId!, first.Turn),
+                    UsesPotion: true,
+                    Priority: 1);
                 SolverResult? candidate = scheduler.DispatchOptional(
                     new ContinuationSearchRequest(context,
                         ContinuationPurpose.GeneratedPotionChain, prefix, memberProfile,
-                        SolverPotionPolicy.RequireAtLeastOne, potionUses, potionUses),
+                        SolverPotionPolicy.RequireAtLeastOne, potionUses, potionUses)
+                    {
+                        Commitment = plan,
+                    },
                     "GeneratedPotionChain");
                 attempted++;
                 if (candidate == null)

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P6 免费药计划证据（2026-09-28）
+
+- `dotnet build CombatSolver.csproj -c Release` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 输出 `REFACTOR_BOUNDARIES_OK search_files=238`。未运行 Linux 门禁。#90 同根和已达标哨兵尚未执行：用户游戏进程正在运行，依约不启动无头实例。本次改变计划成员的地平线资格，静态与编译结果不能证明行为或质量保持。
+
 ## 策略重构 P6 延后复制效果登记（2026-09-28）
 
 - `dotnet build CombatSolver.csproj -c Release` 成功，0 警告、0 错误；`pwsh -NoProfile -File tools/verify-refactor-boundaries.ps1` 输出 `REFACTOR_BOUNDARIES_OK search_files=238`。未运行 Linux 门禁。用户的游戏进程仍在运行，未启动无头实例；#101 同根行为对照及已达标哨兵仍待执行，编译和结构门禁不构成行为等价证据。

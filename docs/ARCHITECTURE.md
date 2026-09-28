@@ -30,7 +30,7 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 `PlanCommitment` 保存从固定根可回放的前缀及类型化收益证据（后续出牌、免费用药、已登记能力的真实收益）；`PlanMechanismRegistry` 保存内部不可变的延后复制效果规则，`CombatSearchCoordinator.PlanSearch` 从规则对应的模拟选牌效果和能力承诺描述提名复制与能力过牌，不按复制牌 ID 识别，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标效果的模拟可达性筛选药水和过牌分支，不改变普通开局候选上限。
 
-生成药水链成员从已选路线的早期前缀模拟混沌药，也允许在已选首张牌后插入合法的进攻跟进，再接原首回合余下动作。它读取分支药水槽已有的零成本来源标记，提名最多两条连续用药前缀；`FrontierContinuationScheduler` 按请求剩余额度完整续搜。该成员只扩展合法候选，药水来源、费用与战斗结算仍由 `SimulatedCombatState` 负责，最终结果仍走既有路线质量和用药政策。
+生成药水链成员从已选路线的早期前缀模拟混沌药，也允许在已选首张牌后插入合法的进攻跟进，再接原首回合余下动作。它读取分支药水槽已有的零成本来源标记，提名最多两条连续用药前缀，并以首次实际使用免费药作为 `PlanCommitment` 的收益证据；`FrontierContinuationScheduler` 按原请求剩余额度完整续搜。该成员只扩展合法候选，药水来源、费用与战斗结算仍由 `SimulatedCombatState` 负责，最终结果仍走既有路线质量和用药政策。
 
 P7a 的单项 Beam 权重敏感度由无人测试请求显式指定，`ProtocolHost` 验证并持有本次扰动，`SolverController.CaptureSearchPolicy` 将其冻结进 `SolverSearchProfile`。Search 只读该 profile；普通请求不注入扰动，终局政策、状态键和转置准入不消费它。
 
