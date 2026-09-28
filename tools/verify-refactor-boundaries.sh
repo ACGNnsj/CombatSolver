@@ -1591,6 +1591,7 @@ require_fixed "$repository_root/src/Search/CombatBeamSolver.Models.cs" 'Transpos
 require_fixed "$repository_root/src/Search/SearchPolicySnapshot.cs" 'DefaultTranspositionEntryLimit = 1_000_000' 'production transposition entry limit changed'
 
 # Contextual estimates may influence intermediate ordering only; loading stays outside workers.
+require_fixed "$repository_root/tools/ContextualOrdering/first_loss.py" "key = (o['solverId'], o['boundaryId'])" 'search loss query must group by solver and boundary identity'
 require_fixed "$search_root/FrontierContinuationScheduler.cs" 'attributionPurpose: request.Purpose' 'missing request work attribution boundary'
 require_fixed "$search_root/SearchRequestWorkTotals.cs" 'AttributionSnapshot()' 'missing request work attribution boundary'
 require_fixed "$repository_root/tools/CheckpointTool/StrategySessionRunner.cs" 'timeout-progress.json' 'strategy session timeout must preserve its last progress snapshot'

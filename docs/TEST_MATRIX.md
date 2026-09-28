@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 策略重构 P8c 丢路查询（2026-09-28）
+
+- `python tools/ContextualOrdering/test_first_loss.py` 通过 1 项构造测试：两个不同求解器均有编号 1、2 的保路边界，编号 1 的目标前缀分别在全局 Beam 与后续仲裁落选，编号 2 作为各自的截断末边界忽略；查询输出两条独立结果和同状态别名。未运行玩家 ZIP 自动采集或真实路径诊断；Linux 门禁依用户要求不运行。
+
 ## 策略重构 P8a 超时进度取证（2026-09-28）
 
 - 请求工作归因：GA-SILENT-BOSS-00 的固定生成根在当前源码可比较，总展开 70,460 = `OpeningPowerRouteMember` 45,460 + `UnattributedDirect` 25,000；总转移 225,665 = 146,815 + 78,850；总选牌 12,296 = 8,874 + 3,422。总搜索耗时约 35,950.7 ms 等于两分项之和。相对 `.local/strategy-refactor-p7b/ga-silent-sentinel`，动作、结果和旧非时序指标一致，只有新增归因字段不同；证据 `.local/strategy-refactor-p8a/attribution-silent` 与 `attribution-comparison`。没有逐个跑 13 个超时包。

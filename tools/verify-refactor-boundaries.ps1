@@ -2002,6 +2002,9 @@ foreach ($rule in @(
 }
 
 # Contextual estimates remain pure intermediate ordering; never a bound or final policy.
+if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot 'tools/ContextualOrdering/first_loss.py') -SimpleMatch "key = (o['solverId'], o['boundaryId'])" -Quiet)) {
+    $violations.Add('Search loss query must group by solver and boundary identity')
+}
 foreach ($boundary in @(
     @('src/Search/FrontierContinuationScheduler.cs', 'attributionPurpose: request.Purpose'),
     @('src/Search/SearchRequestWorkTotals.cs', 'AttributionSnapshot()')

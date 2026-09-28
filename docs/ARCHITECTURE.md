@@ -44,6 +44,8 @@ P8a 超时取证由 CheckpointTool 的常驻会话保存 Testing 已发布的最
 
 P8a 请求账本将经 `FrontierContinuationScheduler` 派发的成员按既有 `ContinuationPurpose` 记录展开、转移、选择、时间和分配；未迁入调度器的直接求解器显式归为未细分，协调器开销单列。归因仅写结果证据，原请求总计与预算扣费仍由 `SearchRequestWorkTotals` 独占。
 
+P8c 的离线首个丢路查询只消费 `SearchPathObserver` 已写出的值观察，按求解器身份与边界编号配对 GlobalRetention／RetentionPoolFinal；未观察到的前缀、采集截断边界和同状态别名保持未知，不把前缀落选当作最优状态消失。
+
 主 Pass 的前缀补搜用 `SearchPassContext.SliceWindow` 在原采样点同时取得轮次剩余时间和请求剩余节点，随后以原常数生成成员 profile；主搜及药水审计的其他预算分配仍按原顺序执行。
 
 夜魇开局补搜沿用配置 profile 的时间帽，只从请求账本读取剩余节点；`SearchBudgetLedger.ProfileWindow` 按该原口径生成单成员切片。默认关闭的前两回合探索保留其显式实验额度。
