@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## PR #140 资源恢复后的原生复审（2026-09-28）
+
+当前 main `afeb0e01` 上集成原候选；Release 0/0、Windows 边界 238 通过。`PR140-PRECOMBAT-WORKER -VerifyPreCombatForecastApi -StopAfterCombatRootSnapshotAssertion -TimeoutSeconds 120` 请求 `0a76d46e5d9545d4816840bbd80f0d0f`，75.3 秒 Passed。覆盖完整预测、同进程复用、显式中断活动请求、随后新 worker 模拟成功、自动关闭、Mod 写入隔离、设置令牌失效，以及原跑局/RNG不变；WorkerStarts=2、WorkerReuses=3。启动器已删除实例 `.local/headless-instances/audit-pr140-recheck`，原始证据 `.local/audit-recheck-20260928/pr140-worker`。11 项请求工具合同复用前轮同源码结果，不重复运行；未运行 Linux 或可见性能测试。
+
 ## 内存条与 PR 阻塞验证（2026-09-28）
 
 `MEMORY-DISPLAY-CONTRACT` 在两个自有隔离游戏进程通过：`cad74c8a0c664b3d89679cbc967e7469` 实际 ServerGC=False，`90a36a763671460eaed1bf5a2da535fd` 实际 ServerGC=True；各一节点／四转移，25.5/24.8 秒，实例均删除。真实采样的物理已用超过 GC 压力阈值，已用＋可用等于物理总量。固定快照覆盖空闲、搜索、回收、超阈值、未知物理数据和 GC 阈值不改变物理条形；回收显示合同不代表人为制造高压回收。

@@ -2,6 +2,8 @@
 
 ## 下一版本（开发中）：合并审计（2026-09-28）
 
+PR #140 在资源恢复后通过双进程原生生命周期验证。隔离战前 worker 共用启动身份，跳过战斗 UI 监控并保留主线程回调与协议处理；预测、复用、中断后重建与自动关闭通过，主进程跑局与 RNG 不变。此前该项资源阻塞解除。
+
 底部内存条统一为“游戏占用 · 系统可用”，数字来自同一轮采样，物理总量决定条形比例，GC 压力阈值单独说明。修正将压力余额称为总可用的口径错误，中英文同步；ServerGC 开／关原生合同均通过。#140 和 #144 的阻塞及已合入 PR 逐项记于 [合并审计](refactoring/merge-audit-20260928.md)。
 
 PR #143 的准备根保护已迁入重构后的权威入口，原生四项合同补齐后接受固定前缀统计、严格弃牌选择和最终回放续用采集。版本仍为 0.47.1；旧性能文档的未验证项以本轮记录为准。
@@ -253,6 +255,12 @@ P1 将请求级中间结果、协调器选优、终局候选的共同字段和�
 - 后续推广快照评分的同序遍历、小批次候选列表容量与按目标保留首个伤害候选的去重；相对上一轮 DLL，四组 ABBA 累计分配再降 1.66%～2.23%，路线和主要工作量一致。固定预算 DOP1 与循环合同逐字段核对通过；墙钟样本不足以证明延迟改善。撤回了 CPU 成本不明朗的 Power 监听表和怪物行动枚举改写，明细仍见上述报告。
 - 扩展验证预先固定 12 个开发根和 5 个留出根，五角色、普通/精英/首领均覆盖；最终 DLL 对分支起点直接做 68 次独立进程 ABBA。17/17 根累计分配下降，各根中位数合计少 5.10%，路线与主要工作量一致；离线求解器墙钟中位数之和少 1.62%，留出根仅少 0.30%，不足以证明玩家可感知的提速。回合前缀和并发峰值计数在同臂重复运行也有波动，峰值内存无稳定改善证据。逐根数据见[扩展验证](performance/search-hotpath-allocation-20260925.md#扩展验证17-个固定战斗根直接对照)及[机器可读证据](performance/search-hotpath-allocation-20260925-expanded.json)。
 - 2026-09-26 用 Linux `perf` 复查最终 DLL 的 CPU 热点：worker 主成本仍在动作回放，快照、Fork 和卡牌归一化各有明确占比。去掉每次动作回放的异常守卫捕获委托后，12 根 48 次交错对照虽少分配 0.41%，墙钟中位数之和增加 2.37%；该试验已撤回，生产源码未追加改动。采样口径及逐根结果见[后续 CPU 复查](performance/search-hotpath-allocation-20260925.md#后续-perf-cpu-复查2026-09-26)。
+## 下一版本（开发中）：预战 worker 的 UI 隔离（2026-09-27）
+
+- 修复隔离 worker 崩溃：`SolverDispatcher._Process` 原先无条件驱动 `SolverController.MonitorCombatPresence()` 与 `RefreshSearchProgress()`。预战 worker 的隔离跑局会真正进入战斗，于是该调用链走到 `SolverOverlay.EnsureCreated` → `Create` → 构造 `SolverGrowthStrategyPanel`，在无头进程里创建 UI 面板导致子进程以 `exit code 1` 退出。
+- 后果不止子进程退出：父进程在 `exited with code 1 before becoming reusable` 上失败，并留下被映像文件锁住的 `.combatsolver-precombat/process-<pid>` 镜像；此后该父进程的所有预战预报都只会失败（`Access to the path 'crashpad_handler.exe' is denied.`），必须重启游戏才能恢复。任何调用预战 API 的伴生 Mod 都会连带失去这项能力。
+- 新增 `Entry.IsPreCombatWorker` 作为「本进程是否是预战隔离 worker」的唯一权威实现；`PreCombatForecastApi.IsAvailable` 与 `PreCombatForecastWorker` 中原先各自解析同一个环境变量的两处判断改为复用它。守卫只短路玩家可见的 UI 监控，worker 的模拟与结果写盘路径不变。
+- 验证：结构门禁 `tools/verify-refactor-boundaries.ps1` 通过（`search_files=209`）；主项目 Release 编译通过（0 警告 0 错误）。本机缺少 .NET Framework 4.8 开发包，因此含 `tools/CombatSolver.MemoryCleaner`（net48）的完整 Release 构建与无人测试入口未执行；可见 Steam 会话与完整发布门禁未执行。
 
 ## 0.46.4：战损路线筛选与 Loadout 兼容（2026-09-25）
 
