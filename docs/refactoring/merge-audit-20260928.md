@@ -37,12 +37,18 @@
 
 修复两项合并阻塞：`RegisterIgnored(Type)` 缺少具体模型类型约束（抽象或无关同签名类型可被接受）；AfterPlayerTurnStart 多表忽略登记在后续表重复时留下前面表的写入。现在统一验证闭合具体派生类型，复合登记先全量校验、后写入。新增未修复代码的合同以 `Ignored accepted an abstract model` 失败，最终派发／冻结六组合同分别 28、3、27、2、52、5 项通过；包含失败后仍能正确登记 Early 的原子性检查。Release 0/0、Windows 结构门禁通过。工具链接生产登记代码及最小游戏替身；没有声称原生回合伤害或真实第三方 Mod 验收。
 
-## 内存条与交付
-
 ### #142 — 模组 ID 缓存（对应 Issue #141）
 
 核对 Prefix/Postfix、Ritsu 初始化事件、已冻结注册表及离线 M0.2 初始化顺序，保留 PR 生产修复。新增 ModelIdCacheChecks 链接实际生产补丁，通过两个动态程序集的同名类型依次模拟注册前探测、最终前缀与已完成注册后加载：原 main 源码失败于 `Registration probe cached an unprefixed mod ID`，合并代码 7 项通过，包含并发查询和原版类型独立缓存。Release 与 OfflineSearchHarness 0/0，Windows 门禁通过，架构说明同步修正原来的“只由类型名决定”假设。
 
 原生 ControllerSessions 检查未进入游戏：缩小为单进程夹具并按此前约 1.4 GB 工作集给 1,792 MiB 预约，仍因可用内存不足加系统 2 GiB 余量而准入超时；实例已删除。没有把作者的 macOS 探针或本轮替身合同称作 Windows Ritsu 生命周期实测。缓存行为合同已覆盖此修复的失效条件，原生事件链保留为未验证项。
+
+### #143 — 固定前缀统计与单次最终回放（候选，暂缓合并）
+
+手工将准备根的行动前缀限制迁入重构后的 Audits、PowerRoutes 与 EarlyTurnExploration，保留当前账本和计划搜索边界。检查强制结束回合、七张回合统计表、旧缓存拒绝、弃牌选择完整身份和退出卡牌作用域后采集续用戳；没有扩大搜索预算。Release 0/0、Windows 边界 238 通过。最新生产 DLL 的离线 Infused Core 14 项及 4／8／17 回合独立前缀 oracle 通过（`pr143-offline`）。
+
+必要的原生 `FIXED-PREFIX-TURN-OUTCOMES` 合同未启动：依据本轮小夹具约 1.41 GB 工作集将预约缩为 1,536 MiB，保留系统 2 GiB 余量，仍准入超时；实例已删除。作者旧原生记录发生在最终单次回放优化前，不能覆盖候选源码。保留候选分支，暂不合入 main，也不把离线通过称为原生差分通过。
+
+## 内存条与交付
 
 在前述合并完成后处理。原始证据及临时产物统一位于忽略目录 `.local/audit-20260928/`。本批不运行 Linux 门禁，不启动可见 Steam，不提升版本或上传渠道。

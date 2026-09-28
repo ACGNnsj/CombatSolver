@@ -214,6 +214,54 @@ Release 0/0、Windows 结构门禁 238；GA-SILENT-BOSS-00 与本轮重构基线
 
 - macOS 克隆游戏 + 隔离 HOME + `--force-steam=off`，mod_list 为 RitsuLib → CombatSolver → 探针。探针是最小 RitsuLib 内容模组：一张普通卡，在 `ModelRegistryInitializedEvent` 里打印 `GetId`；另编一个含与原版同名 `Leap` 卡的版本。不装求解器：`CARD.GET_ID_PROBE_CARD_PROBE_UNIQUE`，同名版正常启动；工坊 0.47.0：`CARD.PROBE_UNIQUE`，同名版 `DuplicateModelException` 启动失败；修复版：两种都与不装求解器一致。
 - 控制器会话合同新增：进入战斗时注册表初始化信号已送达，且门控对原版类型始终放行、对模组类型只在信号后放行。该合同需要 Linux/Windows 无头入口，本机未重跑；macOS Release 构建 0 警告、0 错误，结构门禁通过。
+## 下一版本（开发中）：最终续用单次回放（2026-09-27）
+
+- 基线 `72e0f799`，所有搜索DOP1。抽弃牌／故障机器人两根各四次独立进程ABBA，固定预算且无时间边界，完整根／政策、动作含嵌套选牌、续用文本、非时序指标与剪枝计数一致。根回放计数按真实工作分别4→2、8→2单独断言；展开／转移维持1564／34802及2000／7783。计时区间重叠，不称稳定整体提速。
+- `OFFLINE_HARNESS_FIXED_PREFIX_CONTINUATIONS=1` 的最终单牌输入：4／8／17回合固定终局前缀，四个独立进程ABBA，每case预热一次＋测量三次。36份计时结果、完整输出跨版本对账及计时外独立前缀oracle通过；核对完整StateText、回合、offset、数量、顺序和live根不变。17回合18.052→6.899ms只属于人工固定前缀Solve，实际搜索展开0。原始／汇总见 `.local/fixed-dop-20260927/long-prefix-final/` 与[报告](performance/fixed-dop-20260927.md)。早期多牌误注入批次作废，不计最终证据。
+- 原生 `FIXED-PREFIX-TURN-OUTCOMES` 已补充同一独立oracle和三个长路线case，原三回合actual/predicted验证保留。**本轮未执行**：`linear-replay-prefix` 启动前检测到玩家 `SlayTheSpire2.exe` 会话，120秒准入超时；没有停止其他进程或扩大超时，启动器输出 `UNATTENDED_INSTANCE_REMOVED`。forced-end／setup／adoption路径仅静态审阅，未称原生通过。
+- Windows Release构建0警告0错误，两端结构门禁均 `REFACTOR_BOUNDARIES_OK search_files=212`；Bash门禁在Windows Git Bash运行，不是Linux游戏验收。只改离线helper输入后重编该宿主，生产DLL未变，因此复用已有普通搜索及构建证据。不运行完整自动部署、可见性能或发布门禁。
+
+## 下一版本（开发中）：注能核心首回合产球（2026-09-27）
+
+- 失败来源为0.47.1／`36372d40`的问题包 `0762b1da246243f1936a1e8750be8588`，工具箱选牌完成后第一次差异是预测0球／原生3个闪电球（4/9）。同版本游戏的 `InfusedCore.AfterSideTurnStart` IL核对了参与者、首回合条件及3次产球；原包未恢复。
+- `tools/OfflineSearchHarness/InfusedCoreChecks.cs` 用生产DLL创建根，注入分支空球队列后调用真实遗物Hook。`OFFLINE_HARNESS_INFUSED_CORE_CHECKS=1`、DEFECT、`--milestone M1`：修改前失败 `first turn must channel three orbs; actual=0`；修改后14项Passed，覆盖3球、被动4／激发9、历史新增3次、T2空球不再产球、T2已有球不重复触发、持有者未参与不触发，以及根、父子、兄弟和球Model独占。证据 `.local/issue-bundles/0762b1da246243f1936a1e8750be8588/fix/{baseline,final}/`。这是离线诊断，不是原生actual/simulated验收。
+- 新增 [INITIAL-TOOLBOX-INFUSED-CORE](../coverage/unattended/initial-toolbox-infused-core.json)：原生开局注能核心＋工具箱、1500ms固定搜索、增量等价，在首次准备结果完整状态匹配及原生选择顺序断言后停止，总超时120秒。**本轮未执行**：实际游戏进程仍运行，既有无头准入门禁禁止并行启动；未关闭用户游戏、绕过门禁或创建无头实例。
+- 旧 `RELIC-HOOKS-BATCH-054` 从已完成原生产球的Play状态取根，只证明既有球与未来回合，不再作为空球准备根的首次产球证据。覆盖分类已改为显式模拟补偿，保留原生验收未完成的说明。
+- Windows Release构建0警告0错误，修改文件JSON解析及格式检查通过。CoverageCatalog原有工程缺少RitsuLib分程序集引用，先因`GetOriginalIl`／`HarmonyIl`编译失败；使用仅本地的额外引用后构建成功，但`--verify-runtime-evidence`在读取既有`LOOP-FINAL-20260921.status=PassedWithDocumentedBoundaries`时抛JsonException，未完成覆盖门禁或重新生成派生目录。此问题不归因于本次产球修复，不伪造Passed状态。本轮不提升版本、不打包或发布；不宣称完整战斗、实机选牌部署或其他Mod组合已验收。
+
+## PR #143 合并上游 0.47.1（2026-09-27）
+
+- 合并基线为上游 `7d9b4bed`，包含 `a59d319d`。手工解决 Opening、Phases 和两份记录文档冲突，保留上游终局／边界候选门禁、前缀异常清理及准备阶段整体补充审计旁路，同时保留本分支选择时点估值、终局前缀统计和七表／缓存校验。代码审阅未发现阻断问题。
+- 合并后Windows Release构建0警告0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，冲突标记与未合并索引清除，`git diff --check` 通过。
+- 原生六场最小集在第一场启动前因实机游戏进程仍运行而被启动器的未知游戏进程门禁排队，120秒准入超时；未启动无头游戏，不计行为失败或通过，也未关闭实机游戏、绕过门禁或扩大超时。自有实例 `pr143-merge-20260927` 由清理入口输出 `UNATTENDED_INSTANCE_REMOVED`。证据 `.local/pr143-merge-20260927/prefix-launcher.log` 与 `cleanup.log`；以下此前原生测试均为合并前证据。
+- 改用不启动Godot的离线Coordinator／Smart哨兵：故障机器人精英、Low、Beam24、每成员2000节点、DOP1、20秒，完成10000总展开／40482转移、10 HP／0药。与此前同根结果106项非时间字段、完整动作路线、根／续用状态和策略配置一致，均未触发时间边界。证据 `.local/pr143-merge-20260927/offline/defect/` 与 `offline-comparison.json`；只证明该离线根，不替代原生整合或可见性能验收。
+- 准备根合并后遵循上游提前返回，不再要求出现此前的Smart补充梯度日志；原始六场集保存在本地运行脚本。未执行合并后的原生六场、Linux或可见Steam验收，没有性能结论。
+
+## 下一版本（开发中）：开局弃牌选择时点估值（2026-09-27）
+
+- 失败基线来自本机 `MYTES_NORMAL` / `057a700fd80b4a65ac7f8641b4ad2cbf` 第1回合generation15，18:40:19.858智能用药审计的 `OpeningDiscardChoiceCardValue` 抛 `FLICK_FLACK+0 source=Hand action=ACROBATICS`。根牌组没有该牌；同战另一成功候选记录攻击药水生成该牌、临时0费与后续恢复1费，不把它当作失败分支完整回放。
+- 新增 [OPENING-DISCARD-CHOICE-VALUE](../coverage/unattended/opening-discard-choice-value.json)。杂技从抽牌堆抽到两张同名同升级、伤害7／17的临时零费 `FLICK_FLACK` 及升级的中和；逐分支确认弃牌自动打出后旧完整状态键已不在四个牌堆，而估值仍等于选择时的正确物理实例。全部兄弟只建立一份纯值表，命中缓存后伪造状态键或选择上下文继续明确失败。
+- `ea5c7b5bb1b34591b58539e8e9dac298` Passed：真实 `BuildOpeningHandSetupActions` 在DOP1及DOP2配置下成功，DOP1启用增量回放；搜索前后live不变，完成分支Fork状态不变，原生杂技选择和弃牌自动打出结束后完整ContinuationStamp与预测一致。这里的DOP2是入口配置覆盖，不宣称该局部Expand实际双lane并发；没有运行整场搜索质量或性能对照。
+- Windows Release构建0警告0错误、结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`、静态代码审阅及 `git diff --check` 通过。实例使用仓库 `.local/headless-instances/opening-discard-value-1`，已由启动器输出删除成功；证据 `.local/opening-discard-value-20260927/native-1/`。未恢复原玩家战斗、未覆盖所有第三方及嵌套前置选择组合，未启动可见Steam。
+
+## 下一版本（开发中）：跨回合固定前缀结果完整性（2026-09-27）
+
+- 原始失败证据是旧日雕像50,537展开的持久路线：预测Continuation为T3 HP70→T4 HP61，末态HP43／累计掉血27，但七张逐回合结果表仅有T4–6。UI求和显示18，结束回合保护缺键读0。没有恢复原玩家战斗或取得已经退休的该场完整live日志，不据此宣称另有怪物／药水模拟偏差。
+- 新增 [FIXED-PREFIX-TURN-OUTCOMES](../coverage/unattended/fixed-prefix-turn-outcomes.json)，通过现有无人ScenarioId入口运行。最小构造三次EndTurn固定前缀与第四回合后续搜索，内部DOP1／最多100展开／5秒，开启增量等价；验证每个前缀节点在结果投影前已持有Outcome、显式零及正战损、末回合部分前缀／终局前缀、空前缀、不合法回合和终局后动作仍拒绝，live根不变。独立原节点后备投影验证非零卖血差额、原分数不变和既有比较标注优先。
+- 对同一真实求解结果逐项移除战损、回血、敌方损血、卖血、最大／实际格挡与能量表的第三回合键：七种磁盘缓存均按未命中处理且内容未改，录像导入拒绝；生成结果序列化、内存续用及结束回合预计值查询均拒绝缺项。正确结果序列化往返通过，未删除玩家缓存。
+- 最终 `ea17a1f38de84a3b9b32797923ca1892` Passed，原生从T1逐次推进到T4，每次等待明确的EndPlayerTurnAction完成，完整ContinuationStamp与预测一致，LiveEndTurnRiskEvaluator与计划该回合损失一致，复用及UI求和包含前缀损失。只跑至最早覆盖三段前缀的边界，未执行SolverController全自动停机分支或整场自动部署。证据 `.local/fixed-prefix-outcomes-20260927/prefix-3/`。
+- 首次 `d67f326496fa4f749b9c68d990f39bea` 在新配置的首次洗牌教程等待至120秒，未记通过，启动器停止并清理实例。只在后续私有实例中导入进度模板并关闭教程，不改实机设置；`6feda5c2bbae43649327d0645302ba8f` 通过后，因新增节点所有权及精确异常断言运行最终夹具，未扩大超时。所有实例均在仓库 `.local/headless-instances/`，启动器分别输出删除成功。
+- 终局归属哨兵 `TERMINAL-TURN-PLAYER-START-V0111` / `6b4fb4ff7e594ebc9741e71155942a28` Passed：T1 EndTurn在T2准备阶段通过 `MERCURY_HOURGLASS` 获胜，增量验证／0战损／终局T2及动作回合结果完整性通过，避免按终局T2误要求第二回合动作统计。其后仅增强测试代码，生产源码未变，不重复该哨兵。
+- 最终Windows Release构建0警告0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，代码审阅通过。未运行Linux、原玩家存档重放或可见Steam测试；不将该最小合同当作全部卡牌语义或全量质量验收。
+
+## 下一版本（开发中）：回合准备固定前缀边界（2026-09-27）
+
+- 失败基线来自本机原生 `GAMBLING_CHIP` 开局日志：`CombatBeamSolver.SolveCore → CombatSearchCoordinator.RunSearchPass` 抛 `include_turn_setup=True prefix=+STAMPEDE`，对应延后能力 `[EndTurn, STAMPEDE]`。未恢复完整玩家存档；不把后续同遭遇重试当成同一根。
+- 原生短场景先用较强牌组验证页面顺序，`df377b96d5a14c718adbdc21ed3732cd` Passed；该根提前取得零战损，所以另用含6张伤口的 [准备阶段回归夹具](../coverage/unattended/turn-setup-fixed-prefix-stampede.json) 覆盖仍需补充搜索的承伤根。最终 `0c96548a196e449e9fa98a7acd6e7422` Passed：12张牌、`GAMBLING_CHIP` 与惊逃，DOP2、20秒固定时间预算，完整胜利投影21 HP／0药、5回合，总展开8,549、转移17,429；原生 `Visible → SearchStarted → PlanReady → Selected` 顺序通过，在首个准备结果与选择执行后停止，没有部署整场战斗。
+- 最终日志包含一次 `OPENING_PREFIX_REFINEMENT skipped reason=TurnSetupRoot`，仍进入正常 Smart 梯度（本根无药，返回 `no_potion_acceptable`）；没有把准备前动作送入可选固定前缀成员。夹具中的性能档位／Beam／节点测试覆盖在准备结束后才应用，本次准备搜索实际基线为 Beam60／120,000节点，不能按请求中的Low／24／6,000解释。证据 `.local/turn-setup-fixed-prefix-20260927/native-setup-loss/`。
+- 首次启动在游戏请求提交前因无默认离线 `settings.save` 失败，未计行为验证；只向新建的自有隔离实例复制当前Steam设置作为模板后继续，未修改实机配置或存档。首次失败和两次完成均由启动器输出 `UNATTENDED_INSTANCE_REMOVED` 删除整个实例；所有实例位于仓库 `.local/headless-instances/`。
+- 普通 Play 根哨兵复用本轮修改前保存的故障机器人精英 Coordinator / Smart 输入与政策：Low、Beam24、2,000节点、DOP1、20秒。修复后总展开10,000、转移40,482、10 HP／0药，与基线106项非时间对照、完整 `route.json`（包括选择）、根续用文本、后续续用及策略文件相同，均无时间截断。该对照仅证明此根的原路径保持，不宣称准备根的搜索质量不变或性能改善。证据 `.local/turn-setup-fixed-prefix-20260927/play-sentinel-comparison.json`。
+- Windows Release 构建0警告、0错误，结构门禁 `REFACTOR_BOUNDARIES_OK search_files=212`，代码审阅通过。未运行Linux、完整自动部署或可见游戏验收；实机由用户验证。
 
 ## 0.47.1 紧急回归修复（2026-09-27）
 

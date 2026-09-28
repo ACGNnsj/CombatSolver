@@ -495,6 +495,14 @@ if (Select-String -LiteralPath $phasePath -SimpleMatch 'CaptureContinuation(node
 if (-not (Select-String -LiteralPath $terminalPath -SimpleMatch 'ContinuationStamp.CapturePredicted(' -Quiet)) {
     $violations.Add('Terminal must build the selected route continuation stamp.')
 }
+foreach ($required in @('PrepareContinuationCapture(best)', 'continuationCapture: continuationCapture', 'continuationCapture.Complete()')) {
+    if (-not (Select-String -LiteralPath $phasePath -SimpleMatch $required -Quiet)) {
+        $violations.Add("Selected route must capture continuations in its annotation replay: $required")
+    }
+}
+if (Select-String -LiteralPath $terminalPath -SimpleMatch 'Replay(node.Actions' -Quiet) {
+    $violations.Add('Continuation capture must not replay every selected turn prefix.')
+}
 $poolLifetime = [System.IO.File]::ReadAllText((Join-Path $repositoryRoot 'src/Runtime/NodePoolSignalLifetimePatch.cs'))
 foreach ($required in @('using ((Godot.Collections.Array)signals)', 'using var ownedArray', 'using (connection)', 'using (callable.Method)', 'using (signal.Name)')) {
     if (-not $poolLifetime.Contains($required)) { $violations.Add("Node pool wrapper ownership missing: $required") }

@@ -17,6 +17,8 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken = context.CancellationToken;
         Action<SolverProgress>? progressCallback = context.ProgressCallback;
         SolverSearchProfile profile = context.Profile;
+        if (policy.IncludeTurnSetup)
+            return baseline;
         CombatBeamSolver builder = new(root, displayNames, battleDamage, policy,
             cancellationToken, progressCallback, profile,
             potionPolicyOverride: SolverPotionPolicy.RequireAtLeastOne,
@@ -104,7 +106,8 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken = context.CancellationToken;
         Action<SolverProgress>? progressCallback = context.ProgressCallback;
         SolverSearchProfile profile = context.Profile;
-        if (!root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
+        if (policy.IncludeTurnSetup
+            || !root.PlayerCardIds.Any(PowerCardValuationModels.Registry.ContainsCardId))
             return baseline;
         if (CanFinishTargetPortfolio(root, policy, profile, baseline))
         {

@@ -17,7 +17,8 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken = context.CancellationToken;
         Action<SolverProgress>? progressCallback = context.ProgressCallback;
         Stopwatch requestClock = context.Clock;
-        if (policy.EarlyTurnExplorationDepth == 0
+        if (policy.IncludeTurnSetup
+            || policy.EarlyTurnExplorationDepth == 0
             || selected.ResultScope != SolverResultScope.SearchCompletion
             || IsProvenZeroDamageRoute(root, policy, selected))
             return selected;

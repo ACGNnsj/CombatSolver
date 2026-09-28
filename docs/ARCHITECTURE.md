@@ -290,6 +290,8 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 
 `BeamWidthPortfolioGate.cs` 只管理普通精炼成员；基线必须已经搜干净、不是零损最优，且节点、时间和内存估算都有余量才运行。`PowerCommitmentPortfolioGate.cs` 只检查根牌区是否有已登记能力，不再用累计分配量拒绝整条能力成员；能力成员至少取得五分之一节点预留和最多30秒的时间预留。成员开始前若连256 MiB单次提交都容不下，Coordinator 在已排空边界调用 Runtime 注入的回收信号，后续硬内存安全仍由搜索波次预约和检查点负责。`BeamWidthPortfolioTelemetry.cs` 记录首条路线、普通/能力成员、逐能力固定前缀成员及托管堆峰值。
 
+只携带 `PlanAction`、未保留来源准备选择的可选固定前缀成员要求 `IncludeTurnSetup=false`。准备阶段沿用 0.47.1 的协调器提前返回边界：主搜索与宽度／新颖性成员仍使用准备选择根，完成后不进入补充药水审计或开局、换序、跨回合及前两回合追加成员。格挡药插入位于单次求解内部并沿原路线携带准备选择，继续运行。该边界不取消主搜索中的准备选择枚举，不放宽固定前缀的逐实例合法性检查，也不吞掉模拟异常。
+
 `CombatSearchCoordinator.PowerRoutes.cs` 在主搜索后、可接受战损提前返回之前，为当前可打的每张已登记能力运行固定前缀完整搜索，并有限补充双能力前缀。前缀结束后重建 `CombatProgressState`、清除临时承诺与有序变异调度元数据，后续按普通 Beam 搜索；能力已经真实在场，不继续套激进承诺。最多三个前缀时分别运行普通宽度、1.5倍宽度、次排名段和基础分四种后验，更多前缀时运行普通与宽 Beam。所有成员只以完整终局和既有战损政策选优。
 
 `BeamPortfolioSelector.cs` 是实验用的组合成员选择器（默认不启用）：Runtime 只有在显式给出模型文件时才注入，Search 只收到解析后的不可变实例。它只在 `BeamWidthPortfolioGate` 已经放行之后决定“这一位成员不跑”，不改评分、状态键、保路通道、必保候选或终局排序；模型缺失、求解器或游戏程序集 MVID 不一致、特征长度不符、特征非有限，或状态与配置超出训练范围时一律运行成员，计时与剩余预算字段不设范围约束，避免把负载漂移当成分布外。判定只用模型自带的常量树，不做 IO、不持有搜索对象。离线宿主用 `--observe-portfolio` 经同一路径导出特征与真实政策标签、用 `--portfolio-model` 应用模型；采集、划分、训练与对照见 [PortfolioSelector 工具](../tools/PortfolioSelector/README.md)，实测取舍见[学习型组合门控](strategy/learned-portfolio-gate-20260917.md)。
@@ -369,7 +371,9 @@ Smart 层间使用 `SmartLayerMemoryForecast` 的同窗分配和转移高水位�
 
 `Expansion.Candidates` 在准入与展开两处让 `Transpositions` 和 `ExpandedTranspositions` 共用每次 solver 默认 1,000,000 条的预算：旧状态仍按原支配标签更新，额度满后只对新状态停止记账并放行。它改变超长搜索的剪枝，不约束一个请求里多个成员的总字节数；实验用关闭剪枝、状态键盐与牌堆顺序商均由默认零值隔离。
 
-回合前沿不再为每个候选构造续用戳；`Terminal.BuildContinuations` 从最终选中路线的动作前缀重放并生成戳记，释放重放快照后只保存纯值 `CachedContinuation`。`SearchPerformanceMetrics` 在显式阶段度量启用时按后进先出收口并记排他时间/分配；失败 lane 排空但不合并未完成的指标，保留首因异常。普通生产搜索不启用逐阶段度量。
+回合前沿不再为每个候选构造续用戳；`Terminal.PrepareContinuationCapture` 在最终选中路线确定后冻结有后续动作的稳定回合边界，只保存动作索引与回合号。既有遗物／击杀标注完整回放在动作作用域退出后，由 `Terminal.ContinuationCapture` 当场生成纯值 `CachedContinuation`；不再逐回合从根重放动作前缀，也不保留中间模拟器。回放结尾必须消费全部预期边界，并继续核对最终状态。`SearchPerformanceMetrics` 在显式阶段度量启用时按后进先出收口并记排他时间/分配；失败 lane 排空但不合并未完成的指标，保留首因异常。普通生产搜索不启用逐阶段度量。
+
+固定前缀在跨回合／终局节点记录 `TurnOutcome`，与普通候选共用 `Terminal` 的纯统计公式；投影未标注边界后备时只读取父链标量，不改变候选分数或剪枝。`SolverResult` 按已结束的动作回合校验七张回合结果表，终局发生于下一准备阶段时仍归发起动作的回合。磁盘缓存缺项按未命中处理，生成结果和内存续用缺项显式失败；结束回合保护要求明确的预计战损项，不能把缺项解释为零。
 
 `PotionStrategicCostLookup` 同样归单次 `SearchRunContext` 所有，中间保路与终局排序共用规范药水 ID/可再生条件对应的只读代价值；未命中仍调用原目录的 `Single` 查询，保留缺失/重复 ID 的失败行为。每个 worker 有独立表，不存药水实例或分支值，也不跨并发 solver 共享修改。
 

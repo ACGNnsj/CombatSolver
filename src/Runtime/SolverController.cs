@@ -3007,7 +3007,7 @@ internal static partial class SolverController
                     LiveEndTurnRiskProjection liveRisk = LiveEndTurnRiskEvaluator.Evaluate(
                         state,
                         plannedEndTurn.TurnStartChoices);
-                    int plannedHpLoss = result.HpLostByTurn.GetValueOrDefault(turn);
+                    int plannedHpLoss = result.RequireHpLostForTurn(turn);
                     bool worsened = liveRisk.HpLost > plannedHpLoss;
                     if ((_stopFullAutoOnDeathTurn && liveRisk.PlayerDead)
                         || (_stopFullAutoOnWorseRecalculation && worsened))

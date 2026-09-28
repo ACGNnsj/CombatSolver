@@ -25,6 +25,8 @@ internal static partial class CombatSearchCoordinator
             PortfolioTelemetry = portfolioTelemetry,
         };
         SearchInteractionState? interaction = policy.Interaction;
+        if (policy.IncludeTurnSetup)
+            policy.Diagnostics.Info("[CombatSolver/Test] OPENING_PREFIX_REFINEMENT skipped reason=TurnSetupRoot");
         SolverResult? currentCompleteAdoptableResult = null;
         SolverInterimResult? currentDisplayedResult = null;
         SolverProgress? lastProgress = null;

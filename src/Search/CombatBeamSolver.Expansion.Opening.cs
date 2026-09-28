@@ -377,6 +377,7 @@ internal sealed partial class CombatBeamSolver
     {
         SearchNode seed = CreateOpeningFollowUpSeed(prefix ?? [], SearchRouteTraits.None);
         List<SearchNode> children = [];
+        Dictionary<string, OpeningDiscardChoiceValues> discardValues = [];
         try
         {
             children.AddRange(ExpandOpeningSeed(seed));
@@ -389,7 +390,7 @@ internal sealed partial class CombatBeamSolver
                 .OrderByDescending(node => node.Snapshot.Energy)
                 .ThenBy(node => node.Action!.Choice is
                     { Effect: PlanChoiceEffect.Discard or PlanChoiceEffect.DiscardAndDraw, Cards.Count: 1 } choice
-                    ? OpeningDiscardChoiceCardValue(node, choice)
+                    ? OpeningDiscardChoiceCardValue(seed, node, choice, discardValues)
                     : double.MaxValue)
                 .ThenByDescending(node => node.Snapshot.ReachableHandValue)
                 .ThenByDescending(node => node.Score)
@@ -479,26 +480,83 @@ internal sealed partial class CombatBeamSolver
         }
     }
 
-    private double OpeningDiscardChoiceCardValue(SearchNode node, PlanCardChoice choice)
+    private sealed record OpeningDiscardChoiceValues(
+        PlanChoiceEffect Effect,
+        PileType SourcePile,
+        string SourceId,
+        string ContextId,
+        PlanChoiceTiming Timing,
+        IReadOnlyList<(PlanCardToken Token, double Value)> Options);
+
+    private double OpeningDiscardChoiceCardValue(SearchNode seed, SearchNode node, PlanCardChoice choice,
+        Dictionary<string, OpeningDiscardChoiceValues> cache)
     {
-        CombatPredictionSimulator simulator = (CombatPredictionSimulator)node.Snapshot.Simulator;
-        SimPlayerCombatState player = simulator.State.GetPlayerCombatState(_player);
-        IReadOnlyList<PredictedCard> beforeHand = node.Parent is { } parent
-            ? ((CombatPredictionSimulator)parent.Snapshot.Simulator)
-                .State.GetPlayerCombatState(_player).Hand.Cards
-            : [];
-        PredictedCard card = beforeHand
-            .Concat(player.DiscardPile.Cards)
-            .Concat(player.Hand.Cards)
-            .Concat(player.DrawPile.Cards)
-            .Concat(player.ExhaustPile.Cards)
-            .FirstOrDefault(candidate => string.Equals(
-                CardChoiceSupport.ChoiceCardKey(candidate), choice.Cards[0].StateKey,
-                StringComparison.Ordinal))
-            ?? throw new InvalidOperationException(
-                $"开局弃牌选择执行后找不到 {choice.Cards[0].CardId}+{choice.Cards[0].UpgradeLevel} " +
-                $"source={choice.SourcePile} action={node.Action?.CardId}。");
-        return CardChoiceSupport.CardValue(card.Preview);
+        PlanAction action = node.Action
+            ?? throw new InvalidOperationException("开局弃牌估值缺少动作。");
+        _ = action.GetActionChoicesInExecutionOrder();
+        PlanAction probeAction = action with
+        {
+            Choice = null,
+            NestedChoices = action.NestedChoices?.Take(action.NestedChoicesBeforePrimary).ToArray(),
+            TurnStartChoices = null,
+            RelicEffects = null,
+            EndsPlayerTurn = false,
+        };
+        string key = JsonSerializer.Serialize(probeAction);
+        if (!cache.TryGetValue(key, out OpeningDiscardChoiceValues? values))
+        {
+            SimulationSnapshot probe = ReplayAction(seed, probeAction);
+            try
+            {
+                SimulatedCombatState combat = (SimulatedCombatState)probe.Simulator.State.CombatState;
+                TurnStartChoiceRequest request = probe.BoundaryReason == SearchBoundaryReason.PendingChoice
+                    && combat.PendingTurnStartChoice is { } pending ? pending
+                    : throw new InvalidOperationException($"开局弃牌估值未到达选择边界：action={action.CardId}。");
+                CardChoiceSpec spec = BuildPrimaryCardChoiceSpec(probe)
+                    ?? throw new InvalidOperationException($"开局弃牌估值没有主选择：action={action.CardId}。");
+                List<(PlanCardToken Token, double Value)> options = [];
+                Dictionary<(string Id, int Upgrade), int> occurrences = [];
+                foreach (PredictedCard card in spec.Options)
+                {
+                    var identity = (card.Preview.Id.Entry, card.Preview.CurrentUpgradeLevel);
+                    int optionOccurrence = occurrences.GetValueOrDefault(identity);
+                    occurrences[identity] = optionOccurrence + 1;
+                    int sourceOccurrence = 0;
+                    bool found = false;
+                    foreach (PredictedCard sourceCard in spec.SourceCards)
+                    {
+                        if (ReferenceEquals(sourceCard, card)) { found = true; break; }
+                        if (sourceCard.Preview.Id.Entry == identity.Entry
+                            && sourceCard.Preview.CurrentUpgradeLevel == identity.CurrentUpgradeLevel)
+                            sourceOccurrence++;
+                    }
+                    if (!found)
+                        throw new InvalidOperationException($"开局弃牌候选不在来源牌堆：action={action.CardId}。");
+                    // The selection's cost and keywords may change when discard triggers an automatic play.
+                    options.Add((new PlanCardToken(identity.Entry, identity.CurrentUpgradeLevel,
+                        CardChoiceSupport.ChoiceCardKey(card), sourceOccurrence, optionOccurrence, string.Empty),
+                        CardChoiceSupport.CardValue(card.Preview)));
+                }
+                values = new(spec.Effect, spec.SourcePile, request.SourceId, request.ContextId, request.Timing, options);
+                cache.Add(key, values);
+            }
+            finally { probe.ReleaseSimulator(); }
+        }
+        PlanCardToken token = choice.Cards.Single();
+        if (values.Effect != choice.Effect || values.SourcePile != choice.SourcePile
+            || values.SourceId != choice.SourceId || values.ContextId != choice.ContextId || values.Timing != choice.Timing)
+            throw new InvalidOperationException($"开局弃牌估值的选择上下文不一致：action={action.CardId}。");
+        foreach (var option in values.Options)
+        {
+            if (option.Token.CardId == token.CardId && option.Token.UpgradeLevel == token.UpgradeLevel
+                && option.Token.SourceOccurrence == token.SourceOccurrence
+                && option.Token.OptionOccurrence == token.OptionOccurrence
+                && string.Equals(option.Token.StateKey, token.StateKey, StringComparison.Ordinal))
+                return option.Value;
+        }
+        throw new InvalidOperationException(
+            $"开局弃牌估值找不到选择时的卡牌 {token.CardId}+{token.UpgradeLevel} " +
+            $"source={choice.SourcePile} action={action.CardId}。");
     }
 
     private static int DeferredCopyTargetValue(PredictedCard card, int nextTurnEnergy)

@@ -95,6 +95,8 @@ internal static partial class CombatSearchCoordinator
         Action<SolverProgress>? progressCallback = context.ProgressCallback;
         SolverSearchProfile profile = context.Profile;
         int primaryDeficit = StrategicHpDeficit(root, policy, primary);
+        if (policy.IncludeTurnSetup)
+            return primary;
         int maximumSmartPotionUses = policy.PotionPolicy == SolverPotionPolicy.Smart
             ? MaximumSmartPotionUses(root, policy, potionFreeWon: true, primaryDeficit)
             : Math.Max(1, primary.PotionCount);
@@ -396,6 +398,11 @@ internal static partial class CombatSearchCoordinator
         bool potionFreeWon = IsCompleteVictory(potionFree);
         if (!potionFreeWon)
         {
+            if (policy.IncludeTurnSetup)
+            {
+                MergeAuditTotals(primary, primary, potionFree);
+                return primary;
+            }
             List<SolverResult> searches = [primary, potionFree];
             SolverResult selected = primary;
             FrontierContinuationScheduler continuationScheduler = new(context);
@@ -620,7 +627,8 @@ internal static partial class CombatSearchCoordinator
         {
             SolverResult gradient = SearchSmartPotionGradient(
                 context, callerCancellationToken, primary, memoryForecast);
-            if (gradient.ResultScope != SolverResultScope.SearchCompletion
+            if (policy.IncludeTurnSetup
+                || gradient.ResultScope != SolverResultScope.SearchCompletion
                 || policy.PotionStrategy.HasForcedDirectives
                 || battleDamage.PotionsUsedSoFar != 0
                 || (gradient.ExplicitPotionCount <= 1
