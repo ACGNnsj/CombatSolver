@@ -253,6 +253,8 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 
 ## 3. Search
 
+普通卡牌候选在 `ExpansionPlan.ProcessExpandedCardCandidate` 先通过原精确转置准入，再构造战术分类；分类不参与转置键或成本标签。有序变异租约和延后准入的循环候选保持原处理顺序。仅宿主的 `EquivalenceProbe` 观察分离出的状态键与自然两步序列，不反向决定生产剪枝。
+
 `CardChoiceSupport.BuildChoices` 的实体令牌缓存只属于一次调用；按卡牌wrapper引用共享不可变令牌，选择容器独立。尾部代表构造按逐键后缀序号直接定位，超过16张保留原分组路径；这是表示与构造成本优化，不改变候选等价、实体补留、分支配额或排序。
 
 策略重构回归语料由 `tools/StrategyCorpus` 编排：玩家包使用 Testing 的严格 `combat_start` 无头恢复，仓库生成场景使用 `OfflineSearchHarness`。Search 在请求完成后提供只读质量和根戳记证据；Testing Writer 与离线宿主把它们写入独立证据文件，不参与候选裁决。原始玩家包与完整输出只留在 `.local`。对照器先核对根、政策和固定预算，再比较完整动作、续用、结果及非时序工作量；时间、分配和 GC 单列观察。

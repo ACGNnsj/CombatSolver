@@ -129,6 +129,8 @@ description: 在战斗语义已证明正确后，审计或修改 CombatSolver �
 
 ## 5. 实验与验证
 
+将工作移到精确转置准入之后时，须证明被延后的计算不参与原始节点的状态键、标签、租约和诊断。卡牌战术分类可以延后到普通分支通过之后，但有序变异与循环延后准入继续走原路径。`EquivalenceProbe` 的自然AB/BA指纹观察只能定位机会，不能作为跨状态交换性证书；开启观测器时不作性能结论。
+
 跨跑局、SL 后仍持续的实机卡顿可使用 `docs/performance/long-session-recording.md` 的显式本地录制。核对进程会话完整性、分段空窗、EventPipe 丢事件与采集自身开销；采样线程时间不当作 CPU 占比，弱引用存活不当作 GC root 证据。诊断改动和行为修复分开取证，节点重建必须继续原进程会话。
 
 确定 GC 发起者时读取 GCTriggered 的关联栈，不用 GCStart 无栈推断未采集；EventPipe stack blocks 不等于独立 ClrStackWalk 事件。句柄窗口只覆盖部分时间且栈覆盖不完整，明确报告覆盖率，不将跨窗创建/销毁差值当成全程泄漏量。Collector complete 必须与解析完整性分开。
