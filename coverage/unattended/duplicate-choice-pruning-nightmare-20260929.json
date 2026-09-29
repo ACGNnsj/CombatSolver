@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "characterId": "IRONCLAD",
+  "encounterId": "FUZZY_WURM_CRAWLER_WEAK",
+  "seed": "DUPLICATEPRUNE29",
+  "enemyCurrentHp": 180,
+  "initialEnemyMoveIds": [
+    "INHALE"
+  ],
+  "initialPlayerEnergy": 4,
+  "clearPlayerHand": true,
+  "clearPlayerPiles": true,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120,
+  "scenarioId": "DUPLICATE-PRUNE-NIGHTMARE",
+  "cards": [
+    {
+      "cardId": "NIGHTMARE",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "POMMEL_STRIKE",
+      "pile": "Draw"
+    },
+    {
+      "cardId": "STRIKE_IRONCLAD",
+      "pile": "Draw"
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Draw"
+    },
+    {
+      "cardId": "BASH",
+      "pile": "Draw"
+    }
+  ]
+}

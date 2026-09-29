@@ -260,6 +260,7 @@ internal static partial class CardChoiceSupport
         // duplicate test without rescanning that range at every combination depth.
         Span<int> previousEqualIndex = ordered.Count <= 128
             ? stackalloc int[ordered.Count] : new int[ordered.Count];
+        bool hasRepeatedOptions = false;
         for (int index = 0; index < ordered.Count; index++)
         {
             previousEqualIndex[index] = -1;
@@ -268,6 +269,7 @@ internal static partial class CardChoiceSupport
                 if (!string.Equals(orderedSemanticKeys[prior], orderedSemanticKeys[index], StringComparison.Ordinal))
                     continue;
                 previousEqualIndex[index] = prior;
+                hasRepeatedOptions = true;
                 break;
             }
         }
@@ -305,7 +307,11 @@ internal static partial class CardChoiceSupport
                 .Take(effectiveBranchLimit - retained.Count));
         }
 
-        if (IsIdentityChangingPersistentChoiceEffect(spec.Effect))
+        // With unique option keys, every combination already has a unique semantic
+        // identity. No alternate physical representative can exist for any selection.
+        bool needsOccurrenceRepresentatives = hasRepeatedOptions
+            && IsIdentityChangingPersistentChoiceEffect(spec.Effect);
+        if (needsOccurrenceRepresentatives)
         {
             ReserveIdentityOccurrenceRepresentatives(
                 spec,
@@ -316,7 +322,7 @@ internal static partial class CardChoiceSupport
 
         IEnumerable<IReadOnlyList<PredictedCard>> orderedRetained = retained
             .OrderByDescending(selection => ChoicePriority(spec, selection));
-        if (IsIdentityChangingPersistentChoiceEffect(spec.Effect))
+        if (needsOccurrenceRepresentatives)
             orderedRetained = OrderSemanticSelectionsBeforeOccurrenceSupplements(orderedRetained);
 
         return orderedRetained
@@ -1136,6 +1142,7 @@ internal static partial class CardChoiceSupport
                 card,
                 discoverUnregisteredBaseLibModifiers))
             key.Append('-');
+        CardCostStateSupport.Append(key, card);
         return key.ToString();
     }
 

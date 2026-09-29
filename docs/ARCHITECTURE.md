@@ -510,6 +510,8 @@ Search在首回合、EndTurn及已知可能嵌套/重复的卡牌回放建立捕
 
 ## 5. Prediction 领域补偿
 
+`CardCostStateSupport` 只读取卡牌现有的基础费用与有序临时修改层，统一追加出牌指纹、选牌键和live/predicted续用文本。有效期、绝对/相对修正、仅降费和星能覆盖层不能被当前显示费用替代。没有修改层时保持既有键；不另存费用、不改变结算或Fork所有权。
+
 `src/Prediction/` 处理基础命令和单个 mirror 不能独立表达的领域语义：
 
 谋杀的抽牌历史倍率由 `CalculatedVarSpecRegistry` 读取 `SimulatedCombatState.GetCardsDrawnBeforePrediction` 的冻结根计数与模拟器新增抽牌事件。根计数来自已有 `RootCombatHistorySnapshot.CardsDrawn`，随根不可变共享；实机完成回合准备或继续抽牌后，旧根和 Fork 仍使用捕获时的历史。

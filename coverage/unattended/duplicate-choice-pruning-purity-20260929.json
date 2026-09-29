@@ -1,0 +1,76 @@
+{
+  "schemaVersion": 1,
+  "characterId": "IRONCLAD",
+  "encounterId": "FUZZY_WURM_CRAWLER_WEAK",
+  "seed": "DUPLICATEPRUNE29",
+  "enemyCurrentHp": 180,
+  "initialEnemyMoveIds": [
+    "INHALE"
+  ],
+  "initialPlayerEnergy": 3,
+  "clearPlayerHand": true,
+  "clearPlayerPiles": true,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120,
+  "scenarioId": "DUPLICATE-PRUNE-UNIQUE-PURITY",
+  "cards": [
+    {
+      "cardId": "PURITY",
+      "pile": "Hand",
+      "upgradeLevels": 1
+    },
+    {
+      "cardId": "STRIKE_IRONCLAD",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "BASH",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "POMMEL_STRIKE",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "IRON_WAVE",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "TWIN_STRIKE",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "SHRUG_IT_OFF",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "ARMAMENTS",
+      "pile": "Hand",
+      "upgradeLevels": 0
+    },
+    {
+      "cardId": "STRIKE_IRONCLAD",
+      "pile": "Draw"
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Draw"
+    }
+  ]
+}

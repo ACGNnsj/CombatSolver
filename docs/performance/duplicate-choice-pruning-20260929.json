@@ -1,0 +1,473 @@
+{
+  "baseline": "upstream/main@72363308",
+  "scope": "Linux offline measurements; native contracts reported separately; no visible FPS or whole-battle quality claim",
+  "rejectedOccurrencePruning": [
+    {
+      "scenario": "dual",
+      "measure": {
+        "totalExpanded": 264,
+        "totalTransitions": 1124,
+        "totalChoiceBranches": 194,
+        "elapsedMilliseconds": 715.0536,
+        "workerAllocatedBytes": 38138360,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "measure",
+          "duplicateCalls": 68,
+          "nightmareCalls": 0,
+          "repeatedOptions": 38
+        }
+      },
+      "skip": {
+        "totalExpanded": 264,
+        "totalTransitions": 1096,
+        "totalChoiceBranches": 166,
+        "elapsedMilliseconds": 702.4717,
+        "workerAllocatedBytes": 37381232,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "skip",
+          "duplicateCalls": 68,
+          "nightmareCalls": 0,
+          "repeatedOptions": 38
+        }
+      }
+    },
+    {
+      "scenario": "nightmare",
+      "measure": {
+        "totalExpanded": 300,
+        "totalTransitions": 1122,
+        "totalChoiceBranches": 40,
+        "elapsedMilliseconds": 817.8427,
+        "workerAllocatedBytes": 47663504,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "measure",
+          "duplicateCalls": 0,
+          "nightmareCalls": 12,
+          "repeatedOptions": 11
+        }
+      },
+      "skip": {
+        "totalExpanded": 300,
+        "totalTransitions": 1113,
+        "totalChoiceBranches": 31,
+        "elapsedMilliseconds": 812.2501,
+        "workerAllocatedBytes": 47412704,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "skip",
+          "duplicateCalls": 0,
+          "nightmareCalls": 12,
+          "repeatedOptions": 11
+        }
+      }
+    },
+    {
+      "scenario": "dense",
+      "measure": {
+        "totalExpanded": 500,
+        "totalTransitions": 2340,
+        "totalChoiceBranches": 461,
+        "elapsedMilliseconds": 1086.6563,
+        "workerAllocatedBytes": 80636896,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "measure",
+          "duplicateCalls": 141,
+          "nightmareCalls": 0,
+          "repeatedOptions": 385
+        }
+      },
+      "skip": {
+        "totalExpanded": 500,
+        "totalTransitions": 2147,
+        "totalChoiceBranches": 268,
+        "elapsedMilliseconds": 1034.4389,
+        "workerAllocatedBytes": 76471952,
+        "projectedBattleHpLost": 0,
+        "combatEndedTurn": 2,
+        "probe": {
+          "mode": "skip",
+          "duplicateCalls": 141,
+          "nightmareCalls": 0,
+          "repeatedOptions": 385
+        }
+      }
+    }
+  ],
+  "safeChoiceGuardSearch": [
+    {
+      "run": "purity-0-baseline",
+      "totalExpanded": 300,
+      "totalTransitions": 3179,
+      "totalChoiceBranches": 1721,
+      "elapsedMilliseconds": 1262.9799,
+      "workerAllocatedBytes": 101876400,
+      "projectedBattleHpLost": 0,
+      "combatEndedTurn": 2
+    },
+    {
+      "run": "purity-1-candidate",
+      "totalExpanded": 300,
+      "totalTransitions": 3179,
+      "totalChoiceBranches": 1721,
+      "elapsedMilliseconds": 1243.5242,
+      "workerAllocatedBytes": 100274488,
+      "projectedBattleHpLost": 0,
+      "combatEndedTurn": 2
+    },
+    {
+      "run": "purity-2-candidate",
+      "totalExpanded": 300,
+      "totalTransitions": 3179,
+      "totalChoiceBranches": 1721,
+      "elapsedMilliseconds": 1178.943,
+      "workerAllocatedBytes": 100278488,
+      "projectedBattleHpLost": 0,
+      "combatEndedTurn": 2
+    },
+    {
+      "run": "purity-3-baseline",
+      "totalExpanded": 300,
+      "totalTransitions": 3179,
+      "totalChoiceBranches": 1721,
+      "elapsedMilliseconds": 1264.8159,
+      "workerAllocatedBytes": 101872552,
+      "projectedBattleHpLost": 0,
+      "combatEndedTurn": 2
+    }
+  ],
+  "builderJitConfounded": [
+    {
+      "run": "builder-0-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 412241768,
+          "ms": 807.4977
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 129.8962
+        }
+      ]
+    },
+    {
+      "run": "builder-1-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 303600040,
+          "ms": 496.5117
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 122103848,
+          "ms": 325.7496
+        }
+      ]
+    },
+    {
+      "run": "builder-2-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 303600040,
+          "ms": 481.4248
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 123908360,
+          "ms": 323.0155
+        }
+      ]
+    },
+    {
+      "run": "builder-3-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 434654312,
+          "ms": 822.4757
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 56.5651
+        }
+      ]
+    }
+  ],
+  "builderStableJit": [
+    {
+      "run": "builder-stablejit-0-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 305200040,
+          "ms": 289.0159
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 99.6776
+        }
+      ]
+    },
+    {
+      "run": "builder-stablejit-1-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 158064040,
+          "ms": 125.7394
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 96.8752
+        }
+      ]
+    },
+    {
+      "run": "builder-stablejit-2-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 158064040,
+          "ms": 126.7025
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 94.9503
+        }
+      ]
+    },
+    {
+      "run": "builder-stablejit-3-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocated": 305200040,
+          "ms": 277.4206
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocated": 100624040,
+          "ms": 102.5717
+        }
+      ]
+    }
+  ],
+  "costFixControls": [
+    {
+      "left": "final-dense-0-baseline",
+      "right": "final-dense-1-candidate",
+      "metricFields": 73,
+      "metricDifferences": [],
+      "fullRouteEqual": true,
+      "rootEqual": true,
+      "pruneCountersEqual": true
+    },
+    {
+      "left": "final-ordinary-4-baseline",
+      "right": "final-ordinary-5-candidate",
+      "metricFields": 73,
+      "metricDifferences": [],
+      "fullRouteEqual": true,
+      "rootEqual": true,
+      "pruneCountersEqual": true
+    }
+  ],
+  "safeChoiceGuardComparisons": [
+    {
+      "left": "purity-0-baseline",
+      "right": "purity-1-candidate",
+      "metricFields": 73,
+      "metricDifferences": [],
+      "fullRouteEqual": true,
+      "rootEqual": true,
+      "pruneCountersEqual": true
+    },
+    {
+      "left": "purity-3-baseline",
+      "right": "purity-2-candidate",
+      "metricFields": 73,
+      "metricDifferences": [],
+      "fullRouteEqual": true,
+      "rootEqual": true,
+      "pruneCountersEqual": true
+    },
+    {
+      "left": "final-dense-0-baseline",
+      "right": "final-guard-dense",
+      "metricFields": 73,
+      "metricDifferences": [],
+      "fullRouteEqual": true,
+      "rootEqual": true,
+      "pruneCountersEqual": true
+    }
+  ],
+  "nativeContracts": [
+    {
+      "scenario": "CARD-COST-IDENTITY-CONTRACT",
+      "runId": "269ec96177c641d0af43469241ed397d",
+      "status": "Passed",
+      "comparisons": 11
+    },
+    {
+      "scenario": "CHOICE-COMBINATION-CONTRACT",
+      "runId": "1cc7c04da24d427b9c9cff7bb0f0080c",
+      "status": "Passed",
+      "comparisons": 1200,
+      "choices": 5069
+    }
+  ],
+  "gates": {
+    "releaseBuild": "Passed; NU1900 audit feed unavailable",
+    "harnessBuild": "Passed",
+    "memoryCleanerBuild": "Passed",
+    "bashBoundaries": "REFACTOR_BOUNDARIES_OK search_files=238",
+    "powershellBoundaries": "REFACTOR_BOUNDARIES_OK search_files=238"
+  },
+  "builderTypedStableJit": [
+    {
+      "run": "typed-builders-0-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocatedBytes": 305200000,
+          "elapsedMs": 285.9122
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocatedBytes": 100624000,
+          "elapsedMs": 105.4973
+        }
+      ]
+    },
+    {
+      "run": "typed-builders-1-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocatedBytes": 158064000,
+          "elapsedMs": 128.9808
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocatedBytes": 100624000,
+          "elapsedMs": 106.9915
+        }
+      ]
+    },
+    {
+      "run": "typed-builders-2-candidate",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocatedBytes": 158064000,
+          "elapsedMs": 125.9915
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocatedBytes": 100624000,
+          "elapsedMs": 106.5667
+        }
+      ]
+    },
+    {
+      "run": "typed-builders-3-baseline",
+      "results": [
+        {
+          "unique": true,
+          "iterations": 2000,
+          "choices": 108000,
+          "allocatedBytes": 305200000,
+          "elapsedMs": 285.5183
+        },
+        {
+          "unique": false,
+          "iterations": 2000,
+          "choices": 98000,
+          "allocatedBytes": 100624000,
+          "elapsedMs": 103.1369
+        }
+      ]
+    }
+  ],
+  "finalDenseGuardMetrics": {
+    "totalExpanded": 500,
+    "totalTransitions": 2340,
+    "totalChoiceBranches": 461,
+    "elapsedMilliseconds": 1057.7837,
+    "workerAllocatedBytes": 80612168,
+    "projectedBattleHpLost": 0,
+    "combatEndedTurn": 2
+  },
+  "localDeployment": {
+    "status": "Passed",
+    "files": [
+      "CombatSolver.json",
+      "CombatSolver.dll",
+      "CombatSolver.MemoryCleaner.exe",
+      "LICENSE",
+      "THIRD_PARTY_NOTICES.md"
+    ],
+    "sameSourceBuildReused": true,
+    "gameStarted": false
+  }
+}

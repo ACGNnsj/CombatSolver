@@ -1,5 +1,7 @@
 # 性能研究与复现
 
+- [重复牌剪枝收益探索](duplicate-choice-pruning-20260929.md)：保留无重复选项的实体补留旁路，修复费用有效期身份；扩大复制类剪枝未采用，附原生合同和离线对照。
+
 - [搜索热路径分配与 CPU 复查](search-hotpath-allocation-20260925.md)：候选准入、状态指纹与预测工厂的临时对象缩减，17 根直接交错对照及[逐次证据](search-hotpath-allocation-20260925-expanded.json)；另含 `perf` 热点和已撤回试验的[逐次证据](search-hotpath-cpu-20260926-rejected-trial.json)。
 - [固定并行度优化试验](fixed-dop-20260927.md)：DOP1交错对照、快照复制原型撤回和长路线单次收尾回放；未证明普通搜索成倍提速。
 

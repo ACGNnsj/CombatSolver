@@ -1,0 +1,58 @@
+{
+  "schemaVersion": 1,
+  "characterId": "IRONCLAD",
+  "encounterId": "FUZZY_WURM_CRAWLER_WEAK",
+  "seed": "DUPLICATEPRUNE29",
+  "enemyCurrentHp": 500,
+  "initialEnemyMoveIds": [
+    "INHALE"
+  ],
+  "initialPlayerEnergy": 8,
+  "clearPlayerHand": true,
+  "clearPlayerPiles": true,
+  "stopAfterInitialSolverResultAssertion": true,
+  "timeoutSeconds": 120,
+  "scenarioId": "DUPLICATE-PRUNE-DENSE",
+  "cards": [
+    {
+      "cardId": "DUAL_WIELD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "DUAL_WIELD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "DUAL_WIELD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "ANGER",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "STRIKE_IRONCLAD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "STRIKE_IRONCLAD",
+      "pile": "Hand"
+    },
+    {
+      "cardId": "DEFEND_IRONCLAD",
+      "pile": "Hand"
+    }
+  ]
+}
