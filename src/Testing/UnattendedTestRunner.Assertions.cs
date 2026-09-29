@@ -331,6 +331,10 @@ internal sealed partial class UnattendedTestRunner
 
         public void AssertAfterExecution(ScenarioContext scenario, ExecutionOutcome outcome)
         {
+            // Keep actual terminal health alongside projected search metrics, so full-battle
+            // comparisons cannot accidentally report a solver estimate as native outcome.
+            runner._completedChecks.Add($"NativeOutcome:combatEnded={outcome.CombatEnded}:turn={outcome.FinishedTurn}"
+                + $":hp={scenario.Player.Creature.CurrentHp}:maxHp={scenario.Player.Creature.MaxHp}");
             UnattendedTestRequest request = runner._request;
             if (request.ExpectedFinishedTurn is { } expectedFinishedTurn
                 && outcome.FinishedTurn != expectedFinishedTurn)

@@ -1,5 +1,9 @@
 # CombatSolver 测试清单
 
+## 重复选择的跨场景与整场验证（2026-09-29）
+
+原生五角色完整部署基线/候选实际终局HP、最大HP、结束回合、完整计划、根与续用一致，全部胜利且零计划外重算；选牌1200组/5069条、尾部代表2412组、令牌1024组合同通过。增加NativeOutcome实战终局记录，避免引用预测HP作为实战结果。跨角色/精英/首领固定根矩阵、perf证据及收益限制见[报告](performance/duplicate-choice-pruning-broad-20260929.md)和[逐次证据](performance/duplicate-choice-pruning-broad-20260929.json)。
+
 ## 重复牌与费用状态（2026-09-29）
 
 `CARD-COST-IDENTITY-CONTRACT` 原生11组费用身份合同通过；`CHOICE-COMBINATION-CONTRACT`（`1cc7c04da24d427b9c9cff7bb0f0080c`）1200组/5069条完整选择与旧枚举器一致。覆盖能量/星能修改的时效、顺序、隐藏层、Fork隔离、实际选牌去重及续用字段定位。目标短搜两对ABBA的73个非时序字段、完整路线、根与剪枝计数一致。命令、原生最终runId、微基准限制和未采用实验见[重复牌研究](performance/duplicate-choice-pruning-20260929.md)及[证据](performance/duplicate-choice-pruning-20260929.json)。未作可见性能、Windows游戏或整场质量结论。

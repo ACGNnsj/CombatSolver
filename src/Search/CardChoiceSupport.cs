@@ -325,12 +325,17 @@ internal static partial class CardChoiceSupport
         if (needsOccurrenceRepresentatives)
             orderedRetained = OrderSemanticSelectionsBeforeOccurrenceSupplements(orderedRetained);
 
+        // A physical card's token is immutable while this choice set is built. Multi-card
+        // branches often select it repeatedly; preserve its exact source/option occurrence
+        // while sharing only the resulting value, never a cache across calls or mutations.
+        Dictionary<PredictedCard, PlanCardToken>? tokensByCard = maxTake > 1 && retained.Count > 1
+            ? new(ReferenceEqualityComparer.Instance) : null;
         return orderedRetained
             .Take(spec.MaxBranches ?? int.MaxValue)
             .Select(selection => new PlanCardChoice(
                 spec.Effect,
                 spec.SourcePile,
-                ToTokens(selection, spec.Options, spec.SourceCards, displayNames.Card),
+                ToTokensWithReuse(selection, spec.Options, spec.SourceCards, displayNames.Card, tokensByCard),
                 ContextId: spec.ContextId))
             .ToList();
     }
@@ -627,6 +632,46 @@ internal static partial class CardChoiceSupport
         IReadOnlyList<PredictedCard> selection,
         IReadOnlyList<PredictedCard> options)
     {
+        // Bound the quadratic selected-key scan for unusually large pile selections.
+        // The grouped path is the original implementation; normal hands use direct lookup.
+        if (selection.Count > 16)
+            return BuildTailOccurrenceRepresentativeGrouped(selection, options);
+        PredictedCard[]? representative = null;
+        for (int index = 0; index < selection.Count; index++)
+        {
+            string key = ChoiceCardKey(selection[index]);
+            // The j-th selected occurrence of a key maps to the j-th item of the
+            // last N options with that key. Count from the right to locate it directly,
+            // preserving order and multiplicity even when option references repeat.
+            int remaining = 0;
+            for (int later = index + 1; later < selection.Count; later++)
+                if (string.Equals(ChoiceCardKey(selection[later]), key, StringComparison.Ordinal))
+                    remaining++;
+            PredictedCard? mapped = null;
+            for (int option = options.Count - 1; option >= 0; option--)
+            {
+                if (!string.Equals(ChoiceCardKey(options[option]), key, StringComparison.Ordinal))
+                    continue;
+                if (remaining-- != 0)
+                    continue;
+                mapped = options[option];
+                break;
+            }
+            if (mapped is null)
+                return null;
+            if (ReferenceEquals(mapped, selection[index]))
+                continue;
+            representative ??= selection.ToArray();
+            representative[index] = mapped;
+        }
+        // No replacement means the existing physical selection is already the tail.
+        return representative;
+    }
+
+    private static IReadOnlyList<PredictedCard>? BuildTailOccurrenceRepresentativeGrouped(
+        IReadOnlyList<PredictedCard> selection,
+        IReadOnlyList<PredictedCard> options)
+    {
         if (selection.Count == 0)
             return null;
 
@@ -668,6 +713,7 @@ internal static partial class CardChoiceSupport
         }
         return representative;
     }
+
 
     private static bool SamePhysicalSelection(
         IReadOnlyList<PredictedCard> left,
@@ -925,21 +971,36 @@ internal static partial class CardChoiceSupport
         IReadOnlyList<PredictedCard> options,
         IReadOnlyList<PredictedCard> source,
         Func<CardModel, string> displayName)
+        => ToTokensWithReuse(selected, options, source, displayName, null);
+
+    private static IReadOnlyList<PlanCardToken> ToTokensWithReuse(
+        IReadOnlyList<PredictedCard> selected,
+        IReadOnlyList<PredictedCard> options,
+        IReadOnlyList<PredictedCard> source,
+        Func<CardModel, string> displayName,
+        Dictionary<PredictedCard, PlanCardToken>? tokensByCard)
     {
-        List<PlanCardToken> tokens = [];
+        List<PlanCardToken> tokens = new(selected.Count);
         foreach (PredictedCard card in selected)
         {
+            if (tokensByCard is not null && tokensByCard.TryGetValue(card, out PlanCardToken? cached))
+            {
+                tokens.Add(cached);
+                continue;
+            }
             string stateKey = ChoiceCardKey(card);
             int sourceOccurrence = CountTokenOccurrence(source, card);
             int optionOccurrence = ReferenceEquals(source, options)
                 ? sourceOccurrence : CountTokenOccurrence(options, card);
-            tokens.Add(new PlanCardToken(
+            PlanCardToken token = new(
                 card.Preview.Id.Entry,
                 card.Preview.CurrentUpgradeLevel,
                 stateKey,
                 sourceOccurrence,
                 optionOccurrence,
-                displayName(card.Preview)));
+                displayName(card.Preview));
+            tokensByCard?.Add(card, token);
+            tokens.Add(token);
         }
         return tokens;
     }

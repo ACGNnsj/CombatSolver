@@ -156,4 +156,61 @@ internal static partial class CardChoiceSupport
         }
     }
 
+    internal static void VerifyTailOccurrenceRepresentativeForTesting(
+        IReadOnlyList<PredictedCard> selection, IReadOnlyList<PredictedCard> options)
+    {
+        var expected = BuildTailOccurrenceRepresentativeBaselineForTesting(selection, options);
+        var actual = BuildTailOccurrenceRepresentative(selection, options);
+        if (expected is null ? actual is not null
+            : actual is null || !SamePhysicalSelection(expected, actual))
+            throw new InvalidOperationException("Tail occurrence representative changed physical identity/order.");
+    }
+
+    private static IReadOnlyList<PredictedCard>? BuildTailOccurrenceRepresentativeBaselineForTesting(
+        IReadOnlyList<PredictedCard> selection,
+        IReadOnlyList<PredictedCard> options)
+    {
+        if (selection.Count == 0)
+            return null;
+
+        Dictionary<string, int> selectedCounts = new(StringComparer.Ordinal);
+        foreach (PredictedCard card in selection)
+        {
+            string key = ChoiceCardKey(card);
+            selectedCounts[key] = selectedCounts.GetValueOrDefault(key) + 1;
+        }
+
+        Dictionary<string, PredictedCard[]> tailByKey = new(StringComparer.Ordinal);
+        bool hasDifferentRepresentative = false;
+        foreach ((string key, int count) in selectedCounts)
+        {
+            PredictedCard[] equivalentOptions = options
+                .Where(option => string.Equals(ChoiceCardKey(option), key, StringComparison.Ordinal))
+                .ToArray();
+            if (equivalentOptions.Length < count)
+                return null;
+
+            PredictedCard[] tail = equivalentOptions[^count..];
+            tailByKey[key] = tail;
+            PredictedCard[] selectedForKey = selection
+                .Where(card => string.Equals(ChoiceCardKey(card), key, StringComparison.Ordinal))
+                .ToArray();
+            hasDifferentRepresentative |= !SamePhysicalSelection(selectedForKey, tail);
+        }
+        if (!hasDifferentRepresentative)
+            return null;
+
+        Dictionary<string, int> offsets = new(StringComparer.Ordinal);
+        PredictedCard[] representative = new PredictedCard[selection.Count];
+        for (int index = 0; index < selection.Count; index++)
+        {
+            string key = ChoiceCardKey(selection[index]);
+            int offset = offsets.GetValueOrDefault(key);
+            representative[index] = tailByKey[key][offset];
+            offsets[key] = offset + 1;
+        }
+        return representative;
+    }
+
+
 }

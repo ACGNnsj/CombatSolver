@@ -44,6 +44,13 @@ internal sealed partial class UnattendedTestRunner
                 ContextId: "combination-contract", MaxBranches: trial % 7 == 0 ? trial % 5 : null,
                 IsImplicitAllSelection: trial % 19 == 0);
             int limit = 1 + trial % 17;
+            CardChoiceSupport.VerifyTailOccurrenceRepresentativeForTesting(
+                options.Reverse().Take(maximum).ToArray(), options);
+            CardChoiceSupport.VerifyTailOccurrenceRepresentativeForTesting(
+                cards.Take(maximum).ToArray(), options);
+            if (count > 128)
+                CardChoiceSupport.VerifyTailOccurrenceRepresentativeForTesting(
+                    options.Reverse().Take(count / 2).ToArray(), options);
             IReadOnlyList<PlanCardChoice> expected = CardChoiceSupport.BuildChoicesBaselineForTesting(spec, names, limit, limit);
             IReadOnlyList<PlanCardChoice> actual = CardChoiceSupport.BuildChoices(spec, names, limit, limit);
             if (JsonSerializer.Serialize(expected) != JsonSerializer.Serialize(actual))
