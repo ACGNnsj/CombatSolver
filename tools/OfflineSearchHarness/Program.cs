@@ -67,6 +67,7 @@ internal static class Program
             Step(steps, "M0.3 初始化模组运行期状态", () => ModRuntime.Initialize(options));
             DuplicateChoiceProbe.Install(options.OutputDirectory);
             EquivalenceProbe.Install(options.OutputDirectory);
+            SnapshotOpportunityProbe.Install(options.OutputDirectory);
             if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_PROBE_STATICS") is { Length: > 0 } filter)
                 Step(steps, "P 静态构造探针", () => $"types={GameBootstrap.ProbeStaticConstructors(filter)}");
             GeneratedScenarioSetup? generated = null;
@@ -132,6 +133,7 @@ internal static class Program
 
             reached = "M1";
             DuplicateChoiceProbe.RunBuilders(combat!, options.OutputDirectory);
+            SnapshotOpportunityProbe.RunShuffleWitness(combat!, options.OutputDirectory);
             if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_HISTORY_CHECKS") == "1")
                 HistoryCounterChecks.Run(combat!, options.OutputDirectory);
             if (Environment.GetEnvironmentVariable("OFFLINE_HARNESS_INFUSED_CORE_CHECKS") == "1")
