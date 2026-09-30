@@ -5,8 +5,10 @@ namespace CombatSolver;
 internal static partial class CombatSearchCoordinator
 {
     private const int EarlyTurnExplorationNodeBudget = 1_000_000;
-    // Keep a bounded, balanced prefix from each depth. Report the cap and truncation so
-    // later comparisons can quantify the continuation work omitted by this limit.
+    // Keep a small balanced prefix from every depth, then spend the optional tail only
+    // on layers that have already produced a strict improvement. The hard ceiling keeps
+    // one promising layer from consuming the whole continuation window.
+    private const int EarlyTurnExplorationInitialRankLimit = 4;
     private const int EarlyTurnExplorationRankLimit = 8;
 
     private static SolverResult RunEarlyTurnExploration(
@@ -90,7 +92,9 @@ internal static partial class CombatSearchCoordinator
             $"[CombatSolver/Test] EARLY_TURN_EXPLORATION start " +
             $"depth={policy.EarlyTurnExplorationDepth} beam={scoutProfile.BeamWidth} " +
             $"nodes={scoutProfile.MaxExpandedNodes} " +
+            $"initial_ranks_per_depth={EarlyTurnExplorationInitialRankLimit} " +
             $"max_ranks_per_depth={EarlyTurnExplorationRankLimit} " +
+            "rank_extension=after_improvement " +
             $"remaining_ms={RemainingMilliseconds()}");
         long scoutExpandedBeforeForMetrics = workTotals.Snapshot().ExpandedNodes;
         int scoutExpanded;
@@ -141,14 +145,17 @@ internal static partial class CombatSearchCoordinator
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 1)),
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 2)),
         ];
-        bool rankLimitReached = layers.Any(layer => layer.Count > EarlyTurnExplorationRankLimit);
+        bool[] extendLayer = new bool[layers.Length];
         FrontierContinuationScheduler continuationScheduler = new(context);
         for (int rank = 0; rank < EarlyTurnExplorationRankLimit; rank++)
         {
-            foreach (List<EarlyTurnFrontierCandidate> layer in layers)
+            for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
             {
+                List<EarlyTurnFrontierCandidate> layer = layers[layerIndex];
                 if (rank >= layer.Count || RemainingMilliseconds() <= 10_000
                     || RemainingNodes() < 100)
+                    continue;
+                if (rank >= EarlyTurnExplorationInitialRankLimit && !extendLayer[layerIndex])
                     continue;
                 cancellationToken.ThrowIfCancellationRequested();
                 if (policy.MemoryPressureSignal.IsEnabled
@@ -217,7 +224,11 @@ internal static partial class CombatSearchCoordinator
                     .AllForcedUsesSatisfied
                     && IsBetterPotionPolicyResult(root, policy, candidate, selected);
                 if (improved)
+                {
                     selected = candidate;
+                    if (rank < EarlyTurnExplorationInitialRankLimit)
+                        extendLayer[layerIndex] = true;
+                }
                 // E1 遥测：逐 rank 记录这次续搜的最好成绩。注意这里记录的是
                 // “候选自己的成绩”，是否击败 incumbent 只看 improved。
                 continuationOutcomes.Add(new EarlyTurnContinuationImprovement(
@@ -253,6 +264,18 @@ internal static partial class CombatSearchCoordinator
                 || RemainingNodes() < 100
                 || selectedStopReason is not null)
                 break;
+        }
+        bool rankLimitReached = false;
+        for (int layerIndex = 0; layerIndex < layers.Length; layerIndex++)
+        {
+            int layerRankLimit = extendLayer[layerIndex]
+                ? EarlyTurnExplorationRankLimit
+                : EarlyTurnExplorationInitialRankLimit;
+            if (layers[layerIndex].Count > layerRankLimit)
+            {
+                rankLimitReached = true;
+                break;
+            }
         }
         string stop = EarlyTurnExplorationStopReason(selected)
             ?? (RemainingMilliseconds() <= 10_000

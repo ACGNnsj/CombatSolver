@@ -20,6 +20,18 @@ OfflineSearchHarness 同根 `Coordinator` 对照：TERROR_EEL_ELITE、SILENT、s
 
 候选 Release 编译成功（0 警告／0 错误）；只运行无头离线搜索，没有启动可见 Steam。实机日志和离线根尚不能排除 rank 8 之后出现独有好解，后续若有更多战斗日志应重点查看 rank 8+ 改进及 `rank_limit` 命中情况。
 
+### 前四 rank 无改进时关闭该层扩展（2026-10-01）
+
+候选策略每层先跑 rank 0..3；只有该层某次续搜产生满足强制用药条件的完整胜利、并严格优于当前结果，才继续 rank 4..7。严格沿用原深度交错、完整路线比较、共享时间／节点额度、可接受目标与零战损停止。起始事件现在写 `initial_ranks_per_depth=4`、`max_ranks_per_depth=8` 和 `rank_extension=after_improvement`；`stop=rank_limit` 表示至少一个前沿层仍有未调度候选。
+
+回算上一轮已分析的 6 组实机探索记录：适应策略会保留 64/231 次续搜，4/4 个已记录改进均保留，预计续搜展开 237,963（比未截断的 1,002,801 少 764,838；比统一 cap 8 再少 134,660）。这是对已完成工作量的反事实筛选，不是重新模拟，也不能证明 rank 4+ 不含未观测到的独有更优解。
+
+与统一 cap 8 的 OfflineSearchHarness 同根 `Coordinator` 对照：TERROR_EEL_ELITE / SILENT / `CSOPT20261001`，beam 96、每 solver 8,000 nodes：根与完整动作路线一致，均完整胜利、战损 53、0 药水、`boundary=None`；总展开 108,788→62,229、总转移 317,326→181,831、续搜 15→8 次（续搜展开 100,813→54,254），离线请求墙钟 16.77→11.48 秒。PHANTASMAL_GARDENERS_ELITE / SILENT / `CSOPT20261001C`，beam 64、每 solver 1,500 nodes：根与路线、38 战损一致，两侧均为 `NodeLimit` 且未胜；总展开 26,764→14,973、总转移 137,345→77,097、续搜 16→8 次（续搜展开 25,264→13,473），离线请求墙钟 10.83→7.24 秒。两根均是前 4 rank 没有严格改进，因此该实验只实测了收在 4 的路径，扩至 8 的路径目前仅由日志回算支持。墙钟仅用于无头同机探索，不外推实机帧时间。
+
+扩展路径单独对照：TERROR_EEL_ELITE / SILENT / `CSOPT20261001D`，beam 96、每 solver 8,000 nodes。统一 cap 8 与自适应候选根、完整路线相同；深度 2 / rank 1 两侧都找到 59 战损的完整胜利，0 药水、`boundary=None`、结束回合 17。候选仍将深度 2 扩到 rank 7、深度 1 收在 rank 3；严格改进保留。续搜 16→12 次、续搜展开 123,170→92,616、总展开 131,170→100,616、总转移 378,010→289,200、离线请求墙钟 20.46→16.31 秒。该根验证了扩展分支与一次真实改进的保留；单一种子仍不能证明整体策略质量不降。
+
+最终恢复自适应源码后的 Release 构建为 0 警告／0 错误，`git diff --check` 通过，本地 `mods/CombatSolver` 五文件部署成功。所有运行均为 OfflineSearchHarness；未启动可见 Steam。
+
 ## PR #144 最终修复与合并验证（2026-09-28）
 
 以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。
