@@ -19,9 +19,18 @@ internal static partial class CombatSearchCoordinator
         Stopwatch requestClock = context.Clock;
         if (policy.IncludeTurnSetup
             || policy.EarlyTurnExplorationDepth == 0
-            || selected.ResultScope != SolverResultScope.SearchCompletion
-            || IsProvenZeroDamageRoute(root, policy, selected))
+            || selected.ResultScope != SolverResultScope.SearchCompletion)
             return selected;
+
+        string? selectedStopReason = EarlyTurnExplorationStopReason(selected);
+        if (selectedStopReason is not null)
+        {
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] EARLY_TURN_EXPLORATION skipped=true " +
+                $"reason={selectedStopReason} hp_lost={selected.ProjectedBattleHpLost} " +
+                $"potions={selected.PotionCount}");
+            return selected;
+        }
 
         int RemainingMilliseconds() => policy.EarlyTurnExplorationBudgetMilliseconds
             - (int)requestClock.ElapsedMilliseconds;
@@ -37,6 +46,7 @@ internal static partial class CombatSearchCoordinator
         // 每次续搜的最好成绩以及最终汇总全部记在这里；即使改进为零也要记录，
         // 否则无法回答“ETC 花了多少、工作有没有白做”。
         List<EarlyTurnContinuationImprovement> continuationOutcomes = [];
+        int attempted = 0;
 
         SearchPolicySnapshot scoutPolicy = policy with
         {
@@ -99,6 +109,10 @@ internal static partial class CombatSearchCoordinator
                 - scoutExpandedBeforeForMetrics);
         }
 
+        selectedStopReason = EarlyTurnExplorationStopReason(selected);
+        if (selectedStopReason is not null)
+            return PublishEarlyTurnExplorationTelemetry(selected, scoutExpanded, selectedStopReason);
+
         static List<EarlyTurnFrontierCandidate> InterleavePotionStates(
             IEnumerable<EarlyTurnFrontierCandidate> candidates)
         {
@@ -123,7 +137,6 @@ internal static partial class CombatSearchCoordinator
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 2)),
         ];
         FrontierContinuationScheduler continuationScheduler = new(context);
-        int attempted = 0;
         for (int rank = 0; rank < 24; rank++)
         {
             foreach (List<EarlyTurnFrontierCandidate> layer in layers)
@@ -229,17 +242,28 @@ internal static partial class CombatSearchCoordinator
                     $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
                     $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
             }
+            selectedStopReason = EarlyTurnExplorationStopReason(selected);
             if (RemainingMilliseconds() <= 10_000
                 || RemainingNodes() < 100
-                || IsProvenZeroDamageRoute(root, policy, selected))
+                || selectedStopReason is not null)
                 break;
         }
-        string stop = IsProvenZeroDamageRoute(root, policy, selected)
-            ? "zero_damage"
-            : RemainingMilliseconds() <= 10_000 ? "time"
-            : RemainingNodes() < 100 ? "nodes"
-            : "ranks_exhausted";
+        string stop = EarlyTurnExplorationStopReason(selected)
+            ?? (RemainingMilliseconds() <= 10_000
+                ? "time"
+                : RemainingNodes() < 100
+                    ? "nodes"
+                    : "ranks_exhausted");
         return PublishEarlyTurnExplorationTelemetry(selected, scoutExpanded, stop);
+
+        string? EarlyTurnExplorationStopReason(SolverResult result)
+        {
+            if (IsProvenZeroDamageRoute(root, policy, result))
+                return "zero_damage";
+            return HasReachedAcceptableBattleHpLoss(policy, result)
+                ? "acceptable_target"
+                : null;
+        }
 
         // E1 遥测的唯一出口：把这次探索的侦察消耗、续搜明细和终止原因
         // 汇总到结果对象上。selected 已经由调用者决定，这里只做纯值记录，

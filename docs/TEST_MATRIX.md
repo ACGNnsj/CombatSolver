@@ -4,6 +4,8 @@
 
 OfflineSearchHarness 的 Coordinator 模式可用 `--early-turn-exploration-depth 1|2` 开启早期回合探索，并用 `--early-turn-exploration-budget-ms` 指定从请求开始计的 5,000..2,390,000 ms 累计时限；`run_plan.py` 支持相同的 plan 字段并按时限扩充进程超时。结果增加总体尝试/严格改进/首次改进深度与 rank，以及逐 rank 的工作量和成绩。该入口只打开离线测试请求，不改变玩家默认开关。
 
+早期回合探索现在也遵守既有 `HasReachedAcceptableBattleHpLoss` 停止目标：基线已经达标时不启动探索；侦察或续搜得到达标完整路线后结束后续 rank 派发。可接受目标仍要求胜利、战损阈值、成长/遗物目标、失窃资源、死亡保护和药水使用条件全部满足，因此 Smart 下仍保留降低非必需药水消耗的搜索空间。变更后 Release 构建与本地五文件部署通过；本轮未运行战斗场景，当前运行日志/性能影响尚待实机观察。
+
 CombatSolver 与 OfflineSearchHarness 的 Release 编译均通过（0 警告、0 错误；显式使用本机确认的游戏/RitsuLib 路径并关闭构建自动复制），Python 批量运行器语法编译通过。按仓库要求完成最终源码的五文件本地 Mod 部署。本轮没有运行战斗场景或深度 0/2 固定根对照；逐 rank 运行数据和入口门禁尚未获得运行证据。后续策略收益结论仍需独立进程的完整请求 A/B 对照，本轮不做可见 Steam 性能结论。
 
 ## PR #144 最终修复与合并验证（2026-09-28）

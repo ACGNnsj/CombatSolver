@@ -106,7 +106,7 @@ plan 每项的字段：`label`（必填，简单目录名）、`request`（必�
 `Evaluate`。要量「一个宽度值到底搜了多少」用 `Evaluate`；要量「玩家实际会等多久、实际选哪条路线」
 用 `Coordinator`。
 
-`solverMetrics.searchWorkAttributions` 另列经前沿调度器派发的各 `ContinuationPurpose` 工作量、`UnattributedDirect`（尚未细分的主搜和审计）及 `CoordinatorOverhead`。这是同一请求账本的诊断分解；直接成员尚未全部标记，不能由 `UnattributedDirect` 推断单一瓶颈。早期探索开启时，`solverMetrics.earlyTurnExploration` 还记录侦察消耗、续搜次数、严格改进次数、首次改进深度/rank，以及逐 rank 的搜索时长、展开和结果；零改进与未运行用对象存在性区分。它只提供归因数据，不改变路线比较。超时未产结果时使用常驻会话保存的 `timeout-progress.json`，旧包缺该文件就没有可追溯的末段工作量。
+`solverMetrics.searchWorkAttributions` 另列经前沿调度器派发的各 `ContinuationPurpose` 工作量、`UnattributedDirect`（尚未细分的主搜和审计）及 `CoordinatorOverhead`。这是同一请求账本的诊断分解；直接成员尚未全部标记，不能由 `UnattributedDirect` 推断单一瓶颈。早期探索开启时，`solverMetrics.earlyTurnExploration` 还记录侦察消耗、续搜次数、严格改进次数、首次改进深度/rank，以及逐 rank 的搜索时长、展开和结果；零改进与未运行用对象存在性区分。若已满足配置的可接受目标，探索会在入口跳过，或在侦察/续搜后以 `stop=acceptable_target` 结束；完整零战损特例保留为 `zero_damage`。它只改变后续探索是否继续，不改变路线比较。超时未产结果时使用常驻会话保存的 `timeout-progress.json`，旧包缺该文件就没有可追溯的末段工作量。
 
 **固定预算口径。** 宿主总是以 `fixedSearchBudget=true` 起一段离线会话
 （`UnattendedTestRunner.BeginOfflineSession`），`--budget-ms` 落在 `searchBudgetOverrideMilliseconds`
