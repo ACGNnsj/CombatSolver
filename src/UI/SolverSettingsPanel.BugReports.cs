@@ -6,6 +6,7 @@ namespace CombatSolver;
 internal sealed partial class SolverSettingsPanel
 {
     private CheckButton _detailedDiagnosticLogs = null!;
+    private CheckButton _retainAllCombatLogs = null!;
     private Button _exportBugReport = null!;
     private Button _uploadBugReport = null!;
     private ProgressBar _uploadProgress = null!;
@@ -137,6 +138,13 @@ internal sealed partial class SolverSettingsPanel
             SolverText.Get("搜索分支调试日志"),
             _detailedDiagnosticLogs,
             SolverText.Get("每场战斗默认记录操作、选中路线与错误证据。此开关额外记录搜索候选细节，会增加开销并将并行搜索切为单线程，仅排查时开启。"));
+        _retainAllCombatLogs = CreateToggle();
+        _retainAllCombatLogs.Toggled += OnRetainAllCombatLogsToggled;
+        AddBasicRow(
+            feedbackGrid,
+            SolverText.Get("保留本进程全部战斗日志"),
+            _retainAllCombatLogs,
+            SolverText.Get("开启后，进入下一场战斗时会保留上一场战斗的详细日志文件，方便分析本次游戏进程中的多场战斗；会增加磁盘占用。此前已清理的日志无法恢复。"));
         AddBasicRow(
             feedbackGrid,
             SolverText.Get("反馈联系QQ（选填）"),
@@ -177,7 +185,10 @@ internal sealed partial class SolverSettingsPanel
     }
 
     private void ReloadBugReportsPage(SolverSettingsData data)
-        => _detailedDiagnosticLogs.ButtonPressed = data.EnableDetailedDiagnosticLogs;
+    {
+        _detailedDiagnosticLogs.ButtonPressed = data.EnableDetailedDiagnosticLogs;
+        _retainAllCombatLogs.ButtonPressed = data.RetainAllCombatLogs;
+    }
 
     private LineEdit CreateContactQqInput()
     {
@@ -211,6 +222,14 @@ internal sealed partial class SolverSettingsPanel
             return;
         SolverSettings.Update(SolverSettings.Current with { EnableDetailedDiagnosticLogs = enabled });
         SetStatus(SolverText.Get("已保存，下次搜索生效"), SolverUiTokens.Palette.Success);
+    }
+
+    private void OnRetainAllCombatLogsToggled(bool enabled)
+    {
+        if (_loading)
+            return;
+        SolverSettings.Update(SolverSettings.Current with { RetainAllCombatLogs = enabled });
+        SetStatus(SolverText.Get("日志保留设置已保存；从下一场战斗开始生效"), SolverUiTokens.Palette.Success);
     }
 
     private void OnExportBugReportPressed()

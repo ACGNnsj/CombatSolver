@@ -82,6 +82,7 @@ internal sealed record SolverSettingsData
     public bool StopFullAutoOnDeathTurn { get; init; } = true;
     public bool StopFullAutoOnWorseRecalculation { get; init; } = true;
     public bool EnableDetailedDiagnosticLogs { get; init; }
+    public bool RetainAllCombatLogs { get; init; }
     public bool ShowBattleDamagePerformanceHint { get; init; } = true;
     public bool ShowActTransitionBossHpStrategyHint { get; init; } = true;
     public bool ShowFinalBossHpStrategyHint { get; init; } = true;
@@ -267,6 +268,7 @@ internal static class SolverSettings
             $"stop_on_death_turn={migrated.StopFullAutoOnDeathTurn} " +
             $"stop_on_worse_recalculation={migrated.StopFullAutoOnWorseRecalculation} " +
             $"detailed_diagnostic_logs={migrated.EnableDetailedDiagnosticLogs} " +
+            $"retain_all_combat_logs={migrated.RetainAllCombatLogs} " +
             $"show_battle_damage_performance_hint={migrated.ShowBattleDamagePerformanceHint} " +
             $"show_novelty_portfolio_hint={migrated.ShowNoveltyPortfolioHint} " +
             $"show_speedx_warning={migrated.ShowSpeedXWarning} " +

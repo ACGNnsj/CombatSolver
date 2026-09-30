@@ -266,7 +266,11 @@ internal static class CombatBugReportExporter
             StartedAt = DateTimeOffset.Now,
             UserDataDirectory = userDataDirectory,
         };
-        Entry.Logger.Journal.BeginCombat(_currentSession.SessionId, _currentSession.EncounterId, _currentSession.Seed);
+        Entry.Logger.Journal.BeginCombat(
+            _currentSession.SessionId,
+            _currentSession.EncounterId,
+            _currentSession.Seed,
+            SolverSettings.Current.RetainAllCombatLogs);
         RecordCheckpointCore(state, "combat_start", null, string.Empty);
         CombatReplayRecording.TestCombatStartObserver?.Invoke(state);
     }
@@ -1326,7 +1330,7 @@ internal static class CombatBugReportExporter
         HashSet<string> fields = new(StringComparer.Ordinal)
         {
             "solverDisabled", "automaticCalculationEnabled", "stopFullAutoOnCombatEnd", "stopFullAutoOnDeathTurn", "relicStrategyEnabled", "relicCounterRules",
-            "stopFullAutoOnWorseRecalculation", "enableDetailedDiagnosticLogs", "potionDirectives",
+            "stopFullAutoOnWorseRecalculation", "enableDetailedDiagnosticLogs", "retainAllCombatLogs", "potionDirectives",
             "actTransitionBossHpStrategy", "finalBossHpStrategy", "acceptableBattleHpLoss", "stopAtAcceptableBattleHpLoss", "growthBudgets", "brightestFlameMaxHpLossLimit", "performancePreset",
             "searchMaxDegreeOfParallelism", "useBeamWidthPortfolio", "useNoveltyPortfolio", "showNoveltyPortfolioHint", "showSpeedXWarning", "shortTimeLimitSeconds", "deepTimeLimitSeconds", "enableNoGcRegion",
             "noGcRegionBudgetGigabytes", "shortBeamWidth", "deepBeamWidth", "shortMaxExpandedNodes", "deepMaxExpandedNodes",

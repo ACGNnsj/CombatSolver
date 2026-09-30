@@ -22,6 +22,8 @@ internal sealed class CombatDiagnosticJournal : IDisposable
     {
         public readonly AppendOnlyEventLog<CombatLogEntry> Log = new(Serialize, outputPath: path);
         public readonly string Path = path;
+        public string Id => id;
+        public string Encounter => encounter;
         public readonly DateTimeOffset Started = DateTimeOffset.Now;
         public DateTimeOffset? Ended;
         public string? Reason, LastError;
@@ -46,7 +48,7 @@ internal sealed class CombatDiagnosticJournal : IDisposable
     }
     private static byte[] Serialize(CombatLogEntry entry) => JsonSerializer.SerializeToUtf8Bytes(entry, JsonOptions);
 
-    public void BeginCombat(string id, string encounter, string seed)
+    public void BeginCombat(string id, string encounter, string seed, bool retainPreviousCombatDetails = false)
     {
         lock (_gate)
         {
@@ -60,7 +62,10 @@ internal sealed class CombatDiagnosticJournal : IDisposable
                 }
                 previous.Retired = true;
                 previous.Log.Dispose();
-                _ = Task.Run(() => RemoveRetiredAsync(previous));
+                if (retainPreviousCombatDetails)
+                    WriteProcessEvent($"COMBAT_LOG_RETAINED id={previous.Id} encounter={previous.Encounter}");
+                else
+                    _ = Task.Run(() => RemoveRetiredAsync(previous));
             }
             _session = new(id, encounter, seed, Path.Combine(_directory, $"combat-{id}.jsonl"));
             WriteProcessEvent($"COMBAT_LOG_BEGIN id={id} encounter={encounter}");
