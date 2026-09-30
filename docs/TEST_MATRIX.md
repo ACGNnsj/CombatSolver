@@ -10,6 +10,16 @@ OfflineSearchHarness 的 Coordinator 模式可用 `--early-turn-exploration-dept
 
 CombatSolver 与 OfflineSearchHarness 的 Release 编译均通过（0 警告、0 错误；显式使用本机确认的游戏/RitsuLib 路径并关闭构建自动复制），Python 批量运行器语法编译通过。按仓库要求完成最终源码的五文件本地 Mod 部署。本轮没有运行战斗场景或深度 0/2 固定根对照；逐 rank 运行数据和入口门禁尚未获得运行证据。后续策略收益结论仍需独立进程的完整请求 A/B 对照，本轮不做可见 Steam 性能结论。
 
+### 前两回合探索 rank 窗口（2026-10-01）
+
+保留每层前 8 个 rank，继续使用原来的深度交错顺序、共享请求时间/节点账本和完整路线比较；有更多候选时结果写 `stop=rank_limit`，可接受目标／零战损及预算停止原因优先。起始事件写入 `max_ranks_per_depth=8`。这会减少后续候选搜索，不能保证未搜索 rank 不含唯一更优路线。
+
+对已保留的实机日志回溯截断，每层取 rank 0..7 会在 6 次探索中保留 92/231 条续搜、4/4 次既有改进，预计少展开 630,178 个续搜节点（原续搜 1,002,801）；这是按既有结果做的反事实计数，不是重跑后的测量。
+
+OfflineSearchHarness 同根 `Coordinator` 对照：TERROR_EEL_ELITE、SILENT、seed `CSOPT20261001`、Custom beam 96 / 每 solver 8,000 nodes，完整胜利两侧均为 53 战损、0 药水，动作路线完全相同，`boundary=None`；rank 续搜 25→15，展开 181,920→108,788，转移 530,474→317,326。PHANTASMAL_GARDENERS_ELITE、seed `CSOPT20261001C`、Custom beam 64 / 1,500 nodes：两侧路线及 38 战损相同，续搜 48→16、展开 73,820→26,764、转移 375,559→137,345；两侧均触及 `NodeLimit` 且未胜，不能当作完整质量验收。零战损 `CORPSE_SLUGS_WEAK` 哨兵仍在入口跳过探索。
+
+候选 Release 编译成功（0 警告／0 错误）；只运行无头离线搜索，没有启动可见 Steam。实机日志和离线根尚不能排除 rank 8 之后出现独有好解，后续若有更多战斗日志应重点查看 rank 8+ 改进及 `rank_limit` 命中情况。
+
 ## PR #144 最终修复与合并验证（2026-09-28）
 
 以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。

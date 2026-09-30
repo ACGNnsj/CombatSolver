@@ -5,6 +5,9 @@ namespace CombatSolver;
 internal static partial class CombatSearchCoordinator
 {
     private const int EarlyTurnExplorationNodeBudget = 1_000_000;
+    // Keep a bounded, balanced prefix from each depth. Report the cap and truncation so
+    // later comparisons can quantify the continuation work omitted by this limit.
+    private const int EarlyTurnExplorationRankLimit = 8;
 
     private static SolverResult RunEarlyTurnExploration(
         SearchPassContext context,
@@ -86,7 +89,9 @@ internal static partial class CombatSearchCoordinator
         policy.Diagnostics.Info(
             $"[CombatSolver/Test] EARLY_TURN_EXPLORATION start " +
             $"depth={policy.EarlyTurnExplorationDepth} beam={scoutProfile.BeamWidth} " +
-            $"nodes={scoutProfile.MaxExpandedNodes} remaining_ms={RemainingMilliseconds()}");
+            $"nodes={scoutProfile.MaxExpandedNodes} " +
+            $"max_ranks_per_depth={EarlyTurnExplorationRankLimit} " +
+            $"remaining_ms={RemainingMilliseconds()}");
         long scoutExpandedBeforeForMetrics = workTotals.Snapshot().ExpandedNodes;
         int scoutExpanded;
         try
@@ -136,8 +141,9 @@ internal static partial class CombatSearchCoordinator
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 1)),
             InterleavePotionStates(frontiers.Where(candidate => candidate.CompletedTurns == 2)),
         ];
+        bool rankLimitReached = layers.Any(layer => layer.Count > EarlyTurnExplorationRankLimit);
         FrontierContinuationScheduler continuationScheduler = new(context);
-        for (int rank = 0; rank < 24; rank++)
+        for (int rank = 0; rank < EarlyTurnExplorationRankLimit; rank++)
         {
             foreach (List<EarlyTurnFrontierCandidate> layer in layers)
             {
@@ -253,7 +259,9 @@ internal static partial class CombatSearchCoordinator
                 ? "time"
                 : RemainingNodes() < 100
                     ? "nodes"
-                    : "ranks_exhausted");
+                    : rankLimitReached
+                        ? "rank_limit"
+                        : "ranks_exhausted");
         return PublishEarlyTurnExplorationTelemetry(selected, scoutExpanded, stop);
 
         string? EarlyTurnExplorationStopReason(SolverResult result)
