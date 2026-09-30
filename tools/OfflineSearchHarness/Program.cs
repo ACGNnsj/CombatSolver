@@ -293,6 +293,8 @@ internal static class Program
             profile.MaxHandChoiceBranchesPerAction,
             options.MaxDegreeOfParallelism,
             options.BudgetMilliseconds,
+            options.EarlyTurnExplorationDepth,
+            options.EarlyTurnExplorationBudgetMilliseconds,
             options.PotionPolicy,
             options.SearchMode,
             options.UsePortfolio,
@@ -374,6 +376,8 @@ internal sealed record HarnessOptions
           --unordered-pile-mask <0..15>  实验：状态键里顺序无关的牌堆（1手牌/2抽牌堆/4弃牌堆/8消耗堆）
           --state-key-salt <int> 实验：给状态指纹异或一个常量（双射，只改数值不改相等关系）
           --measure-phases       开按阶段的耗时/分配统计（SEARCH_PHASE 行进运行日志）
+          --early-turn-exploration-depth <0|1|2>  Coordinator：离线打开早期回合探索（默认 0 关）
+          --early-turn-exploration-budget-ms <5000..2390000>  探索的请求累计时限（默认 2390000；仅深度大于 0 时有效）
           --disable-transposition-prune <0..3>  实验：关掉转置支配剪枝（1=候选准入/2=展开准入）
           --memory-no-progress-limit <int>  实验：连续多少次无进展回收后提前收手（0=关闭）
           --transposition-entry-limit <int>  实验：转置支配表合并条目上限（0=不设上限；缺省=生产默认 1000000）
@@ -430,6 +434,10 @@ internal sealed record HarnessOptions
     public int StateKeySalt { get; init; }
     /// <summary>开按阶段统计：每个阶段的耗时与分配字节，落到运行日志的 SEARCH_PHASE 行。</summary>
     public bool MeasureSearchPhases { get; init; }
+    /// <summary>离线打开早期回合探索（0/1/2）；只对 Coordinator 有效，设置不改变生产默认值。</summary>
+    public int EarlyTurnExplorationDepth { get; init; }
+    /// <summary>早期回合探索的请求累计时限毫秒；深度大于 0 时缺省 2,390,000 毫秒，与 40 分钟请求上限扣除 10 秒余量相同。</summary>
+    public int EarlyTurnExplorationBudgetMilliseconds { get; init; }
     /// <summary>实验：关掉转置支配剪枝的位（1=候选准入/2=展开准入）；0 即生产口径。</summary>
     public int TranspositionPruningDisabledMask { get; init; }
     /// <summary>实验：连续多少次无进展回收后提前收手；0 即关闭（生产口径）。</summary>
@@ -471,7 +479,8 @@ internal sealed record HarnessOptions
     {
         string character = "IRONCLAD", encounter = "FUZZY_WURM_CRAWLER_WEAK", seed = "OFFLINEHARNESS1";
         int ascension = 0, actIndex = 0, dop = 1, budget = 600_000, unorderedPileMask = 0, stateKeySalt = 0;
-        int transpositionPruneOff = 0, memoryNoProgressLimit = 0;
+        int transpositionPruneOff = 0, memoryNoProgressLimit = 0, earlyTurnExplorationDepth = 0;
+        int? earlyTurnExplorationBudgetMilliseconds = null;
         int? transpositionEntryLimit = null;
         bool measurePhases = false, enableNoGcRegion = false, productionBudget = false;
         bool stopAtZeroLoss = false, verifyIncremental = false;
@@ -532,6 +541,8 @@ internal sealed record HarnessOptions
                 case "--unordered-pile-mask": unorderedPileMask = int.Parse(Value()); break;
                 case "--state-key-salt": stateKeySalt = int.Parse(Value()); break;
                 case "--measure-phases": measurePhases = true; break;
+                case "--early-turn-exploration-depth": earlyTurnExplorationDepth = int.Parse(Value()); break;
+                case "--early-turn-exploration-budget-ms": earlyTurnExplorationBudgetMilliseconds = int.Parse(Value()); break;
                 case "--stop-at-zero-loss": stopAtZeroLoss = true; break;
                 case "--verify-incremental": verifyIncremental = true; break;
                 case "--production-budget": productionBudget = true; break;
@@ -621,6 +632,16 @@ internal sealed record HarnessOptions
             throw new ArgumentException("--disable-transposition-prune 只接受 0..3（1=候选准入/2=展开准入）。");
         if (memoryNoProgressLimit < 0)
             throw new ArgumentException("--memory-no-progress-limit 只接受非负数（0=关闭）。");
+        if (earlyTurnExplorationDepth is < 0 or > 2)
+            throw new ArgumentException("--early-turn-exploration-depth 只接受 0|1|2。");
+        if (earlyTurnExplorationDepth > 0 && searchMode != "Coordinator")
+            throw new ArgumentException("--early-turn-exploration-depth 需要 --search-mode Coordinator。");
+        if (earlyTurnExplorationBudgetMilliseconds.HasValue && earlyTurnExplorationDepth == 0)
+            throw new ArgumentException("--early-turn-exploration-budget-ms 需要 --early-turn-exploration-depth 1|2。");
+        if (earlyTurnExplorationBudgetMilliseconds is < 5_000 or > 2_390_000)
+            throw new ArgumentException("--early-turn-exploration-budget-ms 只接受 5000..2390000。");
+        if (earlyTurnExplorationDepth > 0 && milestone != "M2")
+            throw new ArgumentException("早期回合探索需要 --milestone M2 执行实际搜索。");
         if (transpositionEntryLimit is < 0)
             throw new ArgumentException("--transposition-entry-limit 只接受非负数（0=不设上限）。");
         if (noGcRegionBudgetGigabytes < 1d || noGcRegionBudgetGigabytes > 256d)
@@ -655,6 +676,10 @@ internal sealed record HarnessOptions
             UnorderedPileMask = unorderedPileMask,
             StateKeySalt = stateKeySalt,
             MeasureSearchPhases = measurePhases,
+            EarlyTurnExplorationDepth = earlyTurnExplorationDepth,
+            EarlyTurnExplorationBudgetMilliseconds = earlyTurnExplorationDepth == 0
+                ? 0
+                : earlyTurnExplorationBudgetMilliseconds ?? 2_390_000,
             TranspositionPruningDisabledMask = transpositionPruneOff,
             TranspositionEntryLimit = transpositionEntryLimit,
             ProductionBudget = productionBudget,

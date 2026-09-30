@@ -1623,6 +1623,12 @@ internal sealed class SolverResult
     public int CoverageCacheCount { get; init; }
     public bool WasReused { get; init; }
     public int? ReusedFromTurn { get; init; }
+    /// <summary>
+    /// 本次请求的早期回合探索摘要。探索因为开关关闭、范围不足或已证明零战损
+    /// 而跳过时为 <c>null</c>。存在时必然包含完整的续搜明细，即使一次改进都没有
+    /// （改进为零本身就是有价值的遥测，需要与“没有跑探索”区分开）。
+    /// </summary>
+    public EarlyTurnExplorationTelemetry? EarlyTurnExploration { get; internal set; }
     public bool RecalculatedAfterCompleteProjection { get; internal set; }
     public int? PreviousProjectedBattleHpLost { get; internal set; }
     public int ProjectedBattleHpLossIncrease => PreviousProjectedBattleHpLost is { } previous

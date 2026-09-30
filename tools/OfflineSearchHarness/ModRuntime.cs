@@ -155,6 +155,8 @@ internal static class ModRuntime
             TranspositionPruningDisabledMask = options.TranspositionPruningDisabledMask,
             MemoryNoProgressRecoveryLimit = options.MemoryNoProgressRecoveryLimit,
             TranspositionEntryLimit = options.TranspositionEntryLimit,
+            EarlyTurnExplorationDepth = options.EarlyTurnExplorationDepth,
+            EarlyTurnExplorationBudgetMilliseconds = options.EarlyTurnExplorationBudgetMilliseconds,
         });
 
     /// <summary>

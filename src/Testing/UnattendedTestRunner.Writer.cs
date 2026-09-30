@@ -114,6 +114,9 @@ internal sealed partial class UnattendedTestRunner
                 TotalGen2Collections = result.TotalGen2Collections,
                 TotalGcPauseMilliseconds = result.TotalGcPauseDuration.TotalMilliseconds,
                 MaxGcPauseMilliseconds = result.TotalMaxObservedGcPause.TotalMilliseconds,
+                // E1：早期回合探索摘要直接透出；探索跳过时为 null，
+                // 与 SearchWorkAttributions 里有没有 EarlyTurnContinuation 归因正交。
+                EarlyTurnExploration = CaptureEarlyTurnExplorationMetrics(result.EarlyTurnExploration),
                 MaxParallelConcurrency = result.MaxParallelExpansionConcurrency,
                 ParallelActionReplayWaves = result.ParallelActionReplayWaves,
                 ParallelActionReplayWorkItems = result.ParallelActionReplayWorkItems,
@@ -278,6 +281,28 @@ internal sealed partial class UnattendedTestRunner
                 process.WorkingSet64,
                 process.PrivateMemorySize64);
         }
+
+        // 逐续搜纯值随结果输出，便于离线批量数据关联 rank、开局与搜索成本；
+        // 它们不参与候选裁决，也不进入战斗状态键。
+        private static UnattendedEarlyTurnExplorationMetrics? CaptureEarlyTurnExplorationMetrics(
+            EarlyTurnExplorationTelemetry? telemetry)
+            => telemetry is null
+                ? null
+                : new UnattendedEarlyTurnExplorationMetrics
+                {
+                    ScoutExpanded = telemetry.ScoutExpanded,
+                    FrontierCandidates = telemetry.FrontierCandidates,
+                    Attempted = telemetry.Attempted,
+                    Improvements = telemetry.Improvements,
+                    BestLoss = telemetry.BestLoss,
+                    BestPotions = telemetry.BestPotions,
+                    BestEndedTurn = telemetry.BestEndedTurn,
+                    FirstImprovementDepth = telemetry.FirstImprovementDepth,
+                    FirstImprovementRank = telemetry.FirstImprovementRank,
+                    Expanded = telemetry.Expanded,
+                    Stop = telemetry.Stop,
+                    Continuations = telemetry.Continuations.ToArray(),
+                };
 
         private static void WriteResult(UnattendedTestResult result, UnattendedTestRequest request)
         {

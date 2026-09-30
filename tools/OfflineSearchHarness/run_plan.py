@@ -15,6 +15,8 @@ plan 是一个数组，每项：
   potionPolicy                            可选，默认 Smart
   searchMode                              可选，Evaluate（默认，单次求解）| Coordinator（生产协调器）
   usePortfolio                            可选，true 时开宽度组合（只对 Coordinator 有效）
+  earlyTurnExplorationDepth               可选，0/1/2；大于 0 时必须使用 Coordinator
+  earlyTurnExplorationBudgetMilliseconds  可选，探索软时限 5000..2390000 ms（深度大于 0 时默认 2390000）
   measurePhases                           可选，true 时记 SEARCH_PHASE 阶段表
   enableNoGcRegion                        可选，true 时走 Runtime 的 No-GC 回收生命周期
   noGcRegionBudgetGigabytes               可选，No-GC 区域预算（默认沿用模组设置，通常 16）
@@ -65,6 +67,11 @@ def build_command(item, out, harness):
         args.append('--use-portfolio')
     if item.get('measurePhases'):
         args.append('--measure-phases')
+    if item.get('earlyTurnExplorationDepth') is not None:
+        args += ['--early-turn-exploration-depth', str(item['earlyTurnExplorationDepth'])]
+    if item.get('earlyTurnExplorationBudgetMilliseconds') is not None:
+        args += ['--early-turn-exploration-budget-ms',
+                 str(item['earlyTurnExplorationBudgetMilliseconds'])]
     if item.get('productionBudget'):
         args.append('--production-budget')
     if item.get('enableNoGcRegion'):
@@ -106,10 +113,13 @@ def run_one(item, workspace, harness, keep_existing):
         env['OFFLINE_HARNESS_COMBATSOLVER_DLL'] = str(Path(item['dll']).resolve(strict=True))
     started = time.monotonic()
     with (out / 'stdout.log').open('w') as log:
+        search_timeout = int(item.get('searchBudgetMilliseconds', SEARCH_TIME_LIMIT_SECONDS * 1000)) // 1000 + 300
+        exploration_timeout = (
+            int(item.get('earlyTurnExplorationBudgetMilliseconds', 2_390_000)) // 1000 + 300
+            if int(item.get('earlyTurnExplorationDepth', 0)) > 0 else 0)
         process = subprocess.run(build_command(item, out, harness), cwd=REPO, env=env,
                                  stdout=log, stderr=subprocess.STDOUT,
-                                 timeout=max(PROCESS_TIMEOUT_SECONDS,
-                                             int(item.get('searchBudgetMilliseconds', SEARCH_TIME_LIMIT_SECONDS * 1000)) // 1000 + 300),
+                                 timeout=max(PROCESS_TIMEOUT_SECONDS, search_timeout, exploration_timeout),
                                  check=False)
     wall = time.monotonic() - started
 
@@ -141,6 +151,7 @@ def run_one(item, workspace, harness, keep_existing):
 
 def summarize(result):
     metrics = result.get('solverMetrics') or {}
+    early = metrics.get('earlyTurnExploration')
     return {
         'label': result.get('label'),
         'status': result.get('status'),
@@ -149,6 +160,11 @@ def summarize(result):
         'totalTransitions': metrics.get('totalTransitions'),
         'boundary': metrics.get('boundary'),
         'projectedBattleHpLost': metrics.get('projectedBattleHpLost'),
+        'earlyTurnExploration': ({
+            key: early.get(key) for key in (
+                'frontierCandidates', 'attempted', 'improvements',
+                'firstImprovementDepth', 'firstImprovementRank', 'expanded', 'stop')
+        } if early else None),
         'score': metrics.get('score'),
         'wallSeconds': result.get('wallSeconds'),
         'processWallSeconds': result.get('processWallSeconds'),

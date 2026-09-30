@@ -657,6 +657,12 @@ internal sealed class UnattendedSolverMetrics
     public long ManagedHeapBytes { get; init; }
     public long ManagedFragmentedBytes { get; init; }
     public long WorkingSetBytes { get; init; }
+    /// <summary>
+    /// 早期回合探索摘要；探索跳过时为 <c>null</c>（例如开关关闭、结果范围不是
+    /// 搜索完成，或已经证明零战损）。存在但计数为零表示“探索跑了但没尝试”。
+    /// 每条续搜结果保留派发深度、rank、耗时、展开与路线成绩，供离线批量归因。
+    /// </summary>
+    public UnattendedEarlyTurnExplorationMetrics? EarlyTurnExploration { get; init; }
     public long PrivateMemoryBytes { get; init; }
     public bool ConfiguredNoGcRegionEnabled { get; init; }
     public long ConfiguredNoGcRegionBudgetBytes { get; init; }
@@ -672,6 +678,26 @@ internal sealed class UnattendedPotionUse
     public string Title { get; init; } = string.Empty;
     public int Turn { get; init; }
     public int Slot { get; init; }
+}
+
+/// <summary>
+/// 早期回合探索摘要的无头测试口径与逐续搜详情。
+/// 探索跳过时为 <c>null</c>；探索跑了但前沿为空时计数全零。
+/// </summary>
+internal sealed class UnattendedEarlyTurnExplorationMetrics
+{
+    public int ScoutExpanded { get; init; }
+    public int FrontierCandidates { get; init; }
+    public int Attempted { get; init; }
+    public int Improvements { get; init; }
+    public int? BestLoss { get; init; }
+    public int? BestPotions { get; init; }
+    public int? BestEndedTurn { get; init; }
+    public int? FirstImprovementDepth { get; init; }
+    public int? FirstImprovementRank { get; init; }
+    public long Expanded { get; init; }
+    public string Stop { get; init; } = string.Empty;
+    public EarlyTurnContinuationImprovement[] Continuations { get; init; } = [];
 }
 
 internal sealed class UnattendedStageTiming

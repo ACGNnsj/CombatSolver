@@ -360,19 +360,36 @@ internal sealed partial class UnattendedTestRunner
             ConfigureSearchOverrides(request);
         }
 
-        public void ConfigureSearchOverrides(UnattendedTestRequest request)
+        public void ConfigureSearchOverrides(
+            UnattendedTestRequest request,
+            bool allowDirectOfflineEarlyTurnExploration = false,
+            int? earlyTurnExplorationBudgetMilliseconds = null)
         {
             int earlyTurnDepth = request.EarlyTurnExplorationDepthForTest ?? 0;
             if (earlyTurnDepth is < 0 or > 2)
                 throw new InvalidOperationException("早期回合探索深度必须在 0..2 之间。");
-            if (earlyTurnDepth > 0
-                && (request.ReplayMode != "SearchOnly"
-                    || request.TimeoutSeconds is < 15 or > 2400))
+            if (allowDirectOfflineEarlyTurnExploration)
+            {
+                if (earlyTurnDepth == 0 && earlyTurnExplorationBudgetMilliseconds.HasValue)
+                    throw new InvalidOperationException("关闭早期回合探索时不能指定探索时限。");
+                if (earlyTurnDepth > 0
+                    && earlyTurnExplorationBudgetMilliseconds is not (>= 5_000 and <= 2_390_000))
+                    throw new InvalidOperationException(
+                        "离线早期回合探索时限必须在 5,000..2,390,000 毫秒之间。");
+            }
+            else if (earlyTurnExplorationBudgetMilliseconds.HasValue
+                || earlyTurnDepth > 0
+                    && (request.ReplayMode != "SearchOnly"
+                        || request.TimeoutSeconds is < 15 or > 2400))
+            {
                 throw new InvalidOperationException(
                     "早期回合探索只支持 15..2400 秒的 SearchOnly 问题包请求。");
+            }
             EarlyTurnExplorationDepth = earlyTurnDepth;
             EarlyTurnExplorationBudgetMilliseconds = earlyTurnDepth == 0
-                ? 0 : (int)(request.TimeoutSeconds * 1000) - 10_000;
+                ? 0
+                : earlyTurnExplorationBudgetMilliseconds
+                    ?? (int)(request.TimeoutSeconds * 1000) - 10_000;
             VerifyIncrementalSearch = request.VerifyIncrementalSearch;
             FixedSearchBudget = request.FixedSearchBudget;
             MeasureSearchPhases = request.MeasureSearchPhases;

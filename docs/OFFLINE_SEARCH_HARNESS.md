@@ -48,6 +48,8 @@ dotnet tools/OfflineSearchHarness/bin/Release/net9.0/OfflineSearchHarness.dll \
 | `--use-portfolio` | 开宽度组合，只对 `Coordinator` 有效 |
 | `--out/--label/--language/--verbose-game-log/--milestone` | 产物目录、标签、本地化语言码、是否打游戏日志、跑到 M1 还是 M2 |
 | `--measure-phases` | 在运行日志里输出 `SEARCH_PHASE` 逐阶段排他耗时/分配表 |
+| `--early-turn-exploration-depth <0|1|2>` | Coordinator 测量时打开早期回合探索；默认 0，离线选项不改变生产默认值 |
+| `--early-turn-exploration-budget-ms <5000..2390000>` | 早期探索从请求开始计的累计时限上限，不是阶段外加时长；仅深度大于 0 时使用，默认 2,390,000 ms（请求最大 40 分钟减 10 秒余量） |
 | `--memory-no-progress-limit <int>` | 实验：连续多少次无进展内存回收后提前收手；0=关闭（生产默认） |
 | `--transposition-entry-limit <int>` | 实验：转置支配表合并条目上限；0=不设上限，缺省=生产默认 1000000 |
 | `--enable-no-gc-region` | 让 Runtime 的 No-GC / 回收生命周期真正生效；默认关闭 |
@@ -73,7 +75,8 @@ python3 tools/OfflineSearchHarness/run_plan.py --plan <plan.json> --workspace <d
 plan 每项的字段：`label`（必填，简单目录名）、`request`（必填）、`profile`、`beam`、`nodes`、
 `maxCardBranchesPerNode`、`maxPileChoiceBranchesPerAction`、`maxHandChoiceBranchesPerAction`、
 `maxDegreeOfParallelism`、`searchBudgetMilliseconds`、`potionPolicy`、`searchMode`、`usePortfolio`、
-`dll`（换掉这一根运行时加载的 `CombatSolver.dll`）。
+`earlyTurnExplorationDepth`、`earlyTurnExplorationBudgetMilliseconds`、`dll`（换掉这一根运行时加载的 `CombatSolver.dll`）。
+早期探索只在 `Coordinator` + M2 搜索中启用；不给单独时限时使用上限。它与 `--budget-ms` 共用请求时钟，只把 ETC 自身的截止点从主搜索软预算中分开。批量运行器会确保进程超时至少覆盖两个时限中的较大值再加 300 秒，避免把有界探索误判为异常终止。
 
 产物在 `<workspace>/runs/<label>/`，另有 `<workspace>/runs.jsonl` 与 `plan-summary.json`。
 
@@ -103,7 +106,7 @@ plan 每项的字段：`label`（必填，简单目录名）、`request`（必�
 `Evaluate`。要量「一个宽度值到底搜了多少」用 `Evaluate`；要量「玩家实际会等多久、实际选哪条路线」
 用 `Coordinator`。
 
-`solverMetrics.searchWorkAttributions` 另列经前沿调度器派发的各 `ContinuationPurpose` 工作量、`UnattributedDirect`（尚未细分的主搜和审计）及 `CoordinatorOverhead`。这是同一请求账本的诊断分解；直接成员尚未全部标记，不能由 `UnattributedDirect` 推断单一瓶颈。超时未产结果时使用常驻会话保存的 `timeout-progress.json`，旧包缺该文件就没有可追溯的末段工作量。
+`solverMetrics.searchWorkAttributions` 另列经前沿调度器派发的各 `ContinuationPurpose` 工作量、`UnattributedDirect`（尚未细分的主搜和审计）及 `CoordinatorOverhead`。这是同一请求账本的诊断分解；直接成员尚未全部标记，不能由 `UnattributedDirect` 推断单一瓶颈。早期探索开启时，`solverMetrics.earlyTurnExploration` 还记录侦察消耗、续搜次数、严格改进次数、首次改进深度/rank，以及逐 rank 的搜索时长、展开和结果；零改进与未运行用对象存在性区分。它只提供归因数据，不改变路线比较。超时未产结果时使用常驻会话保存的 `timeout-progress.json`，旧包缺该文件就没有可追溯的末段工作量。
 
 **固定预算口径。** 宿主总是以 `fixedSearchBudget=true` 起一段离线会话
 （`UnattendedTestRunner.BeginOfflineSession`），`--budget-ms` 落在 `searchBudgetOverrideMilliseconds`

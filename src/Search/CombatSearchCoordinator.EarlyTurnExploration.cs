@@ -33,6 +33,11 @@ internal static partial class CombatSearchCoordinator
         long RemainingNodes() => EarlyTurnExplorationNodeBudget
             - (workTotals.Snapshot().ExpandedNodes - expandedAtStart);
 
+        // E1 遥测：只聚合这次探索实际做过的事。侦察消耗、派发的续搜、
+        // 每次续搜的最好成绩以及最终汇总全部记在这里；即使改进为零也要记录，
+        // 否则无法回答“ETC 花了多少、工作有没有白做”。
+        List<EarlyTurnContinuationImprovement> continuationOutcomes = [];
+
         SearchPolicySnapshot scoutPolicy = policy with
         {
             NoveltySearch = null,
@@ -72,6 +77,8 @@ internal static partial class CombatSearchCoordinator
             $"[CombatSolver/Test] EARLY_TURN_EXPLORATION start " +
             $"depth={policy.EarlyTurnExplorationDepth} beam={scoutProfile.BeamWidth} " +
             $"nodes={scoutProfile.MaxExpandedNodes} remaining_ms={RemainingMilliseconds()}");
+        long scoutExpandedBeforeForMetrics = workTotals.Snapshot().ExpandedNodes;
+        int scoutExpanded;
         try
         {
             SolverResult scout = new CombatBeamSolver(root, displayNames, battleDamage,
@@ -79,6 +86,8 @@ internal static partial class CombatSearchCoordinator
                 earlyTurnScoutDepth: policy.EarlyTurnExplorationDepth,
                 earlyTurnScoutObserver: Observe,
                 directSearchPurpose: DirectSearchPurpose.EarlyTurnScout).Solve();
+            scoutExpanded = (int)Math.Max(0, workTotals.Snapshot().ExpandedNodes
+                - scoutExpandedBeforeForMetrics);
             if (IsCompleteVictory(scout)
                 && IsBetterPotionPolicyResult(root, policy, scout, selected))
                 selected = scout;
@@ -86,6 +95,8 @@ internal static partial class CombatSearchCoordinator
         catch (PotionPolicyUnsatisfiedException)
         {
             policy.Diagnostics.Info("[CombatSolver/Test] EARLY_TURN_EXPLORATION scout_potion_policy_unsatisfied=true");
+            scoutExpanded = (int)Math.Max(0, workTotals.Snapshot().ExpandedNodes
+                - scoutExpandedBeforeForMetrics);
         }
 
         static List<EarlyTurnFrontierCandidate> InterleavePotionStates(
@@ -133,6 +144,8 @@ internal static partial class CombatSearchCoordinator
                         Math.Min(120_000, policy.Profile.MaxExpandedNodes)),
                     SoftTimeBudgetMilliseconds = RemainingMilliseconds() - 5_000,
                 };
+                long continuationExpandedBefore = workTotals.Snapshot().ExpandedNodes;
+                long continuationElapsedBefore = requestClock.ElapsedMilliseconds;
                 SolverResult? candidate = continuationScheduler.DispatchOptional(
                     new ContinuationSearchRequest(context,
                         ContinuationPurpose.EarlyTurnContinuation,
@@ -142,9 +155,43 @@ internal static partial class CombatSearchCoordinator
                     "EARLY_TURN_CONTINUATION");
                 attempted++;
                 if (candidate == null)
+                {
+                    // 即使用药政策在完整搜索前否决该派发，也记录一次尝试；耗时和
+                    // 展开值都取实测差值，可以为零，不伪造路线成绩。
+                    continuationOutcomes.Add(new EarlyTurnContinuationImprovement(
+                        frontier.CompletedTurns, rank,
+                        requestClock.ElapsedMilliseconds - continuationElapsedBefore,
+                        workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore,
+                        Completed: false, Improved: false, Won: null,
+                        Loss: null, Potions: null, EndedTurn: null));
+                    policy.Diagnostics.Info(
+                        $"[CombatSolver/Test] EARLY_TURN_CONTINUATION " +
+                        $"depth={frontier.CompletedTurns} rank={rank} " +
+                        $"completed=false outcome=unavailable " +
+                        $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
+                        $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
                     continue;
+                }
                 if (candidate.ResultScope != SolverResultScope.SearchCompletion)
-                    return candidate;
+                {
+                    continuationOutcomes.Add(new EarlyTurnContinuationImprovement(
+                        frontier.CompletedTurns, rank,
+                        requestClock.ElapsedMilliseconds - continuationElapsedBefore,
+                        workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore,
+                        Completed: false, Improved: false,
+                        Won: null,
+                        Loss: null,
+                        Potions: null,
+                        EndedTurn: null));
+                    policy.Diagnostics.Info(
+                        $"[CombatSolver/Test] EARLY_TURN_CONTINUATION " +
+                        $"depth={frontier.CompletedTurns} rank={rank} " +
+                        $"completed=false outcome={candidate.ResultScope} " +
+                        $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
+                        $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
+                    // 保留原有交接结果，只给它附加纯值遥测。
+                    return PublishEarlyTurnExplorationTelemetry(candidate, scoutExpanded, "adopted");
+                }
                 bool improved = IsCompleteVictory(candidate)
                     && policy.PotionStrategy.EvaluateForcedUses(
                         candidate.BestNode.Actions, renewablePotionShapedRock: false)
@@ -152,6 +199,17 @@ internal static partial class CombatSearchCoordinator
                     && IsBetterPotionPolicyResult(root, policy, candidate, selected);
                 if (improved)
                     selected = candidate;
+                // E1 遥测：逐 rank 记录这次续搜的最好成绩。注意这里记录的是
+                // “候选自己的成绩”，是否击败 incumbent 只看 improved。
+                continuationOutcomes.Add(new EarlyTurnContinuationImprovement(
+                    frontier.CompletedTurns, rank,
+                    requestClock.ElapsedMilliseconds - continuationElapsedBefore,
+                    workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore,
+                    Completed: true, Improved: improved,
+                    Won: IsCompleteVictory(candidate),
+                    Loss: candidate.ProjectedBattleHpLost,
+                    Potions: candidate.PotionCount,
+                    EndedTurn: candidate.CombatEndedTurn));
                 policy.Diagnostics.Info(
                     $"[CombatSolver/Test] EARLY_TURN_CONTINUATION " +
                     $"depth={frontier.CompletedTurns} rank={rank} " +
@@ -167,19 +225,80 @@ internal static partial class CombatSearchCoordinator
                     }))} " +
                     $"won={IsCompleteVictory(candidate)} " +
                     $"hp_lost={candidate.ProjectedBattleHpLost} " +
-                    $"potions={candidate.PotionCount} selected={improved}");
+                    $"potions={candidate.PotionCount} selected={improved} " +
+                    $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
+                    $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
             }
             if (RemainingMilliseconds() <= 10_000
                 || RemainingNodes() < 100
                 || IsProvenZeroDamageRoute(root, policy, selected))
                 break;
         }
-        policy.Diagnostics.Info(
-            $"[CombatSolver/Test] EARLY_TURN_EXPLORATION result " +
-            $"frontiers={frontiers.Count} attempted={attempted} " +
-            $"won={IsCompleteVictory(selected)} remaining_ms={RemainingMilliseconds()} " +
-            $"expanded={EarlyTurnExplorationNodeBudget - RemainingNodes()} " +
-            $"node_limit={EarlyTurnExplorationNodeBudget}");
-        return selected;
+        string stop = IsProvenZeroDamageRoute(root, policy, selected)
+            ? "zero_damage"
+            : RemainingMilliseconds() <= 10_000 ? "time"
+            : RemainingNodes() < 100 ? "nodes"
+            : "ranks_exhausted";
+        return PublishEarlyTurnExplorationTelemetry(selected, scoutExpanded, stop);
+
+        // E1 遥测的唯一出口：把这次探索的侦察消耗、续搜明细和终止原因
+        // 汇总到结果对象上。selected 已经由调用者决定，这里只做纯值记录，
+        // 不改变任何排名、剪枝或返回路径。
+        SolverResult PublishEarlyTurnExplorationTelemetry(
+            SolverResult result, int scoutNodes, string stopReason)
+        {
+            int improvements = 0;
+            int? bestLoss = null;
+            int? bestPotions = null;
+            int? bestEndedTurn = null;
+            int? firstImprovementDepth = null;
+            int? firstImprovementRank = null;
+            foreach (EarlyTurnContinuationImprovement outcome in continuationOutcomes)
+            {
+                if (!outcome.Improved)
+                    continue;
+                if (outcome.Loss is not { } loss || outcome.Potions is not { } potions)
+                    throw new InvalidOperationException(
+                        "改进的早期回合续搜缺少战损或药水结果。");
+                improvements++;
+                firstImprovementDepth ??= outcome.CompletedTurns;
+                firstImprovementRank ??= outcome.Rank;
+                if (bestLoss is null)
+                {
+                    bestLoss = loss;
+                    bestPotions = potions;
+                    bestEndedTurn = outcome.EndedTurn;
+                }
+                else if (bestPotions is not { } incumbentPotions)
+                    throw new InvalidOperationException(
+                        "早期回合最佳战损缺少对应的药水数量。");
+                else if (loss < bestLoss.Value
+                    || loss == bestLoss.Value && potions < incumbentPotions)
+                {
+                    bestLoss = loss;
+                    bestPotions = potions;
+                    bestEndedTurn = outcome.EndedTurn;
+                }
+            }
+            long expanded = workTotals.Snapshot().ExpandedNodes - expandedAtStart;
+            result.EarlyTurnExploration = new EarlyTurnExplorationTelemetry(
+                scoutNodes, frontiers.Count, attempted, improvements,
+                bestLoss, bestPotions, bestEndedTurn,
+                firstImprovementDepth, firstImprovementRank,
+                expanded,
+                stopReason,
+                continuationOutcomes.AsReadOnly());
+            string firstImprovement = firstImprovementDepth is { } depth
+                && firstImprovementRank is { } rank
+                    ? $"{depth}:{rank}"
+                    : "none";
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] EARLY_TURN_EXPLORATION result " +
+                $"frontiers={frontiers.Count} attempted={attempted} improvements={improvements} " +
+                $"first_improvement={firstImprovement} " +
+                $"result_scope={result.ResultScope} won={IsCompleteVictory(result)} " +
+                $"expanded={expanded} node_limit={EarlyTurnExplorationNodeBudget} stop={stopReason}");
+            return result;
+        }
     }
 }

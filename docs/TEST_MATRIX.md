@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 下一版本（开发中）：早期回合探索测量入口（2026-09-30）
+
+OfflineSearchHarness 的 Coordinator 模式可用 `--early-turn-exploration-depth 1|2` 开启早期回合探索，并用 `--early-turn-exploration-budget-ms` 指定从请求开始计的 5,000..2,390,000 ms 累计时限；`run_plan.py` 支持相同的 plan 字段并按时限扩充进程超时。结果增加总体尝试/严格改进/首次改进深度与 rank，以及逐 rank 的工作量和成绩。该入口只打开离线测试请求，不改变玩家默认开关。
+
+CombatSolver 与 OfflineSearchHarness 的 Release 编译均通过（0 警告、0 错误；显式使用本机确认的游戏/RitsuLib 路径并关闭构建自动复制），Python 批量运行器语法编译通过。按仓库要求完成最终源码的五文件本地 Mod 部署。本轮没有运行战斗场景或深度 0/2 固定根对照；逐 rank 运行数据和入口门禁尚未获得运行证据。后续策略收益结论仍需独立进程的完整请求 A/B 对照，本轮不做可见 Steam 性能结论。
+
 ## PR #144 最终修复与合并验证（2026-09-28）
 
 以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。

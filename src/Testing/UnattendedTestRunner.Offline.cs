@@ -55,6 +55,14 @@ internal sealed partial class UnattendedTestRunner
 
         /// <summary>实验用：连续多少次无进展回收后提前收手；缺省 0，即关闭。</summary>
         public int MemoryNoProgressRecoveryLimit { get; init; }
+
+        /// <summary>
+        /// 离线宿主直连早期回合探索（0/1/2，缺省 0 即关闭）。只供 Coordinator 搜索测量。
+        /// </summary>
+        public int EarlyTurnExplorationDepth { get; init; }
+
+        /// <summary>从请求开始计的早期探索总时限毫秒；不是续搜阶段额外增加的时长。</summary>
+        public int EarlyTurnExplorationBudgetMilliseconds { get; init; } = 2_390_000;
     }
 
     /// <summary>
@@ -92,7 +100,13 @@ internal sealed partial class UnattendedTestRunner
                     ? null
                     : options.MemoryNoProgressRecoveryLimit,
                 TranspositionEntryLimitForTest = options.TranspositionEntryLimit,
-            });
+                EarlyTurnExplorationDepthForTest = options.EarlyTurnExplorationDepth == 0
+                    ? null
+                    : options.EarlyTurnExplorationDepth,
+            }, allowDirectOfflineEarlyTurnExploration: true,
+                earlyTurnExplorationBudgetMilliseconds: options.EarlyTurnExplorationDepth == 0
+                    ? null
+                    : options.EarlyTurnExplorationBudgetMilliseconds);
             IsActive = true;
             AutomaticTurnSearchEnabled = false;
             return new OfflineSessionScope(this);
