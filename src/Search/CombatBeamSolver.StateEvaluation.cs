@@ -1734,6 +1734,7 @@ internal sealed partial class CombatBeamSolver
         key.Add(preview.EnergyCost.GetWithModifiers(CostModifiers.Local));
         key.Add(preview.HasStarCostX);
         key.Add(preview.CurrentStarCost);
+        CardCostStateSupport.Append(ref key, preview);
         key.Add(preview.BaseReplayCount);
         key.Add(preview.ExhaustOnNextPlay);
         key.Add(preview.IsSlyThisTurn);

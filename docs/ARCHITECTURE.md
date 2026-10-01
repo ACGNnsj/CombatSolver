@@ -197,8 +197,7 @@ Entry / turn hooks
 | `src/Runtime/SearchGcPolicy.cs` | 按有效快照管理进程级 GC 模式：开启时按原样预算建立战斗级 NoGC、执行搜索内安全检查点与引用释放后的压力回收；稳定关闭时使用 CLR 常规分代 GC 且不新增自动补账压力，从开启切换时仍结清此前义务；模式切换和手动释放与活动搜索计数共用安全边界 | Beam 剪枝、候选评分、模拟语义与同步阻塞 UI |
 | `src/Runtime/SearchGcPolicy.Recovery.cs` | 在已排空的提交边界评估可恢复 NoGC 回退；拥有完成 Gen2/冷却/次数上限、物理余量、scope 代次与恢复后区域上限 | 强制回收、等待搜索退出、搜索预算或候选策略 |
 | `src/Runtime/SearchGcLifecycleMetrics.cs` | 记录显式回收与 NoGC 启停/丢失；在 Runtime 准入 Gate 内冻结 scope 起止，区分独占搜索与共享进程窗口；暂停最大值仅为观测值 | 线程级 CLR 事件归因与 trace 最大值 |
-| `src/Runtime/ProcessWorkingSetTrimmer.cs` | Windows 手动释放在托管堆压缩后修剪当前游戏进程工作集 | GC 生命周期、搜索调度与自动触发 |
-| `src/Runtime/SystemMemoryReleaseService.cs` | 等待当前进程回收完成，再通过 UAC 启动短命辅助程序清空系统工作集与待机列表 | 自动触发、修改页列表清理与搜索策略 |
+| `src/Runtime/SystemMemoryReleaseService.cs` | 等待当前进程 Aggressive 压缩回收并归还空闲堆页面，再通过 UAC 启动短命辅助程序清空全系统进程工作集与待机列表；用户要求保留原系统和其他进程清理能力 | 自动触发、修改页列表清理与搜索策略 |
 | `src/Runtime/SearchMemoryPressureSignal.cs` | 将 Runtime 的进程分配边界、回收入口、已排空边界的恢复探针和低系统余量下的保守并行标记注入搜索；不让 Search 直接操作 GC 模式 | 设置读取与搜索评分 |
 | `src/Runtime/SolverControllerSessions.cs` | 除会话状态外，向 UI 提供当前进程占用与活动搜索分配检查点的只读快照 | UI 样式与搜索内存政策 |
 | `src/Runtime/SolverSettings.cs` | 持久化性能、执行、搜索并行度、NoGC 开关与独立预算、逐槽药水策略和搜索结束通知设置，并在主线程捕获不可变搜索 snapshot；显式运行库 profile 仅覆盖 snapshot 的有效 NoGC，不写回持久设置 | 搜索期读取全局设置 |
@@ -252,6 +251,10 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 `CombatPredictionSimulator.CardTargeting` 对君王之剑和小刀完整读取分支能力：能力存在时选择全体，不存在时选择单体。两侧都不能回退到可能读取实机 owner 的动态 TargetType；普通卡牌保持原生目标元数据入口。
 
 ## 3. Search
+
+普通卡牌候选在 `ExpansionPlan.ProcessExpandedCardCandidate` 先通过原精确转置准入，再构造战术分类；分类不参与转置键或成本标签。有序变异租约和延后准入的循环候选保持原处理顺序。仅宿主的 `EquivalenceProbe` 观察分离出的状态键与自然两步序列，不反向决定生产剪枝。
+
+`CardChoiceSupport.BuildChoices` 的实体令牌缓存只属于一次调用；按卡牌wrapper引用共享不可变令牌，选择容器独立。尾部代表构造按逐键后缀序号直接定位，超过16张保留原分组路径；这是表示与构造成本优化，不改变候选等价、实体补留、分支配额或排序。
 
 策略重构回归语料由 `tools/StrategyCorpus` 编排：玩家包使用 Testing 的严格 `combat_start` 无头恢复，仓库生成场景使用 `OfflineSearchHarness`。Search 在请求完成后提供只读质量和根戳记证据；Testing Writer 与离线宿主把它们写入独立证据文件，不参与候选裁决。原始玩家包与完整输出只留在 `.local`。对照器先核对根、政策和固定预算，再比较完整动作、续用、结果及非时序工作量；时间、分配和 GC 单列观察。
 
@@ -509,6 +512,8 @@ Search在首回合、EndTurn及已知可能嵌套/重复的卡牌回放建立捕
 `AfterPlayerTurnStartMirrors` 使用三张独立登记表覆盖抽牌后的 Early/普通/Late。`HookMirrors.AfterPlayerTurnStart` 在每轮取得分支监听快照，复用 Power/遗物单项结算体；未知有效覆写拒绝，回调挂起后禁止原版局部执行帧复用并完整重放。已有外部登记时始终使用三轮派发，以接纳普通阶段新出现的 Late 监听者；没有外部登记且入口没有第三方覆写时沿用 `SimulatedCombatState.TriggerAfterPlayerTurnStartVanilla` 的既有批次和帧。不改搜索策略或状态所有权。
 
 ## 5. Prediction 领域补偿
+
+`CardCostStateSupport` 只读取卡牌现有的基础费用与有序临时修改层，统一追加出牌指纹、选牌键和live/predicted续用文本。有效期、绝对/相对修正、仅降费和星能覆盖层不能被当前显示费用替代。没有修改层时保持既有键；不另存费用、不改变结算或Fork所有权。
 
 `src/Prediction/` 处理基础命令和单个 mirror 不能独立表达的领域语义：
 

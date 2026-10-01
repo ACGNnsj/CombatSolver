@@ -1,6 +1,34 @@
 # CombatSolver 测试清单
 
-## 下一版本（开发中）：早期回合探索测量入口（2026-09-30）
+## 0.47.3 版本与发布登记（2026-10-01）
+
+本次小版本由0.47.2更新至0.47.3，整合内存修复分支至main，并同步项目、manifest、开发笔记与中英玩家日志。main整合只新增既有多人规划文档；本次版本登记没有行为源码或测试输入变化，复用本页GC与储君生成路线部署合同及PR #147原生费用/选牌合同。最终发布只执行Release构建、最小ZIP和统一三渠道脚本，不重跑已通过场景、不启动可见Steam或完整发布门禁。恢复后的管理员系统清理与完整重型生成流的可见100%卡死仍保持未实测口径。
+
+## 手动释放内存后全自动（2026-10-01）
+
+用户要求恢复系统和其他进程内存清理：辅助程序重新依次调用 `MemoryEmptyWorkingSets` 与 `MemoryPurgeStandbyList`，恢复工作集清空失败退出码20，中英文说明同步恢复。本次恢复只改辅助程序和提示，游戏GC与部署源码保持既有已验证实现，复用下列成功合同。本次验证为Release构建和调用顺序静态核对；UAC管理员系统清理未实测，既有进程合同不能代替全系统验收。
+
+`GcPolicyChecks -- manual-release` 在普通及ServerGC真实CLR上取得旧实现失败与最终通过；覆盖空闲预留归还、搜索垃圾不可达、保留数据访问后的工作集稳定和NoGC退出。`diagnostic-failure` 8项通过。原生 `MANUAL-MEMORY-RELEASE-AUTO-CONTRACT`（`00f77f0bead44df99cd3de3e80093ce0`）使用储君类星体生成亮剑，在释放后保持原路线和完整live状态，直接全自动击杀，仅1次搜索、零重规划；实际75/75 HP、第1回合。ServerGC启动、DOP2实际并发2，隔离实例已清理。完整命令、内存口径与未验证项见[报告](performance/manual-memory-release-20261001.md)。
+
+本轮 PR #147 原生费用11组（`839136cb2faf4485bd82cf2f591ef910`）、选牌1200组/5069条（`1bdb389c145747a0a36e272b49562876`）通过；Release 0警告/错误，结构门禁通过。PR原有大矩阵为贡献者证据，没有在本轮重跑。
+
+## 大幅优化原型与归一化反例（2026-09-29）
+
+五职业精英根5次快照诊断、44次原型ABBA、20次不安全归一化研究和1次M1洗牌反例，共70次离线运行。原型组完整路线/根/续用/质量/政策/非时序指标一致，但收益不足，全部撤回；归一化组有质量退化，不能用Passed或局部低战损代表改进。独立StableShuffle反例及live不变断言通过。没有新增原生整场、DOP2或首领结论，详情见[研究与证据](performance/large-stage-exploration-20260929.md)。
+
+## 等价重复的准入优化（2026-09-29）
+
+20个不同开局、23种配置、54次固定节点离线对照全部通过且未触及时间上限，同配置完整路线、根、续用、质量及73项非计时指标一致。新增两组实际出现循环区域的根和密集选择DOP1/DOP2对照，DOP2最大实际并发为2。自然AB/BA诊断只观察、不证明交换性，不用诊断时间报告性能；原生完整战斗记录及收益范围见[报告](performance/equivalence-admission-20260929.md)。
+
+## 重复选择的跨场景与整场验证（2026-09-29）
+
+原生五角色完整部署基线/候选实际终局HP、最大HP、结束回合、完整计划、根与续用一致，全部胜利且零计划外重算；选牌1200组/5069条、尾部代表2412组、令牌1024组合同通过。增加NativeOutcome实战终局记录，避免引用预测HP作为实战结果。跨角色/精英/首领固定根矩阵、perf证据及收益限制见[报告](performance/duplicate-choice-pruning-broad-20260929.md)和[逐次证据](performance/duplicate-choice-pruning-broad-20260929.json)。
+
+## 重复牌与费用状态（2026-09-29）
+
+`CARD-COST-IDENTITY-CONTRACT` 原生11组费用身份合同通过；`CHOICE-COMBINATION-CONTRACT`（`1cc7c04da24d427b9c9cff7bb0f0080c`）1200组/5069条完整选择与旧枚举器一致。覆盖能量/星能修改的时效、顺序、隐藏层、Fork隔离、实际选牌去重及续用字段定位。目标短搜两对ABBA的73个非时序字段、完整路线、根与剪枝计数一致。命令、原生最终runId、微基准限制和未采用实验见[重复牌研究](performance/duplicate-choice-pruning-20260929.md)及[证据](performance/duplicate-choice-pruning-20260929.json)。未作可见性能、Windows游戏或整场质量结论。
+
+## 下一版本（开发中）：早期回合探索测量入口（2026-10-01）
 
 OfflineSearchHarness 的 Coordinator 模式可用 `--early-turn-exploration-depth 1|2` 开启早期回合探索，并用 `--early-turn-exploration-budget-ms` 指定从请求开始计的 5,000..2,390,000 ms 累计时限；`run_plan.py` 支持相同的 plan 字段并按时限扩充进程超时。结果增加总体尝试/严格改进/首次改进深度与 rank，以及逐 rank 的工作量和成绩。该入口只打开离线测试请求，不改变玩家默认开关。
 
@@ -34,7 +62,7 @@ OfflineSearchHarness 同根 `Coordinator` 对照：TERROR_EEL_ELITE、SILENT、s
 
 ### 改进后尾部 rank 上限收至 5（2026-10-01）
 
-保留每层 rank 0–3；严格改进才启用尾部，最多续搜至 rank 5（`max_ranks_per_depth=6`）。用户最新一局的扩展层在 rank 0 与 rank 3 改进，rank 4–7 未改善，因此该窗口保留已观测到的两次改进。
+保留每层 rank 0–3；严格改进才启用尾部，最多续搜至 rank 5（`max_ranks_per_depth=6`）。用户最新一局的深度 2 扩展层在 rank 0 与 rank 3 改进，rank 4–7 未改善，因此该窗口保留已观测到的两次改进。
 
 与现行 4/8 自适应策略同根对照：TERROR_EEL_ELITE / SILENT / `CSOPT20261001D`，beam 96、每 solver 8,000 nodes。两边路线动作序列相同（69 项），均完整胜利、战损 59、0 药水、`boundary=None`；首次改进均在深度 2 / rank 1。cap 6 把续搜 12→10、续搜展开 92,616→77,950、总展开 100,616→85,950（−14.6%）、总转移 289,200→247,414（−14.4%）。cap 8 的 rank 6、7 均未改善。此为单次独立进程对照，耗时仅作观察，不构成稳定提速结论；其他战斗中的 rank 6+ 仍可能包含独有更优路线。
 

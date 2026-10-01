@@ -1,0 +1,4630 @@
+{
+  "schemaVersion": 1,
+  "baseline": "e6dc57ae",
+  "scope": "Linux offline and headless; no visible Steam/FPS claim",
+  "profiling": {
+    "firstDiagnostic": {
+      "samples": 423827,
+      "lost": 0,
+      "event": "cycles:u",
+      "period": 1000000,
+      "limitation": "DOTNET_EnableEventLog=1 added significant event logging overhead; excluded from production cost claims"
+    },
+    "cleanDiagnostic": {
+      "samples": 33593,
+      "lost": 0,
+      "event": "cycles:u",
+      "period": 2000000,
+      "source": "e6dc57ae",
+      "nodes": 5000,
+      "beam": 48,
+      "dop": 1,
+      "mode": "Evaluate",
+      "measurePhases": false,
+      "snapshotInclusivePercentOneJitVersion": 16.04,
+      "buildChoicesInclusivePercentOneJitVersion": 1.06
+    },
+    "jitDisassembly": {
+      "method": "SimulatedCombatState.RemapCachedModels",
+      "samples": 2358,
+      "source": "firstDiagnostic; qualitative assembly inspection only"
+    }
+  },
+  "microbenchmarks": {
+    "fixedJit": true,
+    "tokenReuse": [
+      {
+        "run": "builders-0-baseline",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 158064000,
+            "elapsedMs": 127.0002
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 100624000,
+            "elapsedMs": 103.6828
+          }
+        ]
+      },
+      {
+        "run": "builders-1-tokens",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 119.0021
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 84816000,
+            "elapsedMs": 91.8872
+          }
+        ]
+      },
+      {
+        "run": "builders-2-tokens",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 126.3369
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 84816000,
+            "elapsedMs": 94.3986
+          }
+        ]
+      },
+      {
+        "run": "builders-3-baseline",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 158064000,
+            "elapsedMs": 128.9282
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 100624000,
+            "elapsedMs": 106.1678
+          }
+        ]
+      }
+    ],
+    "rejectedFullGrouping": [
+      {
+        "run": "groups-builders-0-tokens",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 117.2829
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 84816000,
+            "elapsedMs": 89.06
+          }
+        ]
+      },
+      {
+        "run": "groups-builders-1-groups",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 119.6759
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 86464000,
+            "elapsedMs": 92.9619
+          }
+        ]
+      },
+      {
+        "run": "groups-builders-2-groups",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 121.2831
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 86464000,
+            "elapsedMs": 91.7769
+          }
+        ]
+      },
+      {
+        "run": "groups-builders-3-tokens",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 149760000,
+            "elapsedMs": 118.9462
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 84816000,
+            "elapsedMs": 87.3848
+          }
+        ]
+      }
+    ],
+    "finalEquivalentConstruction": [
+      {
+        "run": "tail-builders-0-baseline",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 158064000,
+            "elapsedMs": 129.0351
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 100624000,
+            "elapsedMs": 106.5256
+          }
+        ]
+      },
+      {
+        "run": "tail-builders-1-tail",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 147824000,
+            "elapsedMs": 118.0751
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 77776000,
+            "elapsedMs": 86.1783
+          }
+        ]
+      },
+      {
+        "run": "tail-builders-2-tail",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 147824000,
+            "elapsedMs": 118.305
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 77776000,
+            "elapsedMs": 87.2565
+          }
+        ]
+      },
+      {
+        "run": "tail-builders-3-baseline",
+        "results": [
+          {
+            "unique": true,
+            "iterations": 2000,
+            "choices": 108000,
+            "allocatedBytes": 158064000,
+            "elapsedMs": 127.3627
+          },
+          {
+            "unique": false,
+            "iterations": 2000,
+            "choices": 98000,
+            "allocatedBytes": 100624000,
+            "elapsedMs": 107.0019
+          }
+        ]
+      }
+    ]
+  },
+  "rejectedTrials": {
+    "routingSignature": [
+      {
+        "run": "routing-control-0-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.5479637,
+        "allocatedBytes": 1208849680,
+        "workerAllocatedBytes": 868535256,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "routing-control-1-routing",
+        "status": "Passed",
+        "wallSeconds": 5.4742652,
+        "allocatedBytes": 1204233512,
+        "workerAllocatedBytes": 862678080,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "routing-control-2-routing",
+        "status": "Passed",
+        "wallSeconds": 5.6053177,
+        "allocatedBytes": 1208908024,
+        "workerAllocatedBytes": 868197144,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "routing-control-3-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.5185988,
+        "allocatedBytes": 1206070888,
+        "workerAllocatedBytes": 866011872,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      }
+    ],
+    "arrayRemap": [
+      {
+        "run": "dev-01-silent-elite-tokens-remap-0-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.5639987,
+        "allocatedBytes": 1209085112,
+        "workerAllocatedBytes": 863863256,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "dev-01-silent-elite-tokens-remap-1-remap",
+        "status": "Passed",
+        "wallSeconds": 5.5597696,
+        "allocatedBytes": 1208418872,
+        "workerAllocatedBytes": 869303984,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "dev-01-silent-elite-tokens-remap-2-remap",
+        "status": "Passed",
+        "wallSeconds": 5.5613574,
+        "allocatedBytes": 1208583432,
+        "workerAllocatedBytes": 868631744,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "dev-01-silent-elite-tokens-remap-3-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.4678259,
+        "allocatedBytes": 1210530048,
+        "workerAllocatedBytes": 868252656,
+        "expanded": 2000,
+        "transitions": 19246,
+        "hpLost": 50
+      },
+      {
+        "run": "dev-03-regent-elite-tokens-remap-0-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.0017792,
+        "allocatedBytes": 992754992,
+        "workerAllocatedBytes": 668562656,
+        "expanded": 2000,
+        "transitions": 14672,
+        "hpLost": 28
+      },
+      {
+        "run": "dev-03-regent-elite-tokens-remap-1-remap",
+        "status": "Passed",
+        "wallSeconds": 4.9005006,
+        "allocatedBytes": 1000780128,
+        "workerAllocatedBytes": 668781800,
+        "expanded": 2000,
+        "transitions": 14672,
+        "hpLost": 28
+      },
+      {
+        "run": "dev-03-regent-elite-tokens-remap-2-remap",
+        "status": "Passed",
+        "wallSeconds": 4.9088146,
+        "allocatedBytes": 992569984,
+        "workerAllocatedBytes": 668555848,
+        "expanded": 2000,
+        "transitions": 14672,
+        "hpLost": 28
+      },
+      {
+        "run": "dev-03-regent-elite-tokens-remap-3-tokens",
+        "status": "Passed",
+        "wallSeconds": 5.0045257,
+        "allocatedBytes": 1000190024,
+        "workerAllocatedBytes": 668665136,
+        "expanded": 2000,
+        "transitions": 14672,
+        "hpLost": 28
+      }
+    ]
+  },
+  "intermediateDop2": {
+    "baseline": "e6dc57ae",
+    "cases": [
+      {
+        "case": "dev-00-ironclad-elite",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2519097,
+            "totalAllocatedBytes": 1021932336,
+            "workerAllocatedBytes": 720993416,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.1872182,
+            "totalAllocatedBytes": 1021589840,
+            "workerAllocatedBytes": 720790376,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2768633,
+            "totalAllocatedBytes": 1021638280,
+            "workerAllocatedBytes": 720752904,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2439523,
+            "totalAllocatedBytes": 1022258784,
+            "workerAllocatedBytes": 721312328,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980
+          }
+        ],
+        "wallDeltaPercent": -0.3027907569668864,
+        "allocationDeltaPercent": -0.04710909809646502
+      },
+      {
+        "case": "dev-01-silent-elite",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 1595,
+                "right": 1598,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 1595,
+                "right": 1459,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 1595,
+                "right": 1598,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.8111173,
+            "totalAllocatedBytes": 1211049896,
+            "workerAllocatedBytes": 869865000,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.8562895,
+            "totalAllocatedBytes": 1207150880,
+            "workerAllocatedBytes": 868363448,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.7323763,
+            "totalAllocatedBytes": 1206193888,
+            "workerAllocatedBytes": 867383472,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.6447034,
+            "totalAllocatedBytes": 1208658624,
+            "workerAllocatedBytes": 869964328,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974
+          }
+        ],
+        "wallDeltaPercent": 1.1596297068441341,
+        "allocationDeltaPercent": -0.2629966356443636
+      },
+      {
+        "case": "dev-02-defect-elite",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4683555,
+            "totalAllocatedBytes": 641150640,
+            "workerAllocatedBytes": 403343680,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4311561,
+            "totalAllocatedBytes": 641107784,
+            "workerAllocatedBytes": 403305624,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4457095,
+            "totalAllocatedBytes": 641179336,
+            "workerAllocatedBytes": 403426384,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4284581,
+            "totalAllocatedBytes": 641039240,
+            "workerAllocatedBytes": 403277128,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976
+          }
+        ],
+        "wallDeltaPercent": -0.28923501716792144,
+        "allocationDeltaPercent": 0.007583900131868937
+      },
+      {
+        "case": "dev-03-regent-elite",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 546,
+                "right": 545,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 546,
+                "right": 545,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [
+              {
+                "field": "roundReplayPrefixCaptures",
+                "left": 546,
+                "right": 545,
+                "same": false
+              }
+            ],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": false,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.9169333,
+            "totalAllocatedBytes": 992886816,
+            "workerAllocatedBytes": 668828304,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.9411042,
+            "totalAllocatedBytes": 992866488,
+            "workerAllocatedBytes": 668749064,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.9842407,
+            "totalAllocatedBytes": 992536632,
+            "workerAllocatedBytes": 668572616,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.9483298,
+            "totalAllocatedBytes": 992883176,
+            "workerAllocatedBytes": 668805528,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978
+          }
+        ],
+        "wallDeltaPercent": 0.6090237978549018,
+        "allocationDeltaPercent": -0.018475050055044573
+      },
+      {
+        "case": "dev-04-necrobinder-elite",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0654023,
+            "totalAllocatedBytes": 1027809856,
+            "workerAllocatedBytes": 683492048,
+            "totalExpanded": 2000,
+            "totalTransitions": 17054,
+            "totalChoiceBranches": 7625,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.1357102,
+            "totalAllocatedBytes": 1027142688,
+            "workerAllocatedBytes": 682703232,
+            "totalExpanded": 2000,
+            "totalTransitions": 17054,
+            "totalChoiceBranches": 7625,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0821192,
+            "totalAllocatedBytes": 1026628568,
+            "workerAllocatedBytes": 682346280,
+            "totalExpanded": 2000,
+            "totalTransitions": 17054,
+            "totalChoiceBranches": 7625,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0604533,
+            "totalAllocatedBytes": 1027756952,
+            "workerAllocatedBytes": 683696040,
+            "totalExpanded": 2000,
+            "totalTransitions": 17054,
+            "totalChoiceBranches": 7625,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975
+          }
+        ],
+        "wallDeltaPercent": 0.9083064546170361,
+        "allocationDeltaPercent": -0.08735070020647884
+      },
+      {
+        "case": "dev-05-ironclad-boss",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.8203401,
+            "totalAllocatedBytes": 759544048,
+            "workerAllocatedBytes": 498219488,
+            "totalExpanded": 2000,
+            "totalTransitions": 12533,
+            "totalChoiceBranches": 2470,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002338019
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.8625629,
+            "totalAllocatedBytes": 759727224,
+            "workerAllocatedBytes": 498055272,
+            "totalExpanded": 2000,
+            "totalTransitions": 12533,
+            "totalChoiceBranches": 2470,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002338019
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.8783861,
+            "totalAllocatedBytes": 759527872,
+            "workerAllocatedBytes": 498033672,
+            "totalExpanded": 2000,
+            "totalTransitions": 12533,
+            "totalChoiceBranches": 2470,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002338019
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.8490875,
+            "totalAllocatedBytes": 772210744,
+            "workerAllocatedBytes": 498158792,
+            "totalExpanded": 2000,
+            "totalTransitions": 12533,
+            "totalChoiceBranches": 2470,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002338019
+          }
+        ],
+        "wallDeltaPercent": 0.932551993841102,
+        "allocationDeltaPercent": -0.8160376625085841
+      },
+      {
+        "case": "dev-06-silent-boss",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.0212924,
+            "totalAllocatedBytes": 803101888,
+            "workerAllocatedBytes": 521268328,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.9973712,
+            "totalAllocatedBytes": 802999032,
+            "workerAllocatedBytes": 521182808,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.0180195,
+            "totalAllocatedBytes": 802572088,
+            "workerAllocatedBytes": 520742584,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.0286251,
+            "totalAllocatedBytes": 802628136,
+            "workerAllocatedBytes": 520766752,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029
+          }
+        ],
+        "wallDeltaPercent": -0.42890874347467633,
+        "allocationDeltaPercent": -0.00989605958815476
+      },
+      {
+        "case": "dev-07-defect-boss",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.1846008,
+            "totalAllocatedBytes": 844467888,
+            "workerAllocatedBytes": 565685240,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2244624,
+            "totalAllocatedBytes": 844252472,
+            "workerAllocatedBytes": 565624056,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2223564,
+            "totalAllocatedBytes": 844398824,
+            "workerAllocatedBytes": 565560656,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.270161,
+            "totalAllocatedBytes": 844497352,
+            "workerAllocatedBytes": 565768784,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023
+          }
+        ],
+        "wallDeltaPercent": -0.09394705833108974,
+        "allocationDeltaPercent": -0.018587949151638306
+      },
+      {
+        "case": "dev-08-regent-boss",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4222907,
+            "totalAllocatedBytes": 709625680,
+            "workerAllocatedBytes": 437321744,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4015053,
+            "totalAllocatedBytes": 709618712,
+            "workerAllocatedBytes": 437239552,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4030602,
+            "totalAllocatedBytes": 709689464,
+            "workerAllocatedBytes": 437335496,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.5005447,
+            "totalAllocatedBytes": 709896800,
+            "workerAllocatedBytes": 437315584,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028
+          }
+        ],
+        "wallDeltaPercent": -1.7084026004720476,
+        "allocationDeltaPercent": -0.015096907799583281
+      },
+      {
+        "case": "dev-09-necrobinder-boss",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0814713,
+            "totalAllocatedBytes": 948352712,
+            "workerAllocatedBytes": 659477744,
+            "totalExpanded": 2000,
+            "totalTransitions": 18559,
+            "totalChoiceBranches": 9293,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0174095,
+            "totalAllocatedBytes": 965994112,
+            "workerAllocatedBytes": 658318224,
+            "totalExpanded": 2000,
+            "totalTransitions": 18559,
+            "totalChoiceBranches": 9293,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.9931462,
+            "totalAllocatedBytes": 946862200,
+            "workerAllocatedBytes": 658164696,
+            "totalExpanded": 2000,
+            "totalTransitions": 18559,
+            "totalChoiceBranches": 9293,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.0210555,
+            "totalAllocatedBytes": 947823808,
+            "workerAllocatedBytes": 659144728,
+            "totalExpanded": 2000,
+            "totalTransitions": 18559,
+            "totalChoiceBranches": 9293,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021
+          }
+        ],
+        "wallDeltaPercent": -0.9103771939511063,
+        "allocationDeltaPercent": 0.8796539680809845
+      },
+      {
+        "case": "dev-10-ironclad-monster",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.6888588,
+            "totalAllocatedBytes": 698761328,
+            "workerAllocatedBytes": 464663104,
+            "totalExpanded": 2000,
+            "totalTransitions": 11609,
+            "totalChoiceBranches": 2191,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.7059366,
+            "totalAllocatedBytes": 698611608,
+            "workerAllocatedBytes": 464536720,
+            "totalExpanded": 2000,
+            "totalTransitions": 11609,
+            "totalChoiceBranches": 2191,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.7379606,
+            "totalAllocatedBytes": 698726008,
+            "workerAllocatedBytes": 464541272,
+            "totalExpanded": 2000,
+            "totalTransitions": 11609,
+            "totalChoiceBranches": 2191,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.6988361,
+            "totalAllocatedBytes": 698902080,
+            "workerAllocatedBytes": 464632976,
+            "totalExpanded": 2000,
+            "totalTransitions": 11609,
+            "totalChoiceBranches": 2191,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996
+          }
+        ],
+        "wallDeltaPercent": 0.7607555639581154,
+        "allocationDeltaPercent": -0.023309761000767093
+      },
+      {
+        "case": "dev-11-silent-monster",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9070751,
+            "totalAllocatedBytes": 584156144,
+            "workerAllocatedBytes": 361152408,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9934987,
+            "totalAllocatedBytes": 584049944,
+            "workerAllocatedBytes": 361141920,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9311561,
+            "totalAllocatedBytes": 584134256,
+            "workerAllocatedBytes": 361128344,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9471467,
+            "totalAllocatedBytes": 584341024,
+            "workerAllocatedBytes": 361154400,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979
+          }
+        ],
+        "wallDeltaPercent": 1.2031146479622779,
+        "allocationDeltaPercent": -0.0267838047511626
+      },
+      {
+        "case": "holdout-00-ironclad",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1260166,
+            "totalAllocatedBytes": 478765888,
+            "workerAllocatedBytes": 233439688,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1456545,
+            "totalAllocatedBytes": 478621824,
+            "workerAllocatedBytes": 233247800,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1274608,
+            "totalAllocatedBytes": 478628056,
+            "workerAllocatedBytes": 233275984,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.095574,
+            "totalAllocatedBytes": 478877856,
+            "workerAllocatedBytes": 233454584,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993
+          }
+        ],
+        "wallDeltaPercent": 1.220504423143276,
+        "allocationDeltaPercent": -0.04112844703134666
+      },
+      {
+        "case": "holdout-01-silent",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.5683238,
+            "totalAllocatedBytes": 874122464,
+            "workerAllocatedBytes": 541715936,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.3051696,
+            "totalAllocatedBytes": 881581032,
+            "workerAllocatedBytes": 541859544,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.0440452,
+            "totalAllocatedBytes": 873962720,
+            "workerAllocatedBytes": 541586760,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.9619093,
+            "totalAllocatedBytes": 874147296,
+            "workerAllocatedBytes": 541722400,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982
+          }
+        ],
+        "wallDeltaPercent": -2.1220791727250665,
+        "allocationDeltaPercent": 0.41606805576732686
+      },
+      {
+        "case": "holdout-02-defect",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.2767631,
+            "totalAllocatedBytes": 717303552,
+            "workerAllocatedBytes": 396649848,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.2608366,
+            "totalAllocatedBytes": 716269880,
+            "workerAllocatedBytes": 396644048,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.3656221,
+            "totalAllocatedBytes": 717331392,
+            "workerAllocatedBytes": 396737176,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.2027478,
+            "totalAllocatedBytes": 716434304,
+            "workerAllocatedBytes": 396714144,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023
+          }
+        ],
+        "wallDeltaPercent": 2.2678841392179905,
+        "allocationDeltaPercent": -0.009526427681905147
+      },
+      {
+        "case": "holdout-03-regent",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2246459,
+            "totalAllocatedBytes": 889545840,
+            "workerAllocatedBytes": 551277960,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2393608,
+            "totalAllocatedBytes": 891655000,
+            "workerAllocatedBytes": 551271336,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.1927653,
+            "totalAllocatedBytes": 893484584,
+            "workerAllocatedBytes": 551286120,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.1884108,
+            "totalAllocatedBytes": 891125680,
+            "workerAllocatedBytes": 551310872,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980
+          }
+        ],
+        "wallDeltaPercent": 0.22666434662208523,
+        "allocationDeltaPercent": 0.25092016971215436
+      },
+      {
+        "case": "holdout-04-necrobinder",
+        "comparisons": [
+          {
+            "index": 1,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 2,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          },
+          {
+            "index": 3,
+            "metricsCompared": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneCountersEqual": true,
+            "policyEqual": true
+          }
+        ],
+        "runs": [
+          {
+            "index": 0,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2027508,
+            "totalAllocatedBytes": 1157554600,
+            "workerAllocatedBytes": 689377400,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017
+          },
+          {
+            "index": 1,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.3622472,
+            "totalAllocatedBytes": 1159063056,
+            "workerAllocatedBytes": 689512432,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017
+          },
+          {
+            "index": 2,
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2249691,
+            "totalAllocatedBytes": 1158520200,
+            "workerAllocatedBytes": 689713512,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017
+          },
+          {
+            "index": 3,
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 5.2466936,
+            "totalAllocatedBytes": 1160500816,
+            "workerAllocatedBytes": 689825912,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017
+          }
+        ],
+        "wallDeltaPercent": 1.3184614868135824,
+        "allocationDeltaPercent": -0.020368796912317855
+      }
+    ],
+    "candidate": "tokens and exact capacity only; before direct tail representative",
+    "timingLimitation": "Exploratory DOP2 series; two later trial builds overlapped some observations, no final speed claim. RoundReplayPrefixCaptures varies between repeated baseline processes."
+  },
+  "nativeContracts": [
+    {
+      "runId": "891c0f85d2cf4170893063e1865ec98b",
+      "scenario": "CHOICE-COMBINATION-CONTRACT",
+      "status": "Passed",
+      "checks": [
+        "ChoiceCombinations:{\"comparisons\":1200,\"choiceCount\":5069,\"probes\":[{\"minimum\":1,\"maximum\":1,\"candidate\":false,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":5116800,\"elapsedMs\":8.9327},{\"minimum\":1,\"maximum\":1,\"candidate\":true,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":3859200,\"elapsedMs\":7.4128},{\"minimum\":1,\"maximum\":1,\"candidate\":true,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":3859200,\"elapsedMs\":7.0927},{\"minimum\":1,\"maximum\":1,\"candidate\":false,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":5116800,\"elapsedMs\":9.3021},{\"minimum\":2,\"maximum\":2,\"candidate\":false,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":20116800,\"elapsedMs\":58.2001},{\"minimum\":2,\"maximum\":2,\"candidate\":true,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":10972992,\"elapsedMs\":33.423},{\"minimum\":2,\"maximum\":2,\"candidate\":true,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":9460800,\"elapsedMs\":31.8823},{\"minimum\":2,\"maximum\":2,\"candidate\":false,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":13320000,\"elapsedMs\":50.3159},{\"minimum\":0,\"maximum\":5,\"candidate\":false,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":39460800,\"elapsedMs\":48.7211},{\"minimum\":0,\"maximum\":5,\"candidate\":true,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":29623200,\"elapsedMs\":44.0661},{\"minimum\":0,\"maximum\":5,\"candidate\":true,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":29623200,\"elapsedMs\":42.7291},{\"minimum\":0,\"maximum\":5,\"candidate\":false,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":39460800,\"elapsedMs\":47.1078}]}"
+      ],
+      "instanceRemoved": true
+    },
+    {
+      "runId": "ec1c10abd8ae49dca88319d47b19c7f8",
+      "scenario": "CHOICE-TOKEN-CONTRACT",
+      "status": "Passed",
+      "checks": [
+        "ChoiceTokens:{\"comparisons\":1024,\"probes\":[{\"shared\":false,\"candidate\":false,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":45600208,\"elapsedMs\":90.6951},{\"shared\":false,\"candidate\":true,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":6000048,\"elapsedMs\":54.3086},{\"shared\":false,\"candidate\":true,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":6000048,\"elapsedMs\":55.3649},{\"shared\":false,\"candidate\":false,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":45600048,\"elapsedMs\":91.0204},{\"shared\":true,\"candidate\":false,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":45600048,\"elapsedMs\":85.7458},{\"shared\":true,\"candidate\":true,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":6000048,\"elapsedMs\":29.9323},{\"shared\":true,\"candidate\":true,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":6000048,\"elapsedMs\":23.2397},{\"shared\":true,\"candidate\":false,\"iterations\":10000,\"count\":80000,\"allocatedBytes\":45600048,\"elapsedMs\":24.5123}]}"
+      ],
+      "instanceRemoved": true
+    },
+    {
+      "runId": "e3010b4bc0f24ee389125ee0d2d81d4d",
+      "scenario": "CHOICE-COMBINATION-CONTRACT",
+      "status": "Passed",
+      "checks": [
+        "ChoiceCombinations:{\"comparisons\":1200,\"choiceCount\":5069,\"probes\":[{\"minimum\":1,\"maximum\":1,\"candidate\":false,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":5116800,\"elapsedMs\":10.1084},{\"minimum\":1,\"maximum\":1,\"candidate\":true,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":3859200,\"elapsedMs\":7.5233},{\"minimum\":1,\"maximum\":1,\"candidate\":true,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":3859200,\"elapsedMs\":7.0393},{\"minimum\":1,\"maximum\":1,\"candidate\":false,\"iterations\":300,\"generated\":3000,\"allocatedBytes\":5116800,\"elapsedMs\":9.3551},{\"minimum\":2,\"maximum\":2,\"candidate\":false,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":20116800,\"elapsedMs\":56.7182},{\"minimum\":2,\"maximum\":2,\"candidate\":true,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":11995200,\"elapsedMs\":34.6797},{\"minimum\":2,\"maximum\":2,\"candidate\":true,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":11995200,\"elapsedMs\":34.9356},{\"minimum\":2,\"maximum\":2,\"candidate\":false,\"iterations\":300,\"generated\":11700,\"allocatedBytes\":19014912,\"elapsedMs\":58.3823},{\"minimum\":0,\"maximum\":5,\"candidate\":false,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":39460800,\"elapsedMs\":111.9242},{\"minimum\":0,\"maximum\":5,\"candidate\":true,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":29623200,\"elapsedMs\":52.9087},{\"minimum\":0,\"maximum\":5,\"candidate\":true,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":29623200,\"elapsedMs\":49.3759},{\"minimum\":0,\"maximum\":5,\"candidate\":false,\"iterations\":300,\"generated\":16800,\"allocatedBytes\":39460800,\"elapsedMs\":39.3073}]}",
+        "NativeOutcome:combatEnded=False:turn=1:hp=80:maxHp=80"
+      ],
+      "instanceRemoved": true
+    }
+  ],
+  "nativeCompleteBattles": [
+    {
+      "case": "dev-02-defect-elite",
+      "runs": [
+        {
+          "runId": "486771900ff7407e8d16e048f4193d39",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 6,
+            "hp": 47,
+            "maxHp": 75
+          },
+          "initialHp": 60,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 36397.0106,
+          "instanceRemoved": true
+        },
+        {
+          "runId": "dd69bf03ee2545fcae994fcfff70effb",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 6,
+            "hp": 47,
+            "maxHp": 75
+          },
+          "initialHp": 60,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 36221.0745,
+          "instanceRemoved": true
+        }
+      ],
+      "actualEqual": true,
+      "rootEqual": true,
+      "actionsEqual": true,
+      "continuationsEqual": true,
+      "snapshotEqual": true,
+      "qualityEqual": true
+    },
+    {
+      "case": "dev-04-necrobinder-elite",
+      "runs": [
+        {
+          "runId": "8f4e0425ff2a457896342a6c7108acda",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 6,
+            "hp": 17,
+            "maxHp": 66
+          },
+          "initialHp": 52,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 38045.3034,
+          "instanceRemoved": true
+        },
+        {
+          "runId": "e177b916d094460e884bb62f7c5f55c4",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 6,
+            "hp": 17,
+            "maxHp": 66
+          },
+          "initialHp": 52,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 38381.7527,
+          "instanceRemoved": true
+        }
+      ],
+      "actualEqual": true,
+      "rootEqual": true,
+      "actionsEqual": true,
+      "continuationsEqual": true,
+      "snapshotEqual": true,
+      "qualityEqual": true
+    },
+    {
+      "case": "holdout-00-ironclad",
+      "runs": [
+        {
+          "runId": "fd4711e601284eeba11c6381d91afc75",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 70,
+            "maxHp": 80
+          },
+          "initialHp": 64,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 28986.1356,
+          "instanceRemoved": true
+        },
+        {
+          "runId": "c138046486964fadbe7c7ebc834d5ad3",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 70,
+            "maxHp": 80
+          },
+          "initialHp": 64,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 29000.1521,
+          "instanceRemoved": true
+        }
+      ],
+      "actualEqual": true,
+      "rootEqual": true,
+      "actionsEqual": true,
+      "continuationsEqual": true,
+      "snapshotEqual": true,
+      "qualityEqual": true
+    },
+    {
+      "case": "holdout-01-silent",
+      "runs": [
+        {
+          "runId": "810451a1154547738c6d57d61a9e133d",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 56,
+            "maxHp": 70
+          },
+          "initialHp": 56,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 29826.7927,
+          "instanceRemoved": true
+        },
+        {
+          "runId": "bd29d79b7e5940bc96d1e4ba83c8869b",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 56,
+            "maxHp": 70
+          },
+          "initialHp": 56,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 29720.1065,
+          "instanceRemoved": true
+        }
+      ],
+      "actualEqual": true,
+      "rootEqual": true,
+      "actionsEqual": true,
+      "continuationsEqual": true,
+      "snapshotEqual": true,
+      "qualityEqual": true
+    },
+    {
+      "case": "holdout-03-regent",
+      "runs": [
+        {
+          "runId": "f4129e8cb22741ecbcefdc8267bde780",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 57,
+            "maxHp": 75
+          },
+          "initialHp": 60,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 46155.2847,
+          "instanceRemoved": true
+        },
+        {
+          "runId": "658446400ce94fd2a10405015714a1f2",
+          "status": "Passed",
+          "actual": {
+            "combatEnded": true,
+            "turn": 5,
+            "hp": 57,
+            "maxHp": 75
+          },
+          "initialHp": 60,
+          "unexpectedReplans": "UnexpectedReplans:0",
+          "elapsedMilliseconds": 46065.5138,
+          "instanceRemoved": true
+        }
+      ],
+      "actualEqual": true,
+      "rootEqual": true,
+      "actionsEqual": true,
+      "continuationsEqual": true,
+      "snapshotEqual": true,
+      "qualityEqual": true
+    }
+  ],
+  "finalProfiled": {
+    "settings": {
+      "tieredCompilation": false,
+      "dop": 1,
+      "sequentialProcesses": true,
+      "profile": "High for ordinary/long, Custom for targets",
+      "beam": {
+        "ordinary": 48,
+        "long": 48,
+        "target": 24
+      },
+      "nodes": {
+        "ordinary": 2000,
+        "long": 5000,
+        "target": 500
+      },
+      "budgetMilliseconds": 30000,
+      "searchMode": "Evaluate",
+      "pmuEvents": [
+        "cycles:u",
+        "instructions:u",
+        "branches:u",
+        "branch-misses:u"
+      ]
+    },
+    "cases": [
+      {
+        "case": "dev-00-ironclad-elite",
+        "runs": [
+          {
+            "run": "dev-00-ironclad-elite-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.3170065,
+            "totalAllocatedBytes": 929653696,
+            "workerAllocatedBytes": 641590752,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980,
+            "pmu": {
+              "cycles:u": {
+                "count": 31945541568,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 51398520770,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10724440174,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 327560123,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-00-ironclad-elite-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2956127,
+            "totalAllocatedBytes": 928621456,
+            "workerAllocatedBytes": 640635536,
+            "totalExpanded": 2000,
+            "totalTransitions": 17584,
+            "totalChoiceBranches": 6186,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": 4,
+            "score": 10000824980,
+            "pmu": {
+              "cycles:u": {
+                "count": 31833427460,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 51091795102,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10658476716,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 325269291,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-00-ironclad-elite-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 4.3170065,
+        "finalWallSeconds": 4.2956127,
+        "wallDeltaPercent": -0.4955702522106309,
+        "baselineWorkerBytes": 641590752,
+        "finalWorkerBytes": 640635536,
+        "workerDeltaPercent": -0.1488824452382409
+      },
+      {
+        "case": "dev-01-silent-elite",
+        "runs": [
+          {
+            "run": "dev-01-silent-elite-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.3712412,
+            "totalAllocatedBytes": 1076380176,
+            "workerAllocatedBytes": 757364472,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974,
+            "pmu": {
+              "cycles:u": {
+                "count": 32525100609,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 52026628810,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10937209654,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 330327840,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-01-silent-elite-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.3402713,
+            "totalAllocatedBytes": 1075575560,
+            "workerAllocatedBytes": 756588648,
+            "totalExpanded": 2000,
+            "totalTransitions": 19246,
+            "totalChoiceBranches": 8777,
+            "projectedBattleHpLost": 50,
+            "combatEndedTurn": 4,
+            "score": 9998639974,
+            "pmu": {
+              "cycles:u": {
+                "count": 32361286599,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 51904025186,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10912324844,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 330386810,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-01-silent-elite-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 4.3712412,
+        "finalWallSeconds": 4.3402713,
+        "wallDeltaPercent": -0.7084921326235616,
+        "baselineWorkerBytes": 757364472,
+        "finalWorkerBytes": 756588648,
+        "workerDeltaPercent": -0.10243733746201356
+      },
+      {
+        "case": "dev-01-silent-elite-long",
+        "runs": [
+          {
+            "run": "dev-01-silent-elite-long-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.3130632,
+            "totalAllocatedBytes": 1916872160,
+            "workerAllocatedBytes": 1596968208,
+            "totalExpanded": 5000,
+            "totalTransitions": 41310,
+            "totalChoiceBranches": 17562,
+            "projectedBattleHpLost": 43,
+            "combatEndedTurn": 6,
+            "score": 9999439960,
+            "pmu": {
+              "cycles:u": {
+                "count": 46490307123,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 71358625144,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15486935003,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 453640255,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-01-silent-elite-long-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.3545091,
+            "totalAllocatedBytes": 1915601616,
+            "workerAllocatedBytes": 1595674224,
+            "totalExpanded": 5000,
+            "totalTransitions": 41310,
+            "totalChoiceBranches": 17562,
+            "projectedBattleHpLost": 43,
+            "combatEndedTurn": 6,
+            "score": 9999439960,
+            "pmu": {
+              "cycles:u": {
+                "count": 46841959888,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 71719961374,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15560402311,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 450799077,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-01-silent-elite-long-2-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.3171366,
+            "totalAllocatedBytes": 1915613912,
+            "workerAllocatedBytes": 1595658712,
+            "totalExpanded": 5000,
+            "totalTransitions": 41310,
+            "totalChoiceBranches": 17562,
+            "projectedBattleHpLost": 43,
+            "combatEndedTurn": 6,
+            "score": 9999439960,
+            "pmu": {
+              "cycles:u": {
+                "count": 46588755600,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 71685508070,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15546713675,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 449695741,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-01-silent-elite-long-3-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.2198167,
+            "totalAllocatedBytes": 1916837528,
+            "workerAllocatedBytes": 1596967512,
+            "totalExpanded": 5000,
+            "totalTransitions": 41310,
+            "totalChoiceBranches": 17562,
+            "projectedBattleHpLost": 43,
+            "combatEndedTurn": 6,
+            "score": 9999439960,
+            "pmu": {
+              "cycles:u": {
+                "count": 46177966856,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 71437825055,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15496057452,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 450742912,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-01-silent-elite-long-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "dev-01-silent-elite-long-2-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "dev-01-silent-elite-long-3-baseline",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 7.2664399500000005,
+        "finalWallSeconds": 7.33582285,
+        "wallDeltaPercent": 0.9548403410393425,
+        "baselineWorkerBytes": 1596967860,
+        "finalWorkerBytes": 1595666468,
+        "workerDeltaPercent": -0.08149143339678533
+      },
+      {
+        "case": "dev-02-defect-elite",
+        "runs": [
+          {
+            "run": "dev-02-defect-elite-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.1487649,
+            "totalAllocatedBytes": 593968944,
+            "workerAllocatedBytes": 360340832,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976,
+            "pmu": {
+              "cycles:u": {
+                "count": 26262855463,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41828525661,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8557424071,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 282836479,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-02-defect-elite-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.1642028,
+            "totalAllocatedBytes": 593968984,
+            "workerAllocatedBytes": 360319672,
+            "totalExpanded": 2000,
+            "totalTransitions": 9538,
+            "totalChoiceBranches": 896,
+            "projectedBattleHpLost": 5,
+            "combatEndedTurn": 5,
+            "score": 10002249976,
+            "pmu": {
+              "cycles:u": {
+                "count": 26203061211,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41785370592,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8552236065,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 282649593,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-02-defect-elite-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.1487649,
+        "finalWallSeconds": 3.1642028,
+        "wallDeltaPercent": 0.49028430163204906,
+        "baselineWorkerBytes": 360340832,
+        "finalWorkerBytes": 360319672,
+        "workerDeltaPercent": -0.005872218222546799
+      },
+      {
+        "case": "dev-03-regent-elite",
+        "runs": [
+          {
+            "run": "dev-03-regent-elite-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2355273,
+            "totalAllocatedBytes": 923835112,
+            "workerAllocatedBytes": 614994704,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 31744919789,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 50796027294,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10616891878,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 325970842,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-03-regent-elite-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.1784157,
+            "totalAllocatedBytes": 923240952,
+            "workerAllocatedBytes": 614486800,
+            "totalExpanded": 2000,
+            "totalTransitions": 14672,
+            "totalChoiceBranches": 2465,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 31490995559,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 50734358923,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10602467702,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 325031530,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-03-regent-elite-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 4.2355273,
+        "finalWallSeconds": 4.1784157,
+        "wallDeltaPercent": -1.348394094874561,
+        "baselineWorkerBytes": 614994704,
+        "finalWorkerBytes": 614486800,
+        "workerDeltaPercent": -0.08258672744603235
+      },
+      {
+        "case": "dev-03-regent-elite-long",
+        "runs": [
+          {
+            "run": "dev-03-regent-elite-long-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.4254075,
+            "totalAllocatedBytes": 1771933464,
+            "workerAllocatedBytes": 1462245272,
+            "totalExpanded": 5000,
+            "totalTransitions": 32974,
+            "totalChoiceBranches": 4907,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 47462826828,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 73470140004,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15864663928,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 454065119,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-03-regent-elite-long-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.3562895,
+            "totalAllocatedBytes": 1769748344,
+            "workerAllocatedBytes": 1460171880,
+            "totalExpanded": 5000,
+            "totalTransitions": 32974,
+            "totalChoiceBranches": 4907,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 47118600257,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 72968602543,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15760570502,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 451321176,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-03-regent-elite-long-2-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.4011346,
+            "totalAllocatedBytes": 1769867384,
+            "workerAllocatedBytes": 1460176800,
+            "totalExpanded": 5000,
+            "totalTransitions": 32974,
+            "totalChoiceBranches": 4907,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 47457192669,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 73565632697,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15893819305,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 450692595,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-03-regent-elite-long-3-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 7.3928989,
+            "totalAllocatedBytes": 1771933176,
+            "workerAllocatedBytes": 1462248120,
+            "totalExpanded": 5000,
+            "totalTransitions": 32974,
+            "totalChoiceBranches": 4907,
+            "projectedBattleHpLost": 28,
+            "combatEndedTurn": 4,
+            "score": 10000611978,
+            "pmu": {
+              "cycles:u": {
+                "count": 47301840852,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 73628936184,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 15906852589,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 450946046,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-03-regent-elite-long-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "dev-03-regent-elite-long-2-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "dev-03-regent-elite-long-3-baseline",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 7.4091532,
+        "finalWallSeconds": 7.37871205,
+        "wallDeltaPercent": -0.41085869300152567,
+        "baselineWorkerBytes": 1462246696,
+        "finalWorkerBytes": 1460174340,
+        "workerDeltaPercent": -0.14172410207312636
+      },
+      {
+        "case": "dev-04-necrobinder-elite",
+        "runs": [
+          {
+            "run": "dev-04-necrobinder-elite-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.052658,
+            "totalAllocatedBytes": 930722616,
+            "workerAllocatedBytes": 605576160,
+            "totalExpanded": 2000,
+            "totalTransitions": 17065,
+            "totalChoiceBranches": 7591,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975,
+            "pmu": {
+              "cycles:u": {
+                "count": 30826521513,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 49766320693,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10445046491,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 314339125,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-04-necrobinder-elite-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.013329,
+            "totalAllocatedBytes": 929803096,
+            "workerAllocatedBytes": 604684352,
+            "totalExpanded": 2000,
+            "totalTransitions": 17065,
+            "totalChoiceBranches": 7591,
+            "projectedBattleHpLost": 35,
+            "combatEndedTurn": 6,
+            "score": 9999804975,
+            "pmu": {
+              "cycles:u": {
+                "count": 30743611960,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 49691248706,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10425743171,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 315636272,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-04-necrobinder-elite-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 4.052658,
+        "finalWallSeconds": 4.013329,
+        "wallDeltaPercent": -0.9704495173291305,
+        "baselineWorkerBytes": 605576160,
+        "finalWorkerBytes": 604684352,
+        "workerDeltaPercent": -0.14726603504339186
+      },
+      {
+        "case": "dev-05-ironclad-boss",
+        "runs": [
+          {
+            "run": "dev-05-ironclad-boss-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4240673,
+            "totalAllocatedBytes": 689360360,
+            "workerAllocatedBytes": 436169776,
+            "totalExpanded": 2000,
+            "totalTransitions": 12502,
+            "totalChoiceBranches": 2406,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002208020,
+            "pmu": {
+              "cycles:u": {
+                "count": 27474776099,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 43875959519,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9037907547,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 293255934,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-05-ironclad-boss-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4217288,
+            "totalAllocatedBytes": 689079672,
+            "workerAllocatedBytes": 435893408,
+            "totalExpanded": 2000,
+            "totalTransitions": 12502,
+            "totalChoiceBranches": 2406,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": null,
+            "score": -1000002208020,
+            "pmu": {
+              "cycles:u": {
+                "count": 27329960596,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 43807706614,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9021750373,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 292691962,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-05-ironclad-boss-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.4240673,
+        "finalWallSeconds": 3.4217288,
+        "wallDeltaPercent": -0.06829597070128202,
+        "baselineWorkerBytes": 436169776,
+        "finalWorkerBytes": 435893408,
+        "workerDeltaPercent": -0.06336248296122671
+      },
+      {
+        "case": "dev-06-silent-boss",
+        "runs": [
+          {
+            "run": "dev-06-silent-boss-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4565693,
+            "totalAllocatedBytes": 731101328,
+            "workerAllocatedBytes": 459643600,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029,
+            "pmu": {
+              "cycles:u": {
+                "count": 27833977121,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 44726963692,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9268274567,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 291378601,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-06-silent-boss-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4030761,
+            "totalAllocatedBytes": 730993520,
+            "workerAllocatedBytes": 459550824,
+            "totalExpanded": 2000,
+            "totalTransitions": 13577,
+            "totalChoiceBranches": 2012,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -608029,
+            "pmu": {
+              "cycles:u": {
+                "count": 28113307272,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 44668393927,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9252300016,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 290880482,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-06-silent-boss-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.4565693,
+        "finalWallSeconds": 3.4030761,
+        "wallDeltaPercent": -1.5475807182572687,
+        "baselineWorkerBytes": 459643600,
+        "finalWorkerBytes": 459550824,
+        "workerDeltaPercent": -0.02018433412321885
+      },
+      {
+        "case": "dev-07-defect-boss",
+        "runs": [
+          {
+            "run": "dev-07-defect-boss-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.7225146,
+            "totalAllocatedBytes": 782042208,
+            "workerAllocatedBytes": 513237344,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023,
+            "pmu": {
+              "cycles:u": {
+                "count": 28986417898,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 46102492822,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9481320656,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 303566929,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-07-defect-boss-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.7078895,
+            "totalAllocatedBytes": 781532024,
+            "workerAllocatedBytes": 512768984,
+            "totalExpanded": 2000,
+            "totalTransitions": 13572,
+            "totalChoiceBranches": 3023,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -1948023,
+            "pmu": {
+              "cycles:u": {
+                "count": 29032223754,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 46151754532,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9493141420,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 303391406,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-07-defect-boss-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.7225146,
+        "finalWallSeconds": 3.7078895,
+        "wallDeltaPercent": -0.392882273718953,
+        "baselineWorkerBytes": 513237344,
+        "finalWorkerBytes": 512768984,
+        "workerDeltaPercent": -0.09125602520458909
+      },
+      {
+        "case": "dev-08-regent-boss",
+        "runs": [
+          {
+            "run": "dev-08-regent-boss-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.1138531,
+            "totalAllocatedBytes": 642008608,
+            "workerAllocatedBytes": 378177600,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028,
+            "pmu": {
+              "cycles:u": {
+                "count": 26133282466,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41992849722,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8622898673,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 282334737,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-08-regent-boss-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.1386488,
+            "totalAllocatedBytes": 641971216,
+            "workerAllocatedBytes": 378154736,
+            "totalExpanded": 2000,
+            "totalTransitions": 10038,
+            "totalChoiceBranches": 166,
+            "projectedBattleHpLost": 25,
+            "combatEndedTurn": null,
+            "score": -896028,
+            "pmu": {
+              "cycles:u": {
+                "count": 26339200034,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41998222936,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8621946634,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 282743415,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-08-regent-boss-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.1138531,
+        "finalWallSeconds": 3.1386488,
+        "wallDeltaPercent": 0.7963028185240972,
+        "baselineWorkerBytes": 378177600,
+        "finalWorkerBytes": 378154736,
+        "workerDeltaPercent": -0.006045836665102833
+      },
+      {
+        "case": "dev-09-necrobinder-boss",
+        "runs": [
+          {
+            "run": "dev-09-necrobinder-boss-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.9991499,
+            "totalAllocatedBytes": 878779264,
+            "workerAllocatedBytes": 601077216,
+            "totalExpanded": 2000,
+            "totalTransitions": 18422,
+            "totalChoiceBranches": 9238,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021,
+            "pmu": {
+              "cycles:u": {
+                "count": 30451083269,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 49778969030,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10410376665,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 312000923,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-09-necrobinder-boss-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.0018908,
+            "totalAllocatedBytes": 877454840,
+            "workerAllocatedBytes": 599816376,
+            "totalExpanded": 2000,
+            "totalTransitions": 18422,
+            "totalChoiceBranches": 9238,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": null,
+            "score": -898021,
+            "pmu": {
+              "cycles:u": {
+                "count": 30590982050,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 49593359195,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10367083222,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 311245930,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-09-necrobinder-boss-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.9991499,
+        "finalWallSeconds": 4.0018908,
+        "wallDeltaPercent": 0.06853706583991315,
+        "baselineWorkerBytes": 601077216,
+        "finalWorkerBytes": 599816376,
+        "workerDeltaPercent": -0.20976339918363784
+      },
+      {
+        "case": "dev-10-ironclad-monster",
+        "runs": [
+          {
+            "run": "dev-10-ironclad-monster-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.520616,
+            "totalAllocatedBytes": 638567648,
+            "workerAllocatedBytes": 408998064,
+            "totalExpanded": 2000,
+            "totalTransitions": 11648,
+            "totalChoiceBranches": 2151,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996,
+            "pmu": {
+              "cycles:u": {
+                "count": 27752075924,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 43639086723,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8942802954,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 302404400,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-10-ironclad-monster-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4865208,
+            "totalAllocatedBytes": 638434672,
+            "workerAllocatedBytes": 408880720,
+            "totalExpanded": 2000,
+            "totalTransitions": 11648,
+            "totalChoiceBranches": 2151,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 1,
+            "score": 10002399996,
+            "pmu": {
+              "cycles:u": {
+                "count": 27663073259,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 43582150348,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8931980712,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 302809473,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-10-ironclad-monster-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.520616,
+        "finalWallSeconds": 3.4865208,
+        "wallDeltaPercent": -0.9684441586358727,
+        "baselineWorkerBytes": 408998064,
+        "finalWorkerBytes": 408880720,
+        "workerDeltaPercent": -0.028690600354530638
+      },
+      {
+        "case": "dev-11-silent-monster",
+        "runs": [
+          {
+            "run": "dev-11-silent-monster-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.8929377,
+            "totalAllocatedBytes": 555179672,
+            "workerAllocatedBytes": 335344776,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979,
+            "pmu": {
+              "cycles:u": {
+                "count": 25044123500,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 39916531307,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8122196739,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 273696211,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "dev-11-silent-monster-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9042827,
+            "totalAllocatedBytes": 555132736,
+            "workerAllocatedBytes": 335316520,
+            "totalExpanded": 2000,
+            "totalTransitions": 9760,
+            "totalChoiceBranches": 1066,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 3,
+            "score": 10002091979,
+            "pmu": {
+              "cycles:u": {
+                "count": 25016764563,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 39945510803,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8129715508,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 273548559,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "dev-11-silent-monster-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 2.8929377,
+        "finalWallSeconds": 2.9042827,
+        "wallDeltaPercent": 0.39216191900710573,
+        "baselineWorkerBytes": 335344776,
+        "finalWorkerBytes": 335316520,
+        "workerDeltaPercent": -0.00842595502367205
+      },
+      {
+        "case": "holdout-00-ironclad",
+        "runs": [
+          {
+            "run": "holdout-00-ironclad-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.5141029,
+            "totalAllocatedBytes": 453420008,
+            "workerAllocatedBytes": 212676312,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993,
+            "pmu": {
+              "cycles:u": {
+                "count": 23079744279,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 37533676429,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 7526963817,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 256026964,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "holdout-00-ironclad-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.5055446,
+            "totalAllocatedBytes": 452946344,
+            "workerAllocatedBytes": 212339296,
+            "totalExpanded": 1343,
+            "totalTransitions": 6553,
+            "totalChoiceBranches": 2276,
+            "projectedBattleHpLost": 3,
+            "combatEndedTurn": 3,
+            "score": 10002199993,
+            "pmu": {
+              "cycles:u": {
+                "count": 23087243129,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 37554479467,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 7528720750,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 256753139,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "holdout-00-ironclad-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 2.5141029,
+        "finalWallSeconds": 2.5055446,
+        "wallDeltaPercent": -0.34041168322904714,
+        "baselineWorkerBytes": 212676312,
+        "finalWorkerBytes": 212339296,
+        "workerDeltaPercent": -0.1584642863282304
+      },
+      {
+        "case": "holdout-01-silent",
+        "runs": [
+          {
+            "run": "holdout-01-silent-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.5200027,
+            "totalAllocatedBytes": 803099112,
+            "workerAllocatedBytes": 486987088,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982,
+            "pmu": {
+              "cycles:u": {
+                "count": 28361807727,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 45653458588,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9454336039,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 299059522,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "holdout-01-silent-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.4986486,
+            "totalAllocatedBytes": 803085416,
+            "workerAllocatedBytes": 486969328,
+            "totalExpanded": 2000,
+            "totalTransitions": 12047,
+            "totalChoiceBranches": 709,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 4,
+            "score": 10002075982,
+            "pmu": {
+              "cycles:u": {
+                "count": 28206863385,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 45699869691,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9466048279,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 298893368,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "holdout-01-silent-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.5200027,
+        "finalWallSeconds": 3.4986486,
+        "wallDeltaPercent": -0.606650102853612,
+        "baselineWorkerBytes": 486987088,
+        "finalWorkerBytes": 486969328,
+        "workerDeltaPercent": -0.0036469139403583206
+      },
+      {
+        "case": "holdout-02-defect",
+        "runs": [
+          {
+            "run": "holdout-02-defect-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9239342,
+            "totalAllocatedBytes": 654533296,
+            "workerAllocatedBytes": 349252064,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023,
+            "pmu": {
+              "cycles:u": {
+                "count": 25271147313,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41312532199,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8490269310,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 269386646,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "holdout-02-defect-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.9076324,
+            "totalAllocatedBytes": 654459112,
+            "workerAllocatedBytes": 349251440,
+            "totalExpanded": 2000,
+            "totalTransitions": 9270,
+            "totalChoiceBranches": 0,
+            "projectedBattleHpLost": 1,
+            "combatEndedTurn": null,
+            "score": -740023,
+            "pmu": {
+              "cycles:u": {
+                "count": 25334502500,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 41401227518,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 8508847689,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 268394851,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "holdout-02-defect-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 2.9239342,
+        "finalWallSeconds": 2.9076324,
+        "wallDeltaPercent": -0.5575296461869939,
+        "baselineWorkerBytes": 349252064,
+        "finalWorkerBytes": 349251440,
+        "workerDeltaPercent": -0.00017866751962358762
+      },
+      {
+        "case": "holdout-03-regent",
+        "runs": [
+          {
+            "run": "holdout-03-regent-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.6338481,
+            "totalAllocatedBytes": 823410376,
+            "workerAllocatedBytes": 503731816,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980,
+            "pmu": {
+              "cycles:u": {
+                "count": 28793527247,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 46297316070,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9635996324,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 301982133,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "holdout-03-regent-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 3.6637665,
+            "totalAllocatedBytes": 823314272,
+            "workerAllocatedBytes": 503640184,
+            "totalExpanded": 1942,
+            "totalTransitions": 14735,
+            "totalChoiceBranches": 4092,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 5,
+            "score": 10002249980,
+            "pmu": {
+              "cycles:u": {
+                "count": 28994952434,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 46326779561,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 9641778445,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 301721878,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "holdout-03-regent-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 3.6338481,
+        "finalWallSeconds": 3.6637665,
+        "wallDeltaPercent": 0.8233255539767947,
+        "baselineWorkerBytes": 503731816,
+        "finalWorkerBytes": 503640184,
+        "workerDeltaPercent": -0.018190631818260083
+      },
+      {
+        "case": "holdout-04-necrobinder",
+        "runs": [
+          {
+            "run": "holdout-04-necrobinder-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2281739,
+            "totalAllocatedBytes": 1034961944,
+            "workerAllocatedBytes": 619752792,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017,
+            "pmu": {
+              "cycles:u": {
+                "count": 32338362079,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 52338583046,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 11003570694,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 324736736,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "holdout-04-necrobinder-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 4.2043777,
+            "totalAllocatedBytes": 1034832408,
+            "workerAllocatedBytes": 619651464,
+            "totalExpanded": 2000,
+            "totalTransitions": 13488,
+            "totalChoiceBranches": 786,
+            "projectedBattleHpLost": 42,
+            "combatEndedTurn": null,
+            "score": -1000002430017,
+            "pmu": {
+              "cycles:u": {
+                "count": 32253441438,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 52316503738,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 10998970776,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 325570656,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "holdout-04-necrobinder-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 4.2281739,
+        "finalWallSeconds": 4.2043777,
+        "wallDeltaPercent": -0.562800881959935,
+        "baselineWorkerBytes": 619752792,
+        "finalWorkerBytes": 619651464,
+        "workerDeltaPercent": -0.016349744818899836
+      },
+      {
+        "case": "target-dense",
+        "runs": [
+          {
+            "run": "target-dense-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 1.9506656,
+            "totalAllocatedBytes": 311664024,
+            "workerAllocatedBytes": 75115016,
+            "totalExpanded": 500,
+            "totalTransitions": 2340,
+            "totalChoiceBranches": 461,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002324986,
+            "pmu": {
+              "cycles:u": {
+                "count": 19870569765,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 33073523405,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6540382375,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 223778138,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-dense-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 1.9345876,
+            "totalAllocatedBytes": 311390504,
+            "workerAllocatedBytes": 74875592,
+            "totalExpanded": 500,
+            "totalTransitions": 2340,
+            "totalChoiceBranches": 461,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002324986,
+            "pmu": {
+              "cycles:u": {
+                "count": 19853349795,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 33078576386,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6542058900,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 223707985,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-dense-2-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 1.9513927,
+            "totalAllocatedBytes": 311393448,
+            "workerAllocatedBytes": 74891896,
+            "totalExpanded": 500,
+            "totalTransitions": 2340,
+            "totalChoiceBranches": 461,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002324986,
+            "pmu": {
+              "cycles:u": {
+                "count": 19837088665,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 33075507290,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6541938741,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 223752030,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-dense-3-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 1.9644646,
+            "totalAllocatedBytes": 311570472,
+            "workerAllocatedBytes": 75114240,
+            "totalExpanded": 500,
+            "totalTransitions": 2340,
+            "totalChoiceBranches": 461,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002324986,
+            "pmu": {
+              "cycles:u": {
+                "count": 19928114209,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 33080732035,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6542751524,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 223927907,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "target-dense-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "target-dense-2-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "target-dense-3-baseline",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 1.9575651,
+        "finalWallSeconds": 1.94299015,
+        "wallDeltaPercent": -0.7445448429786672,
+        "baselineWorkerBytes": 75114628,
+        "finalWorkerBytes": 74883744,
+        "workerDeltaPercent": -0.3073755487413177
+      },
+      {
+        "case": "target-purity",
+        "runs": [
+          {
+            "run": "target-purity-0-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1498515,
+            "totalAllocatedBytes": 344871992,
+            "workerAllocatedBytes": 108168264,
+            "totalExpanded": 449,
+            "totalTransitions": 3661,
+            "totalChoiceBranches": 1849,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002384992,
+            "pmu": {
+              "cycles:u": {
+                "count": 20780141981,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 34310272986,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6797067925,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 233513422,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-purity-1-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1318797,
+            "totalAllocatedBytes": 344561176,
+            "workerAllocatedBytes": 107825656,
+            "totalExpanded": 449,
+            "totalTransitions": 3661,
+            "totalChoiceBranches": 1849,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002384992,
+            "pmu": {
+              "cycles:u": {
+                "count": 20710740470,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 34255320370,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6786030041,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 232931823,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-purity-2-final",
+            "variant": "final",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.0940762,
+            "totalAllocatedBytes": 344439216,
+            "workerAllocatedBytes": 107828568,
+            "totalExpanded": 449,
+            "totalTransitions": 3661,
+            "totalChoiceBranches": 1849,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002384992,
+            "pmu": {
+              "cycles:u": {
+                "count": 20566488898,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 34265629989,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6787767955,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 232892162,
+                "runningPercent": 100.0
+              }
+            }
+          },
+          {
+            "run": "target-purity-3-baseline",
+            "variant": "baseline",
+            "status": "Passed",
+            "timeBoundaryObserved": false,
+            "wallSeconds": 2.1139654,
+            "totalAllocatedBytes": 344926872,
+            "workerAllocatedBytes": 108168480,
+            "totalExpanded": 449,
+            "totalTransitions": 3661,
+            "totalChoiceBranches": 1849,
+            "projectedBattleHpLost": 0,
+            "combatEndedTurn": 2,
+            "score": 10002384992,
+            "pmu": {
+              "cycles:u": {
+                "count": 20626391955,
+                "runningPercent": 100.0
+              },
+              "instructions:u": {
+                "count": 34313137848,
+                "runningPercent": 100.0
+              },
+              "branches:u": {
+                "count": 6797186664,
+                "runningPercent": 100.0
+              },
+              "branch-misses:u": {
+                "count": 233384416,
+                "runningPercent": 100.0
+              }
+            }
+          }
+        ],
+        "comparisons": [
+          {
+            "run": "target-purity-1-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "target-purity-2-final",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          },
+          {
+            "run": "target-purity-3-baseline",
+            "metricFields": 73,
+            "metricDifferences": [],
+            "routeEqual": true,
+            "rootEqual": true,
+            "continuationsEqual": true,
+            "pruneEqual": true,
+            "policyEqual": true,
+            "qualityEqual": true
+          }
+        ],
+        "baselineWallSeconds": 2.13190845,
+        "finalWallSeconds": 2.11297795,
+        "wallDeltaPercent": -0.8879602686503785,
+        "baselineWorkerBytes": 108168372,
+        "finalWorkerBytes": 107827112,
+        "workerDeltaPercent": -0.3154896331434065
+      }
+    ]
+  },
+  "validation": {
+    "releaseBuild": "Passed, 0 warnings/errors; /tmp/broad-perf-bounded-final-build.log",
+    "bashGate": "REFACTOR_BOUNDARIES_OK search_files=238",
+    "powershellGate": "REFACTOR_BOUNDARIES_OK search_files=238"
+  }
+}

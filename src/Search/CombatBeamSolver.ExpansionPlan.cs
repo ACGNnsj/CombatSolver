@@ -313,27 +313,31 @@ internal sealed partial class CombatBeamSolver
             ReleasePlannedCandidate(child, batch);
             return;
         }
+        bool retainedMutation = CanRetainOrderedMutationLease(_run, child);
+        bool deferredCycle = !retainedMutation
+            && ShouldDeferCycleTranspositionUntilActionAdmission(child);
+        // Tactical classification scans history and clones the node, but neither result
+        // participates in exact-state admission. Reject ordinary duplicates before paying
+        // that cost. Mutation leases and deferred cycle admission keep their original paths.
+        if (!retainedMutation && !deferredCycle && !TryAcceptTransposition(child))
+        {
+            ReleasePlannedCandidate(child, batch);
+            return;
+        }
         ActionCandidate candidate = BuildCandidate(
-            parent.Snapshot,
-            child.Snapshot,
-            child,
-            raw.CardType,
-            raw.TargetCombatId);
-        if (CanRetainOrderedMutationLease(_run, child))
+            parent.Snapshot, child.Snapshot, child, raw.CardType, raw.TargetCombatId);
+        if (retainedMutation)
         {
             nonDominated.Add(candidate);
             return;
         }
-        if (ShouldDeferCycleTranspositionUntilActionAdmission(child))
+        if (deferredCycle)
         {
             deferredCycleCandidates ??= [];
             deferredCycleCandidates.Add(candidate);
             return;
         }
-        if (TryAcceptTransposition(child))
-            AddNonDominatedCandidate(nonDominated, candidate, batch);
-        else
-            ReleasePlannedCandidate(child, batch);
+        AddNonDominatedCandidate(nonDominated, candidate, batch);
     }
 
     private static void ReleasePlannedCandidate(SearchNode child, ExpansionBatch? batch)

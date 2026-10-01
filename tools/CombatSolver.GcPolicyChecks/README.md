@@ -11,6 +11,7 @@ dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChec
 dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChecks.csproj -c Release -- checkpoint
 dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChecks.csproj -c Release -- recovery
 dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChecks.csproj -c Release -- recovery-lifecycle
+dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChecks.csproj -c Release -- manual-release
 ```
 
 2026-09-13：基础20项、scope8项、检查点1项、恢复状态机6项、恢复生命周期2项通过。基础与scope覆盖预测、暂停归属、准入、重叠、取消和重复Dispose；恢复检查覆盖完成证据只消费一次、观察/退避、每scope三次上限、物理余量、默认回退和信号断开。
@@ -28,3 +29,5 @@ dotnet run --project tools/CombatSolver.GcPolicyChecks/CombatSolver.GcPolicyChec
 ```
 
 同一命令可在Linux或Windows .NET 9运行。详细范围与原生/搜索验证见[GC完成链修复与优化筛选](../../docs/performance/gc-completion-allocation-20260921.md)。
+
+2026-10-01：`manual-release` 使用1 GiB真实NoGC预留、200 MiB短命搜索缓冲及64 MiB保留数据，验证手动释放归还空闲提交空间、保留数据访问的工作集稳定和预留退出。Windows普通/ServerGC失败基线及原生生成路线验收见[报告](../../docs/performance/manual-memory-release-20261001.md)。该模式主动触发真实GC；Linux尚未执行。
