@@ -18,7 +18,7 @@ internal static class StrategicHpRecoveryBound
     internal static bool HasOnlyPostCombatHealing(CombatPredictionSimulator simulator, Player player)
     {
         SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
-        if (player.Character is not (Ironclad or Necrobinder)
+        if (player.Character is not (Ironclad or Necrobinder or Silent)
             || combat.KnownEnemies.Any(enemy => enemy.Monster?.GetType().Assembly != typeof(Ironclad).Assembly)
             || combat.Modifiers.Count != 0
             || combat.RootRunModSubscriberCount != 0
@@ -47,7 +47,8 @@ internal static class StrategicHpRecoveryBound
     private static bool IsSafeRelic(MegaCrit.Sts2.Core.Models.RelicModel relic)
         => relic.GetType() == typeof(BurningBlood)
             || relic.GetType() == typeof(BlackBlood)
-            || relic.GetType() == typeof(BoundPhylactery);
+            || relic.GetType() == typeof(BoundPhylactery)
+            || relic.GetType() == typeof(RingOfTheSnake);
 
     private static bool IsSafePower(MegaCrit.Sts2.Core.Models.PowerModel power)
         => power.GetType() == typeof(NeurosurgePower)
@@ -58,8 +59,12 @@ internal static class StrategicHpRecoveryBound
         Type type = card.GetType();
         return type == typeof(StrikeIronclad)
             || type == typeof(StrikeNecrobinder)
+            || type == typeof(StrikeSilent)
             || type == typeof(DefendIronclad)
             || type == typeof(DefendNecrobinder)
+            || type == typeof(DefendSilent)
+            || type == typeof(Neutralize)
+            || type == typeof(Survivor)
             || type == typeof(Bash)
             || type == typeof(Bodyguard)
             || type == typeof(Unleash)
