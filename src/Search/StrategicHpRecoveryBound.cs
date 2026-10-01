@@ -9,7 +9,8 @@ namespace CombatSolver;
 
 internal readonly record struct StrategicHpRecoveryBoundAssessment(
     bool IsCertified,
-    string Reason);
+    string Reason,
+    string? BlockingSourceId = null);
 
 /// <summary>
 /// A deliberately small closed set of roots whose future actions cannot restore player HP.
@@ -27,9 +28,11 @@ internal static class StrategicHpRecoveryBound
     {
         SimulatedCombatState combat = (SimulatedCombatState)simulator.State.CombatState;
         if (player.Character is not (Ironclad or Necrobinder or Silent))
-            return new(false, "unsupported_character");
-        if (combat.KnownEnemies.Any(enemy => enemy.Monster?.GetType().Assembly != typeof(Ironclad).Assembly))
-            return new(false, "non_native_enemy");
+            return new(false, "unsupported_character", player.Character.Id.Entry);
+        var nonNativeEnemy = combat.KnownEnemies.FirstOrDefault(
+            enemy => enemy.Monster?.GetType().Assembly != typeof(Ironclad).Assembly);
+        if (nonNativeEnemy is not null)
+            return new(false, "non_native_enemy", nonNativeEnemy.Monster?.Id.Entry);
         if (combat.Modifiers.Count != 0)
             return new(false, "encounter_modifier");
         if (combat.RootRunModSubscriberCount != 0)
@@ -40,22 +43,26 @@ internal static class StrategicHpRecoveryBound
             return new(false, "base_lib_card_modifier");
         if (combat.AdaptedOnPlay is not null)
             return new(false, "adapted_on_play");
-        if (player.PotionSlots.Any(static potion => potion is not null))
-            return new(false, "potion_present");
-        if (combat.RelicsOf(player).Any(static relic => !relic.IsMelted && !IsSafeRelic(relic)))
-            return new(false, "unsupported_relic");
-        if (combat.EffectivePowers().Any(power => ReferenceEquals(power.Owner, player.Creature)
-                && !IsSafePower(power)))
-            return new(false, "unsupported_player_power");
+        var presentPotion = player.PotionSlots.FirstOrDefault(static potion => potion is not null);
+        if (presentPotion is not null)
+            return new(false, "potion_present", presentPotion.Id.Entry);
+        var unsupportedRelic = combat.RelicsOf(player)
+            .FirstOrDefault(static relic => !relic.IsMelted && !IsSafeRelic(relic));
+        if (unsupportedRelic is not null)
+            return new(false, "unsupported_relic", unsupportedRelic.Id.Entry);
+        var unsupportedPower = combat.EffectivePowers().FirstOrDefault(power =>
+            ReferenceEquals(power.Owner, player.Creature) && !IsSafePower(power));
+        if (unsupportedPower is not null)
+            return new(false, "unsupported_player_power", unsupportedPower.Id.Entry);
 
         foreach (var card in simulator.State.GetPlayerCombatState(player).AllCards)
         {
             if (card.Preview.Enchantment is not null)
-                return new(false, "card_enchantment");
+                return new(false, "card_enchantment", card.Preview.Id.Entry);
             if (card.Preview.Affliction is not null)
-                return new(false, "card_affliction");
+                return new(false, "card_affliction", card.Preview.Id.Entry);
             if (!IsSafeCard(card.Preview))
-                return new(false, "unsupported_card");
+                return new(false, "unsupported_card", card.Preview.Id.Entry);
         }
 
         return new(true, "certified");

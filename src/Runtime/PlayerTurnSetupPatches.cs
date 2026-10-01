@@ -821,6 +821,7 @@ internal static class PlayerTurnSetupCoordinator
             $"base_lib_card_modifiers={capturedRoot.CapturedBaseLibCardModifiers} " +
             $"strategic_hp_recovery_bound={(capturedRoot.HasOnlyPostCombatHealing ? "certified" : "bypassed")} " +
             $"strategic_hp_recovery_bound_reason={capturedRoot.HealingBoundCertificationReason} " +
+            $"strategic_hp_recovery_bound_source={Uri.EscapeDataString(capturedRoot.HealingBoundCertificationSourceId ?? "-")} " +
             $"strategic_hp_recovery_bound_postcombat_heal_hp={(capturedRoot.HasOnlyPostCombatHealing ? Math.Max(0, capturedRoot.PostCombatRelicHeal.UnconditionalHeal).ToString() : "unbounded")}");
         if (replayChoices != null)
         {

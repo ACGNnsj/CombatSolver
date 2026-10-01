@@ -2,9 +2,11 @@
 
 ## 生命界认证与边际剪枝日志（2026-10-02）
 
-此轮只增加诊断数据，不改变认证门禁、搜索候选、剪枝条件或预算。`COMBAT_ROOT_CAPTURE` 与自动搜索入口的 `TURN_SETUP_ROOT_CAPTURE` 均记录 `strategic_hp_recovery_bound`（根认证是否通过）、`strategic_hp_recovery_bound_reason`（认证顺序中首个不满足的稳定原因码）和 `strategic_hp_recovery_bound_postcombat_heal_hp`（已认证根允许计入的固定战后治疗量；未认证时为 `unbounded`）。原因码包括 `unsupported_character`、`non_native_enemy`、`encounter_modifier`、`run_mod_subscriber`、`combat_mod_subscriber`、`base_lib_card_modifier`、`adapted_on_play`、`potion_present`、`unsupported_relic`、`unsupported_player_power`、`card_enchantment`、`card_affliction`、`unsupported_card` 和 `certified`。
+此轮只增加诊断数据，不改变认证门禁、搜索候选、剪枝条件或预算。`COMBAT_ROOT_CAPTURE` 与自动搜索入口的 `TURN_SETUP_ROOT_CAPTURE` 均记录 `strategic_hp_recovery_bound`（根认证是否通过）、`strategic_hp_recovery_bound_reason`（认证顺序中首个不满足的稳定原因码）、`strategic_hp_recovery_bound_source`（如首因来自特定角色、敌人、药水、遗物、Power 或卡牌，则记录其 ID；URI 转义；无单一来源时为 `-`）和 `strategic_hp_recovery_bound_postcombat_heal_hp`（已认证根允许计入的固定战后治疗量；未认证时为 `unbounded`）。原因码包括 `unsupported_character`、`non_native_enemy`、`encounter_modifier`、`run_mod_subscriber`、`combat_mod_subscriber`、`base_lib_card_modifier`、`adapted_on_play`、`potion_present`、`unsupported_relic`、`unsupported_player_power`、`card_enchantment`、`card_affliction`、`unsupported_card` 和 `certified`。
 
 搜索结果及 ETC 成员日志中的 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned` 是边际数：同一候选在认证上界下被 primary incumbent 剪掉，而把未来治疗潜力放宽到完整缺血余量时不会被剪掉。原有 `primary_incumbent_pruned`／`incumbent_pruned` 总数不变。边际数只覆盖 incumbent 这一剪枝点检查过的保留节点，不能解释为所有层的剪枝总数、减少的展开数或节省时间；旧日志不会包含这些字段。源码审阅确认该比较不改变原先的剪枝谓词。首次实机验证 session `15052-1603d6f4ec2a4f54b4ebfdefb92e6576` 含26个战斗文件、26个 Begin/End、25个保留事件、无截断；150条搜索结果和292条 ETC 成员记录均带新边际字段且为0。26条根捕获中，18条 `COMBAT_ROOT_CAPTURE` 均旁路（药水8次、未认证遗物10次），另8条自动入口 `TURN_SETUP_ROOT_CAPTURE` 缺少认证字段，故该局不能完整统计根认证原因；字段已补到该入口，旧日志无法回补。最终 Release 构建成功（0警告／0错误），五文件精确部署至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。未运行战斗测试或可见游戏；新一局日志可完整核验认证和实际命中。
+
+本轮 Release 使用 `dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false -p:SteamRoot=D:/SteamLibrary`，0 警告／0 错误；构建阶段先因默认 Steam 路径不匹配失败，显式指向已确认的游戏目录后成功。成功构建后精确覆盖 manifest、DLL、MemoryCleaner、LICENSE 与第三方声明文件至本地 Mod 目录。未运行战斗测试或启动可见游戏；来源 ID 字段待新日志核验。
 
 ## 0.47.3 版本与发布登记（2026-10-01）
 

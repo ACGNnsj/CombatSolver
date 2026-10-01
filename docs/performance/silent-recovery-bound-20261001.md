@@ -64,6 +64,10 @@ Release 构建 0 警告／0 错误（20.65秒），Windows 结构门禁 `REFACTO
 
 ## 后续日志归因字段（2026-10-02）
 
-为后续实机检查认证是否实际命中，`COMBAT_ROOT_CAPTURE` 与 `TURN_SETUP_ROOT_CAPTURE` 都记录 `strategic_hp_recovery_bound=certified|bypassed`、稳定的首个拒绝原因码 `strategic_hp_recovery_bound_reason`，以及 `strategic_hp_recovery_bound_postcombat_heal_hp`。认证通过时该值是固定战后治疗量；未通过时输出 `unbounded`。该字段证明门禁结果，不证明这场战斗实际利用了更紧的界。首轮日志分析确认自动搜索入口还需补上该组字段，详情与本轮日志覆盖量见[测试矩阵](../TEST_MATRIX.md#生命界认证与边际剪枝日志2026-10-02)。
+为后续实机检查认证是否实际命中，`COMBAT_ROOT_CAPTURE` 与 `TURN_SETUP_ROOT_CAPTURE` 都记录 `strategic_hp_recovery_bound=certified|bypassed`、稳定的首个拒绝原因码 `strategic_hp_recovery_bound_reason`、该原因对应的来源 ID `strategic_hp_recovery_bound_source`（URI 转义；无单一来源时为 `-`），以及 `strategic_hp_recovery_bound_postcombat_heal_hp`。认证通过时该值是固定战后治疗量；未通过时输出 `unbounded`。这些字段证明门禁结果，不证明这场战斗实际利用了更紧的界。首轮日志分析确认自动搜索入口还需补上根认证字段；随后遇到十次 `unsupported_relic`，旧日志没有遗物 ID，无法判断能否安全扩展白名单，因此增加来源 ID 字段。详情与日志覆盖量见[测试矩阵](../TEST_MATRIX.md#生命界认证与边际剪枝日志2026-10-02)。
 
 搜索结果和早期回合续搜成员日志新增 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned`。它只计当前认证上界判为可剪、但按完整缺血余量仍可保留的 incumbent 检查候选，属于边际归因；原有剪枝合计字段保持不变。计数不是减掉的总展开、墙钟收益，也不包含 Beam 保留等其他阶段。旧实机日志未含这些字段，因此只能由本次部署后的战斗验证实际命中。本轮源码差异检查与 Release 构建通过（0 警告／0 错误），五个部署文件已精确覆盖至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。未运行游戏或战斗测试。
+
+### 后续来源归因实施（2026-10-02）
+
+最新实机里十个生命界根因 `unsupported_relic`，但日志没有具体遗物 ID。新增 `strategic_hp_recovery_bound_source`：当首个拒绝项来自特定角色、敌人、药水、遗物、玩家 Power 或卡牌时记录相应 ID；其他拒绝及认证成功记 `-`。两类根捕获入口都写此字段，值做 URI 转义。它只用于定位认证缺口，不更改认证与搜索。Release 构建 0 警告／0 错误；五个部署文件已复制到本地 Mod。无战斗测试或实机验证。

@@ -54,6 +54,7 @@ internal sealed class CombatRootSnapshot
     public bool HasVisibleHealingSource { get; }
     public bool HasOnlyPostCombatHealing { get; }
     public string HealingBoundCertificationReason { get; }
+    public string? HealingBoundCertificationSourceId { get; }
     public CombatHistoryDependencies HistoryDependencies { get; }
     public int CapturedPowerCount { get; }
     public int CapturedHookListenerCount { get; }
@@ -134,6 +135,7 @@ internal sealed class CombatRootSnapshot
         HasVisibleHealingSource = hasVisibleHealingSource;
         HasOnlyPostCombatHealing = healingBoundAssessment.IsCertified;
         HealingBoundCertificationReason = healingBoundAssessment.Reason;
+        HealingBoundCertificationSourceId = healingBoundAssessment.BlockingSourceId;
         HistoryDependencies = historyDependencies;
         CapturedPowerCount = capturedPowerCount;
         CapturedHookListenerCount = capturedHookListenerCount;

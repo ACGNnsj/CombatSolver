@@ -36,6 +36,10 @@
 
 2026-10-02 日志补充生命界可核验字段，不改变认证范围、搜索策略或预算。`COMBAT_ROOT_CAPTURE` 与自动搜索实际使用的 `TURN_SETUP_ROOT_CAPTURE` 都记录 `strategic_hp_recovery_bound`、首个拒绝原因 `strategic_hp_recovery_bound_reason`，以及已认证时固定战后治疗上界 `strategic_hp_recovery_bound_postcombat_heal_hp`（旁路时为 `unbounded`）。搜索结果与 ETC 成员日志新增 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned`：只计在相同候选上，经认证的固定治疗上界会剪枝、而按完整缺血余量仍不会剪枝的节点数；它是边际归因值，不是所有搜索阶段的总剪枝数，也不是节省的节点或耗时。首批实机日志已包含两种剪枝字段，但检查发现自动搜索入口的 `TURN_SETUP_ROOT_CAPTURE` 缺根认证信息，之后补齐此日志路径；旧日志无法追溯缺失原因。最新构建、部署及该入口修复证据见[测试矩阵](TEST_MATRIX.md#生命界认证与边际剪枝日志2026-10-02)。
 
+根据后续实机分析，生命界旁路日志补充首个阻塞来源 ID。该局 138 个早期续搜成员共展开 2,556,225 个节点、记录 298.8 秒；EndTurn 前缀为 322,792 节点、40.8 秒，且未严格采用。部分其他前缀带来路线改进，故没有改变续搜顺序或预算。该局十次 `unsupported_relic` 未记录遗物 ID，现将来源 ID 加入根捕获日志，为逐项审计并扩大安全认证集合提供材料；认证门禁和搜索行为保持不变。验证与部署以本次提交记录为准。
+
+本轮构建命令 `dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false -p:SteamRoot=D:/SteamLibrary` 成功，0 警告／0 错误；五个部署文件已覆盖至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。未运行战斗测试或可见游戏，新来源字段待后续日志验证。
+
 ## 0.47.2（2026-09-28）
 
 按用户本次小版本指令从 0.47.1 更新至 0.47.2，同步项目版本、manifest 与 [中英玩家更新日志](releases/0.47.2-RELEASE_NOTES.md)。本版以 v0.47.1 为基线，包含已合入的 P0–P6 重构及现存策略改进、PR #138/#139/#140/#142/#143 和内存条修复；玩家日志仅列能感知的最终变化，保留贡献者与 PR 链接。#144 未合入，不计入本版；P7/P8 停止继续开发，未达到阶段退出标准。用户随后明确“全平台发版”，本版定稿并按统一脚本发布至创意工坊、GitHub Release 和夸克网盘；各渠道完成状态记录在忽略的发布状态文件中。
