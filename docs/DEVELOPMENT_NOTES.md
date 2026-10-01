@@ -34,7 +34,7 @@
 
 问题反馈设置新增“保留本进程全部战斗日志”，打开后新战斗开始时不再删除上一场的详细 JSONL 文件，并在进程日志记录保留事件。该选项只改变本地文件保留，不增加搜索日志内容、不改变搜索调度；每场战斗仍受 32 MiB 文件上限约束，默认关闭，已删除日志不能恢复。问题包仍只带当前/最近一场详细日志及摘要历史。本轮 Release 构建 0 警告／0 错误，五文件本地部署通过；未在游戏中验证跨战斗保留。
 
-2026-10-02 日志补充生命界可核验字段，不改变认证范围、搜索策略或预算。`COMBAT_ROOT_CAPTURE` 记录 `strategic_hp_recovery_bound`、首个拒绝原因 `strategic_hp_recovery_bound_reason`，以及已认证时固定战后治疗上界 `strategic_hp_recovery_bound_postcombat_heal_hp`（旁路时为 `unbounded`）。搜索结果与 ETC 成员日志新增 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned`：只计在相同候选上，经认证的固定治疗上界会剪枝、而按完整缺血余量仍不会剪枝的节点数；它是边际归因值，不是所有搜索阶段的总剪枝数，也不是节省的节点或耗时。旧日志没有这些字段，须用新部署版本产生的日志观察实际命中。Release 构建、精确本地部署及字段路径见[测试矩阵](TEST_MATRIX.md#生命界认证与边际剪枝日志2026-10-02)。
+2026-10-02 日志补充生命界可核验字段，不改变认证范围、搜索策略或预算。`COMBAT_ROOT_CAPTURE` 与自动搜索实际使用的 `TURN_SETUP_ROOT_CAPTURE` 都记录 `strategic_hp_recovery_bound`、首个拒绝原因 `strategic_hp_recovery_bound_reason`，以及已认证时固定战后治疗上界 `strategic_hp_recovery_bound_postcombat_heal_hp`（旁路时为 `unbounded`）。搜索结果与 ETC 成员日志新增 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned`：只计在相同候选上，经认证的固定治疗上界会剪枝、而按完整缺血余量仍不会剪枝的节点数；它是边际归因值，不是所有搜索阶段的总剪枝数，也不是节省的节点或耗时。首批实机日志已包含两种剪枝字段，但检查发现自动搜索入口的 `TURN_SETUP_ROOT_CAPTURE` 缺根认证信息，之后补齐此日志路径；旧日志无法追溯缺失原因。最新构建、部署及该入口修复证据见[测试矩阵](TEST_MATRIX.md#生命界认证与边际剪枝日志2026-10-02)。
 
 ## 0.47.2（2026-09-28）
 
