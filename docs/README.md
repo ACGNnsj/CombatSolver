@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [手动释放后自动执行内存回涨](performance/manual-memory-release-20261001.md)：PR #147 本轮审计证据、页面回载根因及释放后生成路线部署验证。
+
 - [策略重构与 PR 合并审计](refactoring/merge-audit-20260928.md)：本轮源码审查、修复、合并及验证边界。
 - [固定并行度优化试验](performance/fixed-dop-20260927.md)：当前采样、撤回的列表复制原型、长路线单次收尾回放及验证限制。
 

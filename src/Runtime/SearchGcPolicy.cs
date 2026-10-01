@@ -37,8 +37,8 @@ internal static partial class SearchGcPolicy
     // active-search requests on a separate completion chain so an in-search memory checkpoint
     // never waits on work which itself requires that search to exit.
     private static bool _deferredReclaimRequested;
-    private static bool _workingSetTrimRequested;
-    private static bool _activeReclaimTrimsWorkingSet;
+    private static bool _manualMemoryReleaseRequested;
+    private static bool _activeReclaimReleasesMemory;
     private static bool _manualReclaimRequested;
     private static string _reclaimReason = "unspecified";
     private static TaskCompletionSource? _reclaimCompletion;
@@ -820,7 +820,7 @@ internal static partial class SearchGcPolicy
                     {
                         // An exit failure settles every request which was waiting on this
                         // transition. Keep collection pressure for a later explicit policy entry,
-                        // but do not leave a working-set release permanently joined to the old,
+                        // but do not leave manual memory release joined to the old,
                         // faulted reclaim task.
                         _failNextRegionExitAfterTransitionForTesting = false;
                         if (_manualReclaimRequested)
@@ -846,7 +846,7 @@ internal static partial class SearchGcPolicy
                             _reclaimTask = Task.CompletedTask;
                             _activeReclaimSequence = 0;
                         }
-                        _workingSetTrimRequested = false;
+                        _manualMemoryReleaseRequested = false;
                     }
                 }
                 if (failure != null)
@@ -979,19 +979,19 @@ internal static partial class SearchGcPolicy
         Task reclaim;
         lock (Gate)
         {
-            if (_workingSetTrimRequested && _deferredReclaimRequested)
+            if (_manualMemoryReleaseRequested && _deferredReclaimRequested)
             {
-                // The trim belongs to post-search work, not to a possibly active/failed
+                // Manual memory release belongs to post-search work, not to an active/failed
                 // in-search checkpoint stored in _reclaimTask.
                 reclaim = _deferredReclaimTask;
             }
-            else if (_workingSetTrimRequested || _activeReclaimTrimsWorkingSet)
+            else if (_manualMemoryReleaseRequested || _activeReclaimReleasesMemory)
             {
                 reclaim = WaitForReclaimChainAsync(_reclaimTask);
             }
             else
             {
-                _workingSetTrimRequested = true;
+                _manualMemoryReleaseRequested = true;
                 reclaim = ReclaimIfPendingLocked(
                     "manual_memory_release",
                     forceCollection: true,
@@ -1062,7 +1062,7 @@ internal static partial class SearchGcPolicy
                 _reclaimRequired |= requestCollection;
                 _reclaimReason = reason;
                 // The active reclaim is an in-search checkpoint. It may fail or be cancelled,
-                // and a working-set trim must not run while the search still owns its graph.
+                // and heap decommit must wait until the search releases its graph.
                 // Register the post-search completion immediately instead of relying on the
                 // checkpoint's success-only finally path to create it later.
                 return RequestReclaimLocked(reason);
@@ -1488,7 +1488,7 @@ internal static partial class SearchGcPolicy
         _manualReclaimRequested = false;
         _manualReclaimCompletion = null;
         _manualReclaimTask = Task.CompletedTask;
-        _workingSetTrimRequested = false;
+        _manualMemoryReleaseRequested = false;
         completion?.TrySetException(failure);
         manual?.TrySetException(failure);
     }
@@ -1540,7 +1540,7 @@ internal static partial class SearchGcPolicy
         bool restoreLatencyMode = _latencyModeOwned;
         GCLatencyMode previousMode = _previousMode;
         bool collectGeneration2 = _reclaimRequired;
-        bool trimWorkingSet = _workingSetTrimRequested;
+        bool releaseMemory = _manualMemoryReleaseRequested;
         long regionAllocatedBytes = _noGcRegionAllocatedBytesAtStart == 0
             ? 0
             : Math.Max(
@@ -1552,8 +1552,8 @@ internal static partial class SearchGcPolicy
         _reclaimActive = true;
         _regionExitRequired = false;
         _reclaimRequired = false;
-        _workingSetTrimRequested = false;
-        _activeReclaimTrimsWorkingSet = trimWorkingSet;
+        _manualMemoryReleaseRequested = false;
+        _activeReclaimReleasesMemory = releaseMemory;
         _activeReclaimCollectsGeneration2 = collectGeneration2;
         _activeGeneration2CollectionStarted = false;
         _activeGeneration2CoverageEpoch = 0;
@@ -1621,7 +1621,7 @@ internal static partial class SearchGcPolicy
                         DescribeProcessMemory());
                     await PauseGeneration2CoverageForTestingAsync(
                         afterCoverageCapture: true);
-                    completedCollection = trimWorkingSet
+                    completedCollection = releaseMemory
                         ? CollectGeneration2ForManualMemoryRelease()
                         : await CollectGeneration2ForAutomaticReclaimAsync();
                     lock (Gate)
@@ -1636,16 +1636,6 @@ internal static partial class SearchGcPolicy
                     }
                     if (completedCollection.TimedOut)
                         throw BackgroundCollectionTimeout();
-                }
-                WorkingSetTrimResult workingSetTrim = default;
-                if (trimWorkingSet)
-                {
-                    workingSetTrim = ProcessWorkingSetTrimmer.TrimCurrentProcess();
-                    Entry.Logger.Info(
-                        $"[CombatSolver/Test] WORKING_SET_TRIM " +
-                        $"supported={workingSetTrim.Supported.ToString().ToLowerInvariant()} " +
-                        $"working_set_before={workingSetTrim.WorkingSetBeforeBytes} " +
-                        $"working_set_after={workingSetTrim.WorkingSetAfterBytes}");
                 }
                 stopwatch.Stop();
                 GCMemoryInfo memory = GC.GetGCMemoryInfo();
@@ -1664,7 +1654,7 @@ internal static partial class SearchGcPolicy
                     Entry.Logger.Info(
                         $"[CombatSolver/Test] HEAP_RECLAIM reason={reason} " +
                         $"reclaim_id={reclaimSequence} " +
-                        $"mode={(trimWorkingSet ? "blocking_compacting_working_set_trim" : "background_requested_non_compacting")} " +
+                        $"mode={(releaseMemory ? "blocking_aggressive_decommit" : "background_requested_non_compacting")} " +
                         $"no_gc_region_ended={endNoGcRegion} " +
                         $"forced_gen2=true gen2_delta={generation2Collections} " +
                         $"elapsed_ms={stopwatch.Elapsed.TotalMilliseconds:F1} " +
@@ -1676,6 +1666,7 @@ internal static partial class SearchGcPolicy
                         CaptureLifecycle().DeltaFrom(lifecycleBefore).ToDiagnosticString() + " " +
                         $"managed_live_before={liveBefore} managed_live_after={managedLiveAfter} " +
                         $"managed_heap_after={memory.HeapSizeBytes} fragmented_after={memory.FragmentedBytes} " +
+                        $"managed_committed_after={memory.TotalCommittedBytes} " +
                         $"working_set_before={workingSetBefore} working_set_after={processAfter.WorkingSet64} " +
                         $"private_before={privateBefore} private_after={processAfter.PrivateMemorySize64}");
                 }
@@ -1706,7 +1697,7 @@ internal static partial class SearchGcPolicy
                         _reclaimActive = false;
                         _reclaimCompletion = null;
                         _activeReclaimCollectsGeneration2 = false;
-                        _activeReclaimTrimsWorkingSet = false;
+                        _activeReclaimReleasesMemory = false;
                         _activeGeneration2CollectionStarted = false;
                         _activeGeneration2CoverageEpoch = 0;
                         if (failure != null)
@@ -1717,9 +1708,9 @@ internal static partial class SearchGcPolicy
                             _reclaimRequired |= collectGeneration2;
                             ReconcileRegionOwnershipAfterTransitionLocked(previousMode, restoreLatencyMode);
                             // Callers which joined this failed chain observe its exception. Clearing a
-                            // queued trim lets a later user retry create a fresh reclaim instead of
+                            // queued release lets a later user retry create a fresh reclaim instead of
                             // rejoining the permanently faulted task.
-                            _workingSetTrimRequested = false;
+                            _manualMemoryReleaseRequested = false;
                         }
                         _generation2CoveragePauseStageForTesting = 0;
                         _generation2CoverageReachedForTesting = null;
@@ -1899,9 +1890,12 @@ internal static partial class SearchGcPolicy
     private static BackgroundGen2Completion CollectGeneration2ForManualMemoryRelease()
     {
         GCSettings.LargeObjectHeapCompactionMode = GCLargeObjectHeapCompactionMode.CompactOnce;
-        CollectGeneration2(blocking: true, compacting: true);
+        // Return unused heap pages to the OS. EmptyWorkingSet only pages out live data;
+        // execution and the next GC would fault those same pages back into memory.
+        Lifecycle.RecordForcedCollection();
+        GC.Collect(GC.MaxGeneration, GCCollectionMode.Aggressive, blocking: true, compacting: true);
         return new BackgroundGen2Completion(
-            "full_blocking_compacting",
+            "full_blocking_aggressive",
             GC.GetGCMemoryInfo(GCKind.FullBlocking).Index,
             Requests: 1);
     }

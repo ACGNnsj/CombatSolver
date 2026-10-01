@@ -12,15 +12,10 @@ internal static class Program
     private const int ErrorSuccess = 0;
     private const int SystemMemoryListInformation = 80;
     private const int ExitPrivilegeUnavailable = 10;
-    private const int ExitEmptyWorkingSetsFailed = 20;
     private const int ExitPurgeStandbyListFailed = 21;
 
     private enum SystemMemoryListCommand
     {
-        MemoryCaptureAccessedBits = 0,
-        MemoryCaptureAndResetAccessedBits = 1,
-        MemoryEmptyWorkingSets = 2,
-        MemoryFlushModifiedList = 3,
         MemoryPurgeStandbyList = 4,
     }
 
@@ -30,8 +25,6 @@ internal static class Program
         if (!EnablePrivilege("SeProfileSingleProcessPrivilege"))
             return ExitPrivilegeUnavailable;
 
-        if (!ExecuteMemoryListCommand(SystemMemoryListCommand.MemoryEmptyWorkingSets))
-            return ExitEmptyWorkingSetsFailed;
         if (!ExecuteMemoryListCommand(SystemMemoryListCommand.MemoryPurgeStandbyList))
             return ExitPurgeStandbyListFailed;
         return ErrorSuccess;

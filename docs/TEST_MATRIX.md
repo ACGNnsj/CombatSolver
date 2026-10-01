@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 手动释放内存后全自动（2026-10-01）
+
+`GcPolicyChecks -- manual-release` 在普通及ServerGC真实CLR上取得旧实现失败与最终通过；覆盖空闲预留归还、搜索垃圾不可达、保留数据访问后的工作集稳定和NoGC退出。`diagnostic-failure` 8项通过。原生 `MANUAL-MEMORY-RELEASE-AUTO-CONTRACT`（`00f77f0bead44df99cd3de3e80093ce0`）使用储君类星体生成亮剑，在释放后保持原路线和完整live状态，直接全自动击杀，仅1次搜索、零重规划；实际75/75 HP、第1回合。ServerGC启动、DOP2实际并发2，隔离实例已清理。完整命令、内存口径与未验证项见[报告](performance/manual-memory-release-20261001.md)。
+
+本轮 PR #147 原生费用11组（`839136cb2faf4485bd82cf2f591ef910`）、选牌1200组/5069条（`1bdb389c145747a0a36e272b49562876`）通过；Release 0警告/错误，结构门禁通过。PR原有大矩阵为贡献者证据，没有在本轮重跑。
+
 ## 大幅优化原型与归一化反例（2026-09-29）
 
 五职业精英根5次快照诊断、44次原型ABBA、20次不安全归一化研究和1次M1洗牌反例，共70次离线运行。原型组完整路线/根/续用/质量/政策/非时序指标一致，但收益不足，全部撤回；归一化组有质量退化，不能用Passed或局部低战损代表改进。独立StableShuffle反例及live不变断言通过。没有新增原生整场、DOP2或首领结论，详情见[研究与证据](performance/large-stage-exploration-20260929.md)。

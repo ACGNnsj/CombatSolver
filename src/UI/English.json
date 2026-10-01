@@ -231,7 +231,7 @@
   "停止计算": "Stop search",
   "强制释放内存": "Free memory",
   "等待搜索退出并回收求解器内存后，请求 Windows 管理员权限，": "After search exits and solver memory is reclaimed, request Windows administrator access ",
-  "清空系统工作集与待机列表。其他程序之后重新载入页面时可能短暂卡顿。": "to clear working sets and the standby list. Other programs may briefly stutter when reloading pages.",
+  "清理系统待机缓存，保留游戏和其他程序正在使用的内存页面。": "to clear the standby cache while keeping pages used by the game and other programs resident.",
   "系统内存释放已安排，搜索退出后将请求管理员权限": "Memory cleanup queued; administrator access will be requested after search exits",
   "系统内存释放完成": "System memory released",
   "已取消管理员授权": "Administrator request cancelled",
