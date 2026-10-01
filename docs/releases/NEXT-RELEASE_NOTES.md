@@ -1,0 +1,13 @@
+# CombatSolver 下一版本（开发中）
+
+## 简体中文
+
+- 改善“强制释放内存”的回收效果，帮助降低计算结束后的游戏内存占用；保留系统及其他程序的内存清理功能。
+- 感谢 [ltlly](https://github.com/ltlly) 提交的 [PR #147](https://github.com/Torch1230/CombatSolver/pull/147)：减少重复卡牌选牌过程中的多余计算，并修复当前费用相同、费用持续时间不同的卡牌被错误视为相同选项的问题，例如“本回合免费”与“整场战斗免费”。
+- 感谢 [fengzhenhong](https://github.com/fengzhenhong) 提交的 [PR #144](https://github.com/Torch1230/CombatSolver/pull/144)：完善“搜索时暂缓内存回收”在内存紧张后的恢复，多次恢复失败后仍会在内存条件改善时继续尝试，并修正恢复尝试的间隔异常。
+
+## English
+
+- Improved the effectiveness of Free memory to help reduce game memory usage after calculations finish. System-wide cleanup, including other programs, remains available.
+- [PR #147](https://github.com/Torch1230/CombatSolver/pull/147) by [ltlly](https://github.com/ltlly): Reduced redundant work when handling choices involving duplicate cards. Cards with identical current costs but different cost durations, such as free this turn and free this combat, are now correctly treated as distinct choices.
+- [PR #144](https://github.com/Torch1230/CombatSolver/pull/144) by [fengzhenhong](https://github.com/fengzhenhong): Improved recovery when using the option to pause memory cleanup during search. Recovery can still be retried after repeated failures when memory conditions improve, and incorrect retry timing has been fixed.
