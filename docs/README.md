@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [早期回合探索实机复核与后续候选](performance/early-turn-log-review-20261001.md)：19 场日志保留、外部生命界命中、达标停止与候选预算研究切口。
+
 - [手动释放后自动执行内存回涨](performance/manual-memory-release-20261001.md)：PR #147 本轮审计证据、页面回载根因及释放后生成路线部署验证。
 
 - [策略重构与 PR 合并审计](refactoring/merge-audit-20260928.md)：本轮源码审查、修复、合并及验证边界。
