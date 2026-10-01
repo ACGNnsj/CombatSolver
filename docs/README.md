@@ -27,7 +27,7 @@
 | 要查什么 | 入口 |
 |---|---|
 | 多人适配的已定规则、完整内容建模、P0–P5 实施与验收 | [多人适配实施规划](MULTIPLAYER_PLAN.md) |
-| 下一版本：手动内存释放、重复选牌与内存紧张后的策略恢复 | [下一版本更新日志草案](releases/NEXT-RELEASE_NOTES.md) |
+| 0.47.3：手动内存释放、重复选牌与内存紧张后的策略恢复 | [0.47.3 更新日志](releases/0.47.3-RELEASE_NOTES.md) |
 | 0.47.2：跨回合路线、战前预报、模组兼容与内存显示 | [0.47.2 更新日志](releases/0.47.2-RELEASE_NOTES.md) |
 | 0.47.1 紧急回归修复 | [0.47.1 更新日志](releases/0.47.1-RELEASE_NOTES.md) |
 | 0.47.0 策略优化 Part 1 | [0.47.0 更新日志](releases/0.47.0-RELEASE_NOTES.md) |
