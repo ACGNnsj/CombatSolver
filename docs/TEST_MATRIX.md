@@ -1,5 +1,21 @@
 # CombatSolver 测试清单
 
+## 大幅优化原型与归一化反例（2026-09-29）
+
+五职业精英根5次快照诊断、44次原型ABBA、20次不安全归一化研究和1次M1洗牌反例，共70次离线运行。原型组完整路线/根/续用/质量/政策/非时序指标一致，但收益不足，全部撤回；归一化组有质量退化，不能用Passed或局部低战损代表改进。独立StableShuffle反例及live不变断言通过。没有新增原生整场、DOP2或首领结论，详情见[研究与证据](performance/large-stage-exploration-20260929.md)。
+
+## 等价重复的准入优化（2026-09-29）
+
+20个不同开局、23种配置、54次固定节点离线对照全部通过且未触及时间上限，同配置完整路线、根、续用、质量及73项非计时指标一致。新增两组实际出现循环区域的根和密集选择DOP1/DOP2对照，DOP2最大实际并发为2。自然AB/BA诊断只观察、不证明交换性，不用诊断时间报告性能；原生完整战斗记录及收益范围见[报告](performance/equivalence-admission-20260929.md)。
+
+## 重复选择的跨场景与整场验证（2026-09-29）
+
+原生五角色完整部署基线/候选实际终局HP、最大HP、结束回合、完整计划、根与续用一致，全部胜利且零计划外重算；选牌1200组/5069条、尾部代表2412组、令牌1024组合同通过。增加NativeOutcome实战终局记录，避免引用预测HP作为实战结果。跨角色/精英/首领固定根矩阵、perf证据及收益限制见[报告](performance/duplicate-choice-pruning-broad-20260929.md)和[逐次证据](performance/duplicate-choice-pruning-broad-20260929.json)。
+
+## 重复牌与费用状态（2026-09-29）
+
+`CARD-COST-IDENTITY-CONTRACT` 原生11组费用身份合同通过；`CHOICE-COMBINATION-CONTRACT`（`1cc7c04da24d427b9c9cff7bb0f0080c`）1200组/5069条完整选择与旧枚举器一致。覆盖能量/星能修改的时效、顺序、隐藏层、Fork隔离、实际选牌去重及续用字段定位。目标短搜两对ABBA的73个非时序字段、完整路线、根与剪枝计数一致。命令、原生最终runId、微基准限制和未采用实验见[重复牌研究](performance/duplicate-choice-pruning-20260929.md)及[证据](performance/duplicate-choice-pruning-20260929.json)。未作可见性能、Windows游戏或整场质量结论。
+
 ## PR #144 最终修复与合并验证（2026-09-28）
 
 以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。

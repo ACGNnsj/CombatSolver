@@ -129,6 +129,8 @@ description: 在战斗语义已证明正确后，审计或修改 CombatSolver �
 
 ## 5. 实验与验证
 
+将工作移到精确转置准入之后时，须证明被延后的计算不参与原始节点的状态键、标签、租约和诊断。卡牌战术分类可以延后到普通分支通过之后，但有序变异与循环延后准入继续走原路径。`EquivalenceProbe` 的自然AB/BA指纹观察只能定位机会，不能作为跨状态交换性证书；开启观测器时不作性能结论。
+
 跨跑局、SL 后仍持续的实机卡顿可使用 `docs/performance/long-session-recording.md` 的显式本地录制。核对进程会话完整性、分段空窗、EventPipe 丢事件与采集自身开销；采样线程时间不当作 CPU 占比，弱引用存活不当作 GC root 证据。诊断改动和行为修复分开取证，节点重建必须继续原进程会话。
 
 确定 GC 发起者时读取 GCTriggered 的关联栈，不用 GCStart 无栈推断未采集；EventPipe stack blocks 不等于独立 ClrStackWalk 事件。句柄窗口只覆盖部分时间且栈覆盖不完整，明确报告覆盖率，不将跨窗创建/销毁差值当成全程泄漏量。Collector complete 必须与解析完整性分开。
@@ -156,7 +158,7 @@ description: 在战斗语义已证明正确后，审计或修改 CombatSolver �
 
 - 预测卡牌/Power 克隆的免锁路径由 `NativeModelCloneConcurrency` 核对：仅隔离域、普通原版卡牌或默认内部初始化 Power、已物化原版变量、原生克隆阶段与精确 BaseLib/Ritsu 稀疏复制补丁组合。Power 还须核对默认 InitInternalData、AbstractModel.DeepCloneFields 与 Power.DynamicVars 物化保护补丁；自定义初始化、附魔/灾厄、第三方模型或变量、未知补丁均走原锁；不得为判定路径而物化共享源变量。证据限线程当前最外层隔离域，跨域刷新，不缓存模型或分支值；原版 `MutableClone` 的 BaseLib 锁保持。合同须真实加载 BaseLib，并持锁验证并行、变量独占与跨域补丁失效。
 
-- 选牌组合的评分仅可在单次BuildChoices的不可变组合中惰性复用，未消费评分的路径不提前计算；不跨spec、模型变化、Fork或调用缓存。组合去重预计算须保持原[start,i)语义，张数上限按该张数新增条目计数，固定多弃牌与物理实例代表规则不变。
+- 选牌组合的评分仅可在单次BuildChoices的不可变组合中惰性复用，未消费评分的路径不提前计算；不跨spec、模型变化、Fork或调用缓存。组合去重预计算须保持原[start,i)语义，张数上限按该张数新增条目计数，固定多弃牌与物理实例代表规则不变。 同次多选的不可变PlanCardToken仅按PredictedCard引用复用，保留来源/候选序号；尾部实体直接定位须保持逐键最后N张的原序，选中数超过16回退原分组算法。验证须含重复引用、缺失候选、跨调用变更和大选择集合，不能以令牌相同为由再删实体分支。
 
 - `PredictionStateStore` 的三槽计数表只保存 Type/条目数，不保存模型或 state；空 store 不创建计数对象，溢出仍使用独占字典，Fork 丢弃零计数。工厂可以重入并扩容，禁止跨工厂调用持有主字典 ref；计数更新的 ref 必须立即消费。验证覆盖溢出、清空后 Fork、父子隔离与工厂重入，不能只测常见一类状态。
 - 根生成池仅缓存逐项核对的原生过滤：无色、角色攻击、非Basic/Ancient、Power及Common；保留角色/规范池/AllCards引用身份、约束、原生只读模型与自定义池回退门禁。后三类由TurnStartPowerSupport每次Power触发准备一次；回退路径GetUnlockedCards仍只调用一次，原谓词与战斗过滤仍逐次抽取执行，不能把取N次一张改成一次取N张。不得混用有放回NextItem与distinct TakeRandom，即使只取一张。候选模型只读共享，RNG与生成卡始终属当前分支；其他过滤未经核对不能获得缓存资格，合同须覆盖可变池回退调用次数与枚举语义。

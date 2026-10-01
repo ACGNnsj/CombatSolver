@@ -94,6 +94,15 @@ internal sealed partial class UnattendedTestRunner
                 if (ContinuationStamp.CaptureLive(scenario.CombatState).StateText != before)
                     throw new InvalidOperationException("Snapshot coverage contract changed live combat.");
             }
+            if (request.ScenarioId == "CARD-COST-IDENTITY-CONTRACT")
+            {
+                runner.SetStage("card_cost_identity_contract");
+                string before = ContinuationStamp.CaptureLive(scenario.CombatState).StateText;
+                runner._completedChecks.Add(AssertCardCostIdentityContract(scenario.Player,
+                    SolverDisplayNames.Capture(scenario.CombatState)));
+                if (ContinuationStamp.CaptureLive(scenario.CombatState).StateText != before)
+                    throw new InvalidOperationException("Card cost identity contract changed live combat.");
+            }
             if (request.ScenarioId == "CHOICE-COMBINATION-CONTRACT")
             {
                 runner.SetStage("choice_combination_contract");
@@ -322,6 +331,10 @@ internal sealed partial class UnattendedTestRunner
 
         public void AssertAfterExecution(ScenarioContext scenario, ExecutionOutcome outcome)
         {
+            // Keep actual terminal health alongside projected search metrics, so full-battle
+            // comparisons cannot accidentally report a solver estimate as native outcome.
+            runner._completedChecks.Add($"NativeOutcome:combatEnded={outcome.CombatEnded}:turn={outcome.FinishedTurn}"
+                + $":hp={scenario.Player.Creature.CurrentHp}:maxHp={scenario.Player.Creature.MaxHp}");
             UnattendedTestRequest request = runner._request;
             if (request.ExpectedFinishedTurn is { } expectedFinishedTurn
                 && outcome.FinishedTurn != expectedFinishedTurn)

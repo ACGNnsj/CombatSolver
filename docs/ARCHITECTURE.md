@@ -253,6 +253,10 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 
 ## 3. Search
 
+普通卡牌候选在 `ExpansionPlan.ProcessExpandedCardCandidate` 先通过原精确转置准入，再构造战术分类；分类不参与转置键或成本标签。有序变异租约和延后准入的循环候选保持原处理顺序。仅宿主的 `EquivalenceProbe` 观察分离出的状态键与自然两步序列，不反向决定生产剪枝。
+
+`CardChoiceSupport.BuildChoices` 的实体令牌缓存只属于一次调用；按卡牌wrapper引用共享不可变令牌，选择容器独立。尾部代表构造按逐键后缀序号直接定位，超过16张保留原分组路径；这是表示与构造成本优化，不改变候选等价、实体补留、分支配额或排序。
+
 策略重构回归语料由 `tools/StrategyCorpus` 编排：玩家包使用 Testing 的严格 `combat_start` 无头恢复，仓库生成场景使用 `OfflineSearchHarness`。Search 在请求完成后提供只读质量和根戳记证据；Testing Writer 与离线宿主把它们写入独立证据文件，不参与候选裁决。原始玩家包与完整输出只留在 `.local`。对照器先核对根、政策和固定预算，再比较完整动作、续用、结果及非时序工作量；时间、分配和 GC 单列观察。
 
 本地策略迭代通过 `tools/CheckpointTool/StrategySessionRunner.cs` 持有 `start/run/status/stop` 会话和脚本单独编译。所有策略会话使用一个固定私有游戏副本；`start` 提交不建战斗的 `SessionStart` 就绪请求，`run` 直接复用其进程，`stop` 只结束进程和监控。Windows 启动器缓存稳定游戏文件的哈希，仅重算 Mod；停机后按差异替换私有副本。`run-unattended-test.ps1/.sh` 的复用入口跳过快照扫描，仍核对 PID、出生时间与可执行文件。`UnattendedTestRunner.ProtocolHost` 在每次请求开始加载冻结的脚本程序集和参数，`DevelopmentStrategyLoader` 持有可卸载加载上下文，在请求收尾释放。Search 只接收 `SearchPolicySnapshot.DevelopmentStrategy` 中的不可变策略引用和只读分支特征，不读取脚本文件或 live 设置。无脚本时保留既有候选顺序、Beam 评分和组合列表。脚本只接管中途优先级、评分、一个有界保路代表和既有组合成员编排；最终路线质量、预算、状态等价与战斗结算仍属原所有者。
@@ -509,6 +513,8 @@ Search在首回合、EndTurn及已知可能嵌套/重复的卡牌回放建立捕
 `AfterPlayerTurnStartMirrors` 使用三张独立登记表覆盖抽牌后的 Early/普通/Late。`HookMirrors.AfterPlayerTurnStart` 在每轮取得分支监听快照，复用 Power/遗物单项结算体；未知有效覆写拒绝，回调挂起后禁止原版局部执行帧复用并完整重放。已有外部登记时始终使用三轮派发，以接纳普通阶段新出现的 Late 监听者；没有外部登记且入口没有第三方覆写时沿用 `SimulatedCombatState.TriggerAfterPlayerTurnStartVanilla` 的既有批次和帧。不改搜索策略或状态所有权。
 
 ## 5. Prediction 领域补偿
+
+`CardCostStateSupport` 只读取卡牌现有的基础费用与有序临时修改层，统一追加出牌指纹、选牌键和live/predicted续用文本。有效期、绝对/相对修正、仅降费和星能覆盖层不能被当前显示费用替代。没有修改层时保持既有键；不另存费用、不改变结算或Fork所有权。
 
 `src/Prediction/` 处理基础命令和单个 mirror 不能独立表达的领域语义：
 
