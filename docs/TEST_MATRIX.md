@@ -2,6 +2,8 @@
 
 ## 手动释放内存后全自动（2026-10-01）
 
+用户要求恢复系统和其他进程内存清理：辅助程序重新依次调用 `MemoryEmptyWorkingSets` 与 `MemoryPurgeStandbyList`，恢复工作集清空失败退出码20，中英文说明同步恢复。本次恢复只改辅助程序和提示，游戏GC与部署源码保持既有已验证实现，复用下列成功合同。本次验证为Release构建和调用顺序静态核对；UAC管理员系统清理未实测，既有进程合同不能代替全系统验收。
+
 `GcPolicyChecks -- manual-release` 在普通及ServerGC真实CLR上取得旧实现失败与最终通过；覆盖空闲预留归还、搜索垃圾不可达、保留数据访问后的工作集稳定和NoGC退出。`diagnostic-failure` 8项通过。原生 `MANUAL-MEMORY-RELEASE-AUTO-CONTRACT`（`00f77f0bead44df99cd3de3e80093ce0`）使用储君类星体生成亮剑，在释放后保持原路线和完整live状态，直接全自动击杀，仅1次搜索、零重规划；实际75/75 HP、第1回合。ServerGC启动、DOP2实际并发2，隔离实例已清理。完整命令、内存口径与未验证项见[报告](performance/manual-memory-release-20261001.md)。
 
 本轮 PR #147 原生费用11组（`839136cb2faf4485bd82cf2f591ef910`）、选牌1200组/5069条（`1bdb389c145747a0a36e272b49562876`）通过；Release 0警告/错误，结构门禁通过。PR原有大矩阵为贡献者证据，没有在本轮重跑。
