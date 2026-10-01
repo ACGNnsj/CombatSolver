@@ -94,7 +94,7 @@ internal static partial class CombatSearchCoordinator
             $"nodes={scoutProfile.MaxExpandedNodes} " +
             $"initial_ranks_per_depth={EarlyTurnExplorationInitialRankLimit} " +
             $"max_ranks_per_depth={EarlyTurnExplorationRankLimit} " +
-            "rank_extension=after_improvement " +
+            "rank_extension=after_improvement incumbent_bound=eligible_strict_hp " +
             $"remaining_ms={RemainingMilliseconds()}");
         long scoutExpandedBeforeForMetrics = workTotals.Snapshot().ExpandedNodes;
         int scoutExpanded;
@@ -164,6 +164,15 @@ internal static partial class CombatSearchCoordinator
                         cancellationToken, "early_turn_continuation");
                 EarlyTurnFrontierCandidate frontier = layer[rank];
                 bool usesPotion = frontier.Actions.Any(action => action.Kind == PlanActionKind.UsePotion);
+                PrimarySearchIncumbent? continuationIncumbent = SelectEarlyTurnContinuationIncumbent(
+                    BuildPrimarySearchIncumbent(root, policy, selected),
+                    policy.TheftPolicy == SolverTheftPolicy.PreserveResources,
+                    policy.PotionStrategy.EvaluateForcedUses(
+                        selected.BestNode.Actions, renewablePotionShapedRock: false).AllForcedUsesSatisfied,
+                    selected.BestNode.Actions.Any(action => action.Kind == PlanActionKind.UsePotion),
+                    usesPotion,
+                    selected.Snapshot.StrategicHpCredit != 0,
+                    selected.Snapshot.HasRisk);
                 SolverSearchProfile continuationProfile = policy.Profile with
                 {
                     MaxExpandedNodes = (int)Math.Min(RemainingNodes(),
@@ -177,7 +186,10 @@ internal static partial class CombatSearchCoordinator
                         ContinuationPurpose.EarlyTurnContinuation,
                         frontier.Actions, continuationProfile,
                         usesPotion ? SolverPotionPolicy.RequireAtLeastOne : null,
-                        null, null),
+                        null, null)
+                    {
+                        PrimaryIncumbent = continuationIncumbent,
+                    },
                     "EARLY_TURN_CONTINUATION");
                 attempted++;
                 if (candidate == null)
@@ -256,6 +268,8 @@ internal static partial class CombatSearchCoordinator
                     $"won={IsCompleteVictory(candidate)} " +
                     $"hp_lost={candidate.ProjectedBattleHpLost} " +
                     $"potions={candidate.PotionCount} selected={improved} " +
+                    $"incumbent_hp={continuationIncumbent?.StrategicHpDeficit.ToString() ?? "-"} " +
+                    $"incumbent_pruned={candidate.PrimaryIncumbentBranchesPruned} " +
                     $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
                     $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
             }
@@ -355,5 +369,30 @@ internal static partial class CombatSearchCoordinator
                 $"expanded={expanded} node_limit={EarlyTurnExplorationNodeBudget} stop={stopReason}");
             return result;
         }
+    }
+
+    internal static PrimarySearchIncumbent? SelectEarlyTurnContinuationIncumbent(
+        PrimarySearchIncumbent? incumbent,
+        bool preserveResources,
+        bool selectedForcedUsesSatisfied,
+        bool selectedHasExplicitPotionUses,
+        bool prefixUsesPotion,
+        bool selectedHasStrategicCredit,
+        bool selectedHasRisk)
+    {
+        // BuildPrimarySearchIncumbent already excludes incomplete victories, growth,
+        // relic targets and death saves. Keep the no-potion eligibility search intact
+        // when the selected route used a potion: a potion-bearing fixed prefix has
+        // no no-potion branch and its member already uses RequireAtLeastOne.
+        if (incumbent is null || preserveResources || !selectedForcedUsesSatisfied
+            || selectedHasStrategicCredit || selectedHasRisk
+            || selectedHasExplicitPotionUses && !prefixUsesPotion)
+            return null;
+
+        // Equal strategic HP can still improve raw loss, potion use or other tie
+        // breakers. Disable the turn cutoff so the external bound only prunes a
+        // strictly worse certified HP floor. The member's existing potion baseline
+        // and its own incumbent-tightening rules remain unchanged.
+        return incumbent.Value with { CombatEndedTurn = int.MaxValue };
     }
 }

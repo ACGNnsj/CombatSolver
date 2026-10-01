@@ -28,6 +28,27 @@
 
 `CARD-COST-IDENTITY-CONTRACT` 原生11组费用身份合同通过；`CHOICE-COMBINATION-CONTRACT`（`1cc7c04da24d427b9c9cff7bb0f0080c`）1200组/5069条完整选择与旧枚举器一致。覆盖能量/星能修改的时效、顺序、隐藏层、Fork隔离、实际选牌去重及续用字段定位。目标短搜两对ABBA的73个非时序字段、完整路线、根与剪枝计数一致。命令、原生最终runId、微基准限制和未采用实验见[重复牌研究](performance/duplicate-choice-pruning-20260929.md)及[证据](performance/duplicate-choice-pruning-20260929.json)。未作可见性能、Windows游戏或整场质量结论。
 
+## 早期回合探索的外部生命界（2026-10-01）
+
+当前任务基线为合并版 `c647b1f1`，候选只改变 ETC 成员的外部 incumbent 接线。完整胜利、成长/遗物、死亡保护门禁复用 `BuildPrimarySearchIncumbent`；另检查强制药水、战略额度、风险及失窃资源政策。已选有显式用药而前缀未用药时不注入。外部界的回合设为 `int.MaxValue`，只剪严格更差的已证明战略战损下界；原内部收紧仍可建立自己的回合界。没有降低节点预算、改变候选顺序或终局比较，也没有增加搜索暂停/恢复能力。
+
+`dotnet tools/OfflineSearchHarness/bin/Release/net9.0/OfflineSearchHarness.dll --check-early-turn-continuation-bound`：143 条断言通过，覆盖 incumbent 有/无的 128 组门禁组合、严格更差/相等/更低的生命界、相等生命界的晚回合及负战略战损。此纯合同验证门禁和剪枝谓词，不代替真实成长/遗物生命周期测试。
+
+四组均在独立普通 .NET 进程运行生产 Coordinator：Custom、8,000 节点、card/pile/hand 分支 32/18/24、DOP1、主搜/ETC 累计时限均 90,000 ms、depth2、组合/NoGC/增量关闭，外层每根 120 秒截止。先重新运行合并版基线再运行候选；以下不是引用旧提交的历史结果。全部根戳、搜索政策、预算、完整动作路线与完整质量记录相同，四根均完整胜利。
+
+| 固定根 | Beam/药水 | 战损/药水/结束回合 | 总展开 A→B | 总转移 A→B | ETC 尝试 A→B |
+|---|---|---|---|---|---|
+| SILENT / TERROR_EEL_ELITE / CSOPT20261001D | 96 / Smart | 59 / 0 / 17 | 85,950→85,950 | 247,414→247,414 | 10→10 |
+| SILENT / TERROR_EEL_ELITE / CSOPT20261001 | 96 / Smart | 53 / 0 / 17 | 62,229→62,229 | 181,831→181,831 | 8→8 |
+| SILENT / TERROR_EEL_ELITE / CSOPT20261001D，注入 DEXTERITY_POTION | 96 / RequireAtLeastOne | 26 / 1 / 14 | 70,255→70,255 | 230,165→230,165 | 8→8 |
+| IRONCLAD / TERROR_EEL_ELITE / CSOPT20261001D | 64 / Smart | 66 / 0 / 9 | 28,588→25,853 | 74,198→67,224 | 12→12 |
+
+铁甲战士 ETC 展开 25,900→23,165，请求展开减少 9.6%、转移减少 9.4%；中途严格改进次数 3→2，最终路线保持，不把中途改善次数当作最终质量。三组静默猎手虽然在合资格成员注入了界，但治疗收益上界较宽，均无生命界剪枝、无工作量收益。正药水根四条未用药前缀旁路、四条已用药前缀注入，保护无药资格路径；原始请求另含 `schemaVersion=1`、`enemyCurrentHp=140`、`fixedSearchBudget=true`、`timeoutSeconds=120`，其余为上表角色/遭遇/种子与药水。
+
+一次 A/B 的无头搜索秒数分别为 29.263→30.568、22.879→22.750、29.936→29.260、11.008→10.662。未做 ABBA/可见 Steam 性能验收，不由此报告稳定提速或帧时间收益。新增日志的 `incumbent_pruned` 合计包含成员原本的内部生命界剪枝，不能当作外部界的净新增数量。
+
+基线 DLL、全部命令输出、根/路线/质量、日志与 `comparison.json` 保留于忽略目录 `.local/early-turn-incumbent-20261001/`。最新玩家千足虫只有日志/路线缓存及当前工具无法导入的 `.mcr`，没有导出的开战存档/检查点；本轮没有恢复真实千足虫或女王根。Mod 与离线宿主 Release 构建均 0 警告/0 错误，Windows 结构门禁通过（238 个 Search 文件），最终 manifest、DLL、Windows MemoryCleaner 和两份许可文件已部署至确认的本地 Mod 与既有创意工坊安装目录，原文件保留本地备份。未运行原生整场部署、Linux 或可见游戏验证。
+
 ## 下一版本（开发中）：早期回合探索测量入口（2026-10-01）
 
 OfflineSearchHarness 的 Coordinator 模式可用 `--early-turn-exploration-depth 1|2` 开启早期回合探索，并用 `--early-turn-exploration-budget-ms` 指定从请求开始计的 5,000..2,390,000 ms 累计时限；`run_plan.py` 支持相同的 plan 字段并按时限扩充进程超时。结果增加总体尝试/严格改进/首次改进深度与 rank，以及逐 rank 的工作量和成绩。该入口只打开离线测试请求，不改变玩家默认开关。

@@ -64,6 +64,8 @@ dotnet tools/OfflineSearchHarness/bin/Release/net9.0/OfflineSearchHarness.dll \
 
 启用 `OFFLINE_HARNESS_FIXED_PREFIX_CONTINUATIONS=1` 并以 `coverage/unattended/generic-cross-turn-hidden-buffer-positive-v0111.json` 为 `--request`，使用 `--dop 1 --search-mode Evaluate` 且关闭NoGC／增量验证，可运行4／8／17回合完整固定前缀基准。每根预热一次、测量三次生产 `Solve`，计时外用独立前缀重放对账完整续用戳，输出 `fixed-prefix-continuations.json`。它只度量人工长路线的前缀建立与收尾，不代表普通搜索或原生正确性；用 `OFFLINE_HARNESS_COMBATSOLVER_DLL` 交错切换基线／候选，完整比较根、政策和 `annotatedResult`，见[本轮证据](performance/fixed-dop-20260927.md)。
 
+纯 ETC 外部生命界合同可运行 `dotnet tools/OfflineSearchHarness/bin/Release/net9.0/OfflineSearchHarness.dll --check-early-turn-continuation-bound`，直接调用生产门禁及剪枝谓词，不建游戏状态。当前覆盖 143 条断言。普通 ETC 诊断起始行新增 `incumbent_bound=eligible_strict_hp`，已完成续搜行输出 `incumbent_hp`（`-` 表示旁路）及 `incumbent_pruned`；后者包含原有内部生命界剪枝，不能直接视为本改动净收益。固定根对照及实际适用范围见 [测试矩阵](TEST_MATRIX.md#早期回合探索的外部生命界2026-10-01)。
+
 ## 批量用法
 
 `OFFLINE_HARNESS_EQUIVALENCE_PROBE=1` 可在小预算 `Evaluate` 请求中观察已有转置拒绝、候选分类次数和自然出现的两步反向动作，输出 `equivalence-probe.json`。每个求解器最多保存20,000个分离出的两步索引，不持有节点/模型，也不改变剪枝结果；指纹相同只是研究线索，不是交换性证明。该模式有额外锁和序列化开销，不能用于时间或分配评测。适用范围和复现命令见[准入优化与采样](performance/equivalence-admission-20260929.md)。

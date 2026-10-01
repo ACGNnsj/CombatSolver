@@ -18,6 +18,10 @@ internal static class Program
 
     private static int Main(string[] rawArgs)
     {
+        if (rawArgs.Length == 1 && rawArgs[0] == "--check-early-turn-continuation-bound")
+        {
+            return EarlyTurnContinuationChecks.Run();
+        }
         if (rawArgs.Length == 3 && rawArgs[0] == "--compare-quality-batch")
             return QualityComparison.Run(rawArgs[1], rawArgs[2]);
         if (rawArgs.Length == 2 && rawArgs[0] == "--ranking-schema")

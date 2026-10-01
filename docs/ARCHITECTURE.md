@@ -276,6 +276,8 @@ RitsuLib 0.6.0 自身拥有 BaseLib 目标类型的外部登记查询、按程�
 
 `StateEvaluation.BuildProjectedDeathPrevention` 每次按分支药水槽和遗物原序读取瓶中精灵、蜥蜴尾巴的可用状态，不缓存跨快照的可变结果。意图预测携带孤注一掷的一次性致死状态：玩家实际承受正数攻击伤害后先消费该状态并置为死亡，再按原版顺序尝试保命；全额格挡不触发。Engine 的 `HookMirrors.ModifyHpLost` 返回只读修正者集合，空结果共享空数组，非空 List 独占；后续通知先取得原监听表，空集合只跳过通知遍历。回调顺序、成员身份与重复成员只调用一次的规则保持。
 
+早期回合探索的外部生命界由 `CombatSearchCoordinator.EarlyTurnExploration` 选择，经既有 `ContinuationSearchRequest.PrimaryIncumbent` 注入。完整胜利的成长/遗物/死亡保护门禁属于协调器原有 builder；ETC 额外保留强制药水、风险、战略额度及失窃资源保全条件。已选有药而前缀未用药时旁路，保留无药资格基线。初始外部界将回合设为最大值，只剪严格更差的战略生命下界；成员内部既有界更新规则保持。Search 不读取 Runtime 设置，不新增分支状态、暂停句柄或新的预算所有者。
+
 ### 3.1 请求级编排
 
 - `SearchPolicySnapshot.cs`：主线程捕获的不可变搜索设置、逐槽药水策略，以及第一/二幕与最终 Boss 各自的血量取舍；后台不读取 UI 或玩家设置。
