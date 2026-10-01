@@ -32,6 +32,14 @@ OfflineSearchHarness 同根 `Coordinator` 对照：TERROR_EEL_ELITE、SILENT、s
 
 最终恢复自适应源码后的 Release 构建为 0 警告／0 错误，`git diff --check` 通过，本地 `mods/CombatSolver` 五文件部署成功。所有运行均为 OfflineSearchHarness；未启动可见 Steam。
 
+### 改进后尾部 rank 上限收至 5（2026-10-01）
+
+保留每层 rank 0–3；严格改进才启用尾部，最多续搜至 rank 5（`max_ranks_per_depth=6`）。用户最新一局的扩展层在 rank 0 与 rank 3 改进，rank 4–7 未改善，因此该窗口保留已观测到的两次改进。
+
+与现行 4/8 自适应策略同根对照：TERROR_EEL_ELITE / SILENT / `CSOPT20261001D`，beam 96、每 solver 8,000 nodes。两边路线动作序列相同（69 项），均完整胜利、战损 59、0 药水、`boundary=None`；首次改进均在深度 2 / rank 1。cap 6 把续搜 12→10、续搜展开 92,616→77,950、总展开 100,616→85,950（−14.6%）、总转移 289,200→247,414（−14.4%）。cap 8 的 rank 6、7 均未改善。此为单次独立进程对照，耗时仅作观察，不构成稳定提速结论；其他战斗中的 rank 6+ 仍可能包含独有更优路线。
+
+候选 Release 构建 0 警告／0 错误；OfflineSearchHarness 在固定根达到 M2、完整胜利且结果边界为 `None`。本轮无可见 Steam 验证；源码及文档更新后将执行一次最终本地五文件部署。
+
 ## PR #144 最终修复与合并验证（2026-09-28）
 
 以 `main@f47c447a` 整合 PR head `1e914b38`，修正 `ReclaimWithinSearch` 主动退出路径的恢复许可，并将复审夹具纳入 `GcRecoveryChecks.RunExplicitDefaultExit`。原候选同一真实 CLR 边界失败：主动退出后 `enabled=True / attempts=1 / restarts=1`；原 main 通过。修复后 `recovery-lifecycle` 3 项、`checkpoint` 1 项通过，主动退出结果 `EXPLICIT_DEFAULT_EXIT_OK attempts=0 restarts=0 forced=0`，正常恢复仍为 starts=1/restarts=1/forced=0，取消与退出清理通过。

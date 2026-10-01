@@ -9,7 +9,7 @@ internal static partial class CombatSearchCoordinator
     // on layers that have already produced a strict improvement. The hard ceiling keeps
     // one promising layer from consuming the whole continuation window.
     private const int EarlyTurnExplorationInitialRankLimit = 4;
-    private const int EarlyTurnExplorationRankLimit = 8;
+    private const int EarlyTurnExplorationRankLimit = 6;
 
     private static SolverResult RunEarlyTurnExploration(
         SearchPassContext context,
