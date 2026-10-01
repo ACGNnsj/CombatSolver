@@ -1,5 +1,11 @@
 # CombatSolver 测试清单
 
+## 生命界认证与边际剪枝日志（2026-10-02）
+
+此轮只增加诊断数据，不改变认证门禁、搜索候选、剪枝条件或预算。`COMBAT_ROOT_CAPTURE` 的 `strategic_hp_recovery_bound` 表示根认证是否通过；`strategic_hp_recovery_bound_reason` 为认证顺序中首个不满足的稳定原因码；`strategic_hp_recovery_bound_postcombat_heal_hp` 为认证根允许计入的固定战后治疗量，未认证根记录 `unbounded`。原因码包括 `unsupported_character`、`non_native_enemy`、`encounter_modifier`、`run_mod_subscriber`、`combat_mod_subscriber`、`base_lib_card_modifier`、`adapted_on_play`、`potion_present`、`unsupported_relic`、`unsupported_player_power`、`card_enchantment`、`card_affliction`、`unsupported_card` 和 `certified`。
+
+搜索结果及 ETC 成员日志中的 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned` 是边际数：同一候选在认证上界下被 primary incumbent 剪掉，而把未来治疗潜力放宽到完整缺血余量时不会被剪掉。原有 `primary_incumbent_pruned`／`incumbent_pruned` 总数不变。边际数只覆盖 incumbent 这一剪枝点检查过的保留节点，不能解释为所有层的剪枝总数、减少的展开数或节省时间；旧日志不会包含这些字段。源码审阅确认该比较不改变原先的剪枝谓词。`dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false -p:SteamRoot=D:/SteamLibrary` 成功（0 警告／0 错误）；随后五文件精确部署至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。按范围未运行战斗测试或可见游戏；需要新部署版本的实机战斗日志才能观察真实根的认证比例与命中量。
+
 ## 0.47.3 版本与发布登记（2026-10-01）
 
 本次小版本由0.47.2更新至0.47.3，整合内存修复分支至main，并同步项目、manifest、开发笔记与中英玩家日志。main整合只新增既有多人规划文档；本次版本登记没有行为源码或测试输入变化，复用本页GC与储君生成路线部署合同及PR #147原生费用/选牌合同。最终发布只执行Release构建、最小ZIP和统一三渠道脚本，不重跑已通过场景、不启动可见Steam或完整发布门禁。恢复后的管理员系统清理与完整重型生成流的可见100%卡死仍保持未实测口径。

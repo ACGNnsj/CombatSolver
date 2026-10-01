@@ -288,12 +288,15 @@ internal sealed partial class CombatBeamSolver
         if (_hasGrowthTargets || _theftPolicy == SolverTheftPolicy.PreserveResources || _primaryIncumbent is not { } incumbent)
             return retained;
 
-        List<SearchNode> bounded = ApplyPrimaryIncumbentBound(
+        List<SearchNode> bounded = ApplyPrimaryIncumbentBoundCore(
             retained,
             incumbent,
             out int pruned,
-            _strategicBossHpRelief);
+            _strategicBossHpRelief,
+            root.HasOnlyPostCombatHealing,
+            out int certifiedHealingBoundPruned);
         _run.PrimaryIncumbentBranchesPruned += pruned;
+        _run.PrimaryIncumbentCertifiedHealingBoundBranchesPruned += certifiedHealingBoundPruned;
         return bounded;
     }
 
@@ -302,8 +305,24 @@ internal sealed partial class CombatBeamSolver
         PrimarySearchIncumbent incumbent,
         out int pruned,
         BossHpRelief bossHpRelief = BossHpRelief.None)
+        => ApplyPrimaryIncumbentBoundCore(
+            retained,
+            incumbent,
+            out pruned,
+            bossHpRelief,
+            false,
+            out _);
+
+    private static List<SearchNode> ApplyPrimaryIncumbentBoundCore(
+        List<SearchNode> retained,
+        PrimarySearchIncumbent incumbent,
+        out int pruned,
+        BossHpRelief bossHpRelief,
+        bool rootHasCertifiedHealingBound,
+        out int certifiedHealingBoundPruned)
     {
         pruned = 0;
+        certifiedHealingBoundPruned = 0;
         List<SearchNode>? bounded = null;
         for (int index = 0; index < retained.Count; index++)
         {
@@ -313,6 +332,14 @@ internal sealed partial class CombatBeamSolver
                     node.Turn,
                     incumbent))
             {
+                if (rootHasCertifiedHealingBound
+                    && !ShouldPruneByPrimaryIncumbent(
+                        StrategicHpLowerBound(node.Snapshot, bossHpRelief, int.MaxValue),
+                        node.Turn,
+                        incumbent))
+                {
+                    certifiedHealingBoundPruned++;
+                }
                 if (bounded == null)
                 {
                     bounded = new List<SearchNode>(retained.Count);
@@ -339,7 +366,10 @@ internal sealed partial class CombatBeamSolver
     /// A root with a certified closed set of non-healing actions only credits its fixed post-combat relic heal.
     /// Every other root retains the full HP headroom, including future card generation and repeated healing.
     /// </remarks>
-    private static int StrategicHpLowerBound(SimulationSnapshot snapshot, BossHpRelief bossHpRelief)
+    private static int StrategicHpLowerBound(
+        SimulationSnapshot snapshot,
+        BossHpRelief bossHpRelief,
+        int? futureHealPotentialOverride = null)
         => ActEndingBossPolicy.StrategicHpDeficit(
             snapshot.CumulativePlayerHpLost,
             maxHpDeficit: 0,
@@ -347,7 +377,7 @@ internal sealed partial class CombatBeamSolver
                 snapshot.RecoveredPlayerHp,
                 snapshot.PlayerHp,
                 snapshot.PlayerMaxHp,
-                snapshot.FutureHealPotential),
+                futureHealPotentialOverride ?? snapshot.FutureHealPotential),
             bossHpRelief,
             snapshot.DeathSaveHpRestored);
 

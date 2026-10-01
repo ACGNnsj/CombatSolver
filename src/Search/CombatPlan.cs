@@ -1541,6 +1541,7 @@ internal sealed class SolverResult
     public int CrossTurnCandidatesProtected { get; init; }
     public int CrossTurnContinuationsStopped { get; init; }
     public int PrimaryIncumbentBranchesPruned { get; init; }
+    public int PrimaryIncumbentCertifiedHealingBoundBranchesPruned { get; init; }
     public int PrimaryIncumbentUpdates { get; init; }
     public required int StandPatProbes { get; init; }
     public int ParallelExpansionWaves { get; init; }
@@ -1802,6 +1803,7 @@ internal sealed class SolverResult
             CrossTurnCandidatesProtected = 0,
             CrossTurnContinuationsStopped = 0,
             PrimaryIncumbentBranchesPruned = 0,
+            PrimaryIncumbentCertifiedHealingBoundBranchesPruned = 0,
             PrimaryIncumbentUpdates = 0,
             StandPatProbes = 0,
             TransitionCacheHits = 0,

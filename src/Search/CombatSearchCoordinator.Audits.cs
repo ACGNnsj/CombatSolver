@@ -992,6 +992,7 @@ internal static partial class CombatSearchCoordinator
                 $"incumbent_deficit={primaryIncumbent?.StrategicHpDeficit.ToString() ?? "-"} " +
                 $"incumbent_turn={primaryIncumbent?.CombatEndedTurn.ToString() ?? "-"} " +
                 $"incumbent_pruned={candidate.PrimaryIncumbentBranchesPruned} " +
+                $"incumbent_certified_healing_bound_pruned={candidate.PrimaryIncumbentCertifiedHealingBoundBranchesPruned} " +
                 $"incumbent_updates={candidate.PrimaryIncumbentUpdates}");
             if (HasReachedAcceptableBattleHpLoss(policy, selected)
                 && TheftEncounterStrategy.RecoverySatisfied(

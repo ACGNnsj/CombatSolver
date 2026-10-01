@@ -229,6 +229,7 @@ internal sealed partial class CombatBeamSolver
         public int CrossTurnCandidatesProtected;
         public int CrossTurnContinuationsStopped;
         public int PrimaryIncumbentBranchesPruned;
+        public int PrimaryIncumbentCertifiedHealingBoundBranchesPruned;
         public int PrimaryIncumbentUpdates;
         public int StandPatProbes;
         public long OffThreadAllocatedBytes;

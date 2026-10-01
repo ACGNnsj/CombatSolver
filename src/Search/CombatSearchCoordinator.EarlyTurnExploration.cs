@@ -270,6 +270,7 @@ internal static partial class CombatSearchCoordinator
                     $"potions={candidate.PotionCount} selected={improved} " +
                     $"incumbent_hp={continuationIncumbent?.StrategicHpDeficit.ToString() ?? "-"} " +
                     $"incumbent_pruned={candidate.PrimaryIncumbentBranchesPruned} " +
+                    $"incumbent_certified_healing_bound_pruned={candidate.PrimaryIncumbentCertifiedHealingBoundBranchesPruned} " +
                     $"elapsed_ms={requestClock.ElapsedMilliseconds - continuationElapsedBefore} " +
                     $"expanded={workTotals.Snapshot().ExpandedNodes - continuationExpandedBefore}");
             }

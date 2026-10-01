@@ -61,3 +61,9 @@
 Release 构建 0 警告／0 错误（20.65秒），Windows 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=238`。初次沙箱构建无法读取本机 NuGet 配置，授权读取环境后正常构建；不是源码编译错误。23:07:19 已用该最终源码产物精确覆盖确认的本地 Mod 与既有创意工坊安装副本：manifest、CombatSolver DLL、Windows MemoryCleaner、LICENSE、THIRD_PARTY_NOTICES.md。无头批次成功清理，部署时没有运行中的游戏。
 
 没有测试正式多人入口、全原版内容、原生完整自动部署、Linux 或可见游戏性能，没有提升版本、打包或上传渠道。预算调整和自动保存开战检查点仍未实现。
+
+## 后续日志归因字段（2026-10-02）
+
+为后续实机检查认证是否实际命中，根捕获日志新增 `strategic_hp_recovery_bound=certified|bypassed`、稳定的首个拒绝原因码 `strategic_hp_recovery_bound_reason`，以及 `strategic_hp_recovery_bound_postcombat_heal_hp`。认证通过时该值是固定战后治疗量；未通过时输出 `unbounded`。该字段证明门禁结果，不证明这场战斗实际利用了更紧的界。
+
+搜索结果和早期回合续搜成员日志新增 `primary_incumbent_certified_healing_bound_pruned`／`incumbent_certified_healing_bound_pruned`。它只计当前认证上界判为可剪、但按完整缺血余量仍可保留的 incumbent 检查候选，属于边际归因；原有剪枝合计字段保持不变。计数不是减掉的总展开、墙钟收益，也不包含 Beam 保留等其他阶段。旧实机日志未含这些字段，因此只能由本次部署后的战斗验证实际命中。本轮源码差异检查与 Release 构建通过（0 警告／0 错误），五个部署文件已精确覆盖至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。未运行游戏或战斗测试。

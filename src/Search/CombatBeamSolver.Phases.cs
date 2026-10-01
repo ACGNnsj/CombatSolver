@@ -791,6 +791,8 @@ internal sealed partial class CombatBeamSolver
                 CrossTurnCandidatesProtected = _run.CrossTurnCandidatesProtected,
                 CrossTurnContinuationsStopped = _run.CrossTurnContinuationsStopped,
                 PrimaryIncumbentBranchesPruned = _run.PrimaryIncumbentBranchesPruned,
+                PrimaryIncumbentCertifiedHealingBoundBranchesPruned =
+                    _run.PrimaryIncumbentCertifiedHealingBoundBranchesPruned,
                 PrimaryIncumbentUpdates = _run.PrimaryIncumbentUpdates,
                 StandPatProbes = _run.StandPatProbes,
                 ParallelExpansionWaves = _run.ParallelExpansionWaves,
