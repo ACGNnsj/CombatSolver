@@ -17,10 +17,7 @@ internal static class Program
 
     private enum SystemMemoryListCommand
     {
-        MemoryCaptureAccessedBits = 0,
-        MemoryCaptureAndResetAccessedBits = 1,
         MemoryEmptyWorkingSets = 2,
-        MemoryFlushModifiedList = 3,
         MemoryPurgeStandbyList = 4,
     }
 

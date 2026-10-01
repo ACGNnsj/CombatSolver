@@ -1,5 +1,17 @@
 # 性能研究与复现
 
+- [手动释放后自动执行的内存回涨](manual-memory-release-20261001.md)：工作集移出与真实堆归还的区别、普通/ServerGC失败基线及储君生成卡牌原生部署合同。
+
+- [更大幅度优化候选与安全边界](large-stage-exploration-20260929.md)：快照与存储原型对照、牌堆无序化的质量退化及原生洗牌反例；收益不足或不安全的方案未启用。
+
+- [等价重复采样与准入优化](equivalence-admission-20260929.md)：自然动作换序观测、转置拒绝前的多余战术分类，以及循环/并行/原生整场对照。
+
+- [等价剪枝的已有机制与项目适用性](equivalence-reduction-literature-20260929.md)：资源感知偏序约简、局部动作对称、低开销依赖索引与自适应停用；区分成熟算法证明和本项目Beam适用条件。
+
+- [重复牌优化：跨场景、perf与整场验证](duplicate-choice-pruning-broad-20260929.md)：五角色矩阵、硬件计数器、真实终局HP，保留精确令牌复用与尾部实体直接定位。
+
+- [重复牌剪枝收益探索](duplicate-choice-pruning-20260929.md)：保留无重复选项的实体补留旁路，修复费用有效期身份；扩大复制类剪枝未采用，附原生合同和离线对照。
+
 - [搜索热路径分配与 CPU 复查](search-hotpath-allocation-20260925.md)：候选准入、状态指纹与预测工厂的临时对象缩减，17 根直接交错对照及[逐次证据](search-hotpath-allocation-20260925-expanded.json)；另含 `perf` 热点和已撤回试验的[逐次证据](search-hotpath-cpu-20260926-rejected-trial.json)。
 - [固定并行度优化试验](fixed-dop-20260927.md)：DOP1交错对照、快照复制原型撤回和长路线单次收尾回放；未证明普通搜索成倍提速。
 

@@ -1,5 +1,7 @@
 # CombatSolver 文档导航
 
+- [手动释放后自动执行内存回涨](performance/manual-memory-release-20261001.md)：PR #147 本轮审计证据、页面回载根因及释放后生成路线部署验证。
+
 - [策略重构与 PR 合并审计](refactoring/merge-audit-20260928.md)：本轮源码审查、修复、合并及验证边界。
 - [固定并行度优化试验](performance/fixed-dop-20260927.md)：当前采样、撤回的列表复制原型、长路线单次收尾回放及验证限制。
 
@@ -25,6 +27,7 @@
 | 要查什么 | 入口 |
 |---|---|
 | 多人适配的已定规则、完整内容建模、P0–P5 实施与验收 | [多人适配实施规划](MULTIPLAYER_PLAN.md) |
+| 下一版本：手动内存释放、重复选牌与内存紧张后的策略恢复 | [下一版本更新日志草案](releases/NEXT-RELEASE_NOTES.md) |
 | 0.47.2：跨回合路线、战前预报、模组兼容与内存显示 | [0.47.2 更新日志](releases/0.47.2-RELEASE_NOTES.md) |
 | 0.47.1 紧急回归修复 | [0.47.1 更新日志](releases/0.47.1-RELEASE_NOTES.md) |
 | 0.47.0 策略优化 Part 1 | [0.47.0 更新日志](releases/0.47.0-RELEASE_NOTES.md) |

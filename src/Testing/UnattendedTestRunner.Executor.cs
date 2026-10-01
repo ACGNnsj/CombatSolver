@@ -1115,17 +1115,23 @@ internal sealed partial class UnattendedTestRunner
                     || request.ExpectedFullAutoPausedAtLiveRisk,
                 persist: false);
             runner._protocolHost.EnableAutomaticTurnSearch();
+            bool manualMemoryReleaseContract = request.ScenarioId == "MANUAL-MEMORY-RELEASE-AUTO-CONTRACT";
             if (request.HoldAfterInitialSearch
                 || request.ManualEndTurnAfterInitialSearch
                 || request.SingleStepAfterInitialSearch
-                || request.StopAfterInitialSolverResultAssertion)
+                || request.StopAfterInitialSolverResultAssertion
+                || manualMemoryReleaseContract)
                 SolverController.RequestSearch(runner._host, combatState, SearchReason.Manual);
             else
                 SolverController.SetFullAuto(runner._host, combatState, enabled: true);
 
             if (runner.HasInitialSolverExpectation()
-                || request.StopAfterInitialSolverResultAssertion)
+                || request.StopAfterInitialSolverResultAssertion
+                || manualMemoryReleaseContract)
                 await runner.AssertInitialSolverResultAsync(startedTurn);
+
+            if (manualMemoryReleaseContract)
+                await runner.RunManualMemoryReleaseAutoContractAsync(combatState);
 
             if (request.StopAfterInitialSolverResultAssertion)
             {

@@ -68,6 +68,8 @@ CombatRootSnapshot.Capture（主线程根）
 
 ## 3. 状态所有权清单
 
+卡牌费用等价须核对 `CardCostStateSupport` 的能量/星能基础值、有序修改层和失效条件，不能只比较当前费用。该writer同时服务出牌指纹、选牌与续用；没有修改层时保留原键。费用规则变化须覆盖原版出牌/回合末清理、Fork隔离与续用诊断字段边界。
+
 - 历史六项累计值由 `CombatPredictionHistory.Record` 维护，普通、手动选牌与执行续接 Fork 均继承已有总数，复制尾段不重复入账。更改历史事件或续接路径时使用 `VerifyHistoryCounters=true` 核对独立扫描；Started/Finished 与原始/Resolved 事件的计数时点不能混用。
 
 新增分支状态必须回答：
