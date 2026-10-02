@@ -8,7 +8,7 @@
 
 322 份报告带 `BetterWorldline` 信号，按 session 合并成 312 个候选。排序使用报告预测 `hpLoss.before − hpLoss.after`，缺失值单独保留。首批发布前十个，预测差为 31～76 HP；该数值没有通过本轮整场回放验证。
 
-其余信号和重算计数进入诊断清单。一份包可以同时属于故障和优化队列；完整索引保留关联。首批选择十个具体异常或定位任务，优先有 0.47.3 记录、边界和日志明确的签名。纯保护停止、手操偏离、原因未知与第三方支持请求各保留自己的分类。
+其余信号和重算计数进入诊断清单。一份包可以同时属于故障和优化队列；完整索引保留关联。首批故障 B001 包含十个具体异常或定位条目，优先有 0.47.3 记录、边界和日志明确的签名；优化 Q001 包含排名前十个候选。**每批 10 项共用一个 issue**，后续继续按此粒度发布。纯保护停止、手操偏离、原因未知与第三方支持请求各保留自己的分类。
 
 ## 去重口径与验证状态
 
@@ -28,9 +28,14 @@ python tools/classify-community-reports.py --reports .local/community-tasks/repo
 
 ## 下载和公开副本
 
-资料存放在独立 [community-tasks-2026-10-02 Release](https://github.com/Torch1230/CombatSolver/releases/tag/community-tasks-2026-10-02)，Release 正文链接任务总表。`B01.zip`～`B10.zip` 是故障任务材料，`Q01.zip`～`Q10.zip` 是优化材料；解压外层后得到代表报告 ZIP，将报告 ZIP 交给回放入口。
+资料存放在独立 [community-tasks-2026-10-02 Release](https://github.com/Torch1230/CombatSolver/releases/tag/community-tasks-2026-10-02)，Release 正文链接两个批次：
 
-`community-task-index.json` 保存完整范围内的报告归属、诊断组、优化候选与首批任务；`optimization-ranking.csv` 可直接查看降序清单。已有 GitHub 任务用批次任务 ID 关联，后续发布时沿用 ID 检查既有 issue，保持认领与讨论。
+- [故障批次 B001：B01～B10](https://github.com/Torch1230/CombatSolver/issues/149)，下载 `B001.zip`。
+- [优化批次 Q001：Q01～Q10](https://github.com/Torch1230/CombatSolver/issues/150)，下载 `Q001.zip`。
+
+批次 ZIP 内按条目编号分目录，目录里的 `reports/*.zip` 是代表报告。把代表报告 ZIP 交给回放入口。原单项议题已按合并归档关闭，关闭只表示移入批次；材料与历史链接保留。
+
+`community-task-index.json` 保存完整报告归属、诊断组、优化候选和批次；每个条目的 GitHub 链接指向批次正文对应编号，旧单项链接作为历史记录保留。`optimization-ranking.csv` 可直接查看降序清单。认领和 PR 按批次 issue＋条目编号关联。
 
 [export-community-bundle.py](../../tools/export-community-bundle.py) 生成公开副本，清理 `report.json` 和 `diagnostics/` 中的昵称、联系方式、玩家统计字段及个人路径。**`replay/*` 保留原字节**，用于保存牌序、RNG、模型身份、原生状态与录制事件；首批材料的单人玩家 `net_id` 均为游戏测试身份 1。公开副本的 ZIP 字节与原包不同，原包保留在后台。
 
@@ -42,4 +47,4 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 ## 处理记录
 
-认领、首因、夹具和验证证据放 issue/PR。修复 PR 完整通过验收后关闭子任务；范围外报告继续留在清单，后台归档依据报告 ID 和实际修复证据处理。当前发布任务没有将后台报告标记为已修复，也没有生成客户端新版本。
+认领、首因、夹具和验证证据放批次 issue/PR，每项单独登记负责人、状态与 PR。完成一个条目时更新该行；十项全部验收后关闭批次。范围外报告继续留在清单，后台归档依据报告 ID 和实际修复证据处理。本次合并属于任务组织调整，报告仍保留原验证状态。
