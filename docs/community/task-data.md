@@ -35,7 +35,7 @@ python tools/classify-community-reports.py --reports .local/community-tasks/repo
 
 批次 ZIP 内按条目编号分目录，目录里的 `reports/*.zip` 是代表报告。把代表报告 ZIP 交给回放入口。原单项议题已按合并归档关闭，关闭只表示移入批次；材料与历史链接保留。
 
-`community-task-index.json` 保存完整报告归属、诊断组、优化候选和批次；每个条目的 GitHub 链接指向批次正文对应编号，旧单项链接作为历史记录保留。`optimization-ranking.csv` 可直接查看降序清单。认领和 PR 按批次 issue＋条目编号关联。
+`community-task-index.json` 保存完整报告归属、诊断组、优化候选和批次；每个条目的 GitHub 链接指向批次正文对应编号，旧单项链接作为历史记录保留。`optimization-ranking.csv` 可直接查看降序清单。认领单位是整批，PR 关联批次 issue，条目编号用于进度与验证记录。
 
 [export-community-bundle.py](../../tools/export-community-bundle.py) 生成公开副本，清理 `report.json` 和 `diagnostics/` 中的昵称、联系方式、玩家统计字段及个人路径。**`replay/*` 保留原字节**，用于保存牌序、RNG、模型身份、原生状态与录制事件；首批材料的单人玩家 `net_id` 均为游戏测试身份 1。公开副本的 ZIP 字节与原包不同，原包保留在后台。
 
@@ -47,4 +47,4 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 ## 处理记录
 
-认领、首因、夹具和验证证据放批次 issue/PR，每项单独登记负责人、状态与 PR。完成一个条目时更新该行；十项全部验收后关闭批次。范围外报告继续留在清单，后台归档依据报告 ID 和实际修复证据处理。本次合并属于任务组织调整，报告仍保留原验证状态。
+每批由一名 Assignee 认领并负责全部 10 项。认领、首因、夹具和验证证据放批次 issue/PR，清单逐项记录状态和 PR。完成一个条目时更新该行；十项全部验收后关闭批次。需要交接时，由原负责人整理已完成项、未解决项与证据，再由维护者调整批次 Assignee。范围外报告继续留在清单，后台归档依据报告 ID 和实际修复证据处理。
