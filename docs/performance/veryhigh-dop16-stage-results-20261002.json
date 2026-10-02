@@ -1,0 +1,146 @@
+{
+  "scope": "Historical stage ABBA comparisons; distinct before/after binaries, not regression of the PR on current upstream. Offline predicted quality; native contracts recorded separately.",
+  "baselineSource": "72363308 for initial corpus; later stages compare their documented immediate predecessor",
+  "cases": [
+    {
+      "id": "screen-huge-deck",
+      "passed": true,
+      "slow": true,
+      "baselineSeconds": [
+        499.0542889,
+        464.6345526
+      ],
+      "candidateSeconds": [
+        198.8903471,
+        197.9167847
+      ],
+      "baselinePeakBytes": [
+        23804559360,
+        23749283840
+      ],
+      "candidatePeakBytes": [
+        23566540800,
+        22615994368
+      ],
+      "minimumSpeedup": 2.3361342537473,
+      "maximumMemoryRatio": 0.9923053241844618,
+      "baselineTimed": true,
+      "baselineQualityStable": true,
+      "qualityPassed": true,
+      "speedPassed": true,
+      "memoryPassed": true,
+      "stageCommit": "85e54ebc",
+      "projectedBattleHpLost": [
+        15,
+        15
+      ],
+      "sourceReport": "after-play-mask-acceptance.json",
+      "sourceReportSha256": "2a58b4103fdcf262063a8d5c370f677ba66e754f2f2e7817e78d00767c86826d"
+    },
+    {
+      "id": "native-infested",
+      "passed": true,
+      "slow": true,
+      "baselineSeconds": [
+        61.0015571,
+        61.1970987
+      ],
+      "candidateSeconds": [
+        11.0033141,
+        10.8487763
+      ],
+      "baselinePeakBytes": [
+        25839742976,
+        25912954880
+      ],
+      "candidatePeakBytes": [
+        9015762944,
+        9025359872
+      ],
+      "minimumSpeedup": 5.543925815950305,
+      "maximumMemoryRatio": 0.3492821070388653,
+      "baselineTimed": false,
+      "baselineQualityStable": true,
+      "qualityPassed": true,
+      "speedPassed": true,
+      "memoryPassed": true,
+      "stageCommit": "1d2558ff",
+      "projectedBattleHpLost": [
+        3,
+        1
+      ],
+      "sourceReport": "silent-closure-final-acceptance.json",
+      "sourceReportSha256": "0138a2f8a7c6143ed55f707774b46cbe663fb2c703731ccb58e778889c393be7"
+    },
+    {
+      "id": "native-soul-nexus",
+      "passed": true,
+      "slow": true,
+      "baselineSeconds": [
+        82.3367447,
+        92.0797509
+      ],
+      "candidateSeconds": [
+        25.666905,
+        25.6372209
+      ],
+      "baselinePeakBytes": [
+        24969871360,
+        25593171968
+      ],
+      "candidatePeakBytes": [
+        17200095232,
+        17231056896
+      ],
+      "minimumSpeedup": 3.20789533058232,
+      "maximumMemoryRatio": 0.6900739153827984,
+      "baselineTimed": false,
+      "baselineQualityStable": true,
+      "qualityPassed": true,
+      "speedPassed": true,
+      "memoryPassed": true,
+      "stageCommit": "a8bf37db",
+      "projectedBattleHpLost": [
+        6,
+        6
+      ],
+      "sourceReport": "soul-nexus-closure-final-acceptance.json",
+      "sourceReportSha256": "3a92bafa4f271b94d5bfdc3b003dd8f8eb4d13d859f7f9ec01a4e234e1928f82"
+    },
+    {
+      "id": "holdout-03-regent",
+      "passed": true,
+      "slow": true,
+      "baselineSeconds": [
+        39.8441231,
+        36.2887058
+      ],
+      "candidateSeconds": [
+        12.5558656,
+        12.3388449
+      ],
+      "baselinePeakBytes": [
+        25406169088,
+        12043673600
+      ],
+      "candidatePeakBytes": [
+        10686918656,
+        10665709568
+      ],
+      "minimumSpeedup": 2.890179534894034,
+      "maximumMemoryRatio": 0.8873470845307532,
+      "baselineTimed": false,
+      "baselineQualityStable": true,
+      "qualityPassed": true,
+      "speedPassed": true,
+      "memoryPassed": true,
+      "stageCommit": "f8401a99",
+      "projectedBattleHpLost": [
+        3,
+        0
+      ],
+      "sourceReport": "c33-final-regent-report.json",
+      "sourceReportSha256": "ceb8dea1982e4e8fd1c229f72c2ee03c6ebe64580d36197a8db918801e00f616"
+    }
+  ]
+}

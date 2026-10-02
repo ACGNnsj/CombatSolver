@@ -17,6 +17,9 @@ internal sealed class MemorySampler : IDisposable
     public long PeakManagedHeapBytes { get; private set; }
     public long PeakManagedLiveBytes { get; private set; }
     public long PeakWorkingSetBytes { get; private set; }
+    // The OS high-water mark also captures peaks between sampler ticks and startup.
+    // Zero means this platform did not expose it; consumers must not silently use RSS instead.
+    public long PeakProcessWorkingSetBytes { get; private set; }
     public long Samples { get; private set; }
 
     public MemorySampler(TimeSpan interval)
@@ -41,6 +44,7 @@ internal sealed class MemorySampler : IDisposable
             PeakManagedLiveBytes = Math.Max(PeakManagedLiveBytes, GC.GetTotalMemory(forceFullCollection: false));
             using Process process = Process.GetCurrentProcess();
             PeakWorkingSetBytes = Math.Max(PeakWorkingSetBytes, process.WorkingSet64);
+            PeakProcessWorkingSetBytes = Math.Max(PeakProcessWorkingSetBytes, process.PeakWorkingSet64);
             Samples++;
         }
     }

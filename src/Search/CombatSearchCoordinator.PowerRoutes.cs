@@ -299,6 +299,17 @@ internal static partial class CombatSearchCoordinator
                         ContinuationPurpose.OpeningPowerRouteMember,
                         prefix, routeProfile, potionPolicyOverride, null, null)
                     {
+                        // A known potion-free victory remains available to the caller.
+                        // Only seed the existing bound where it is eligible in this member's
+                        // policy; forced/exact potion layers keep their separate audit proof.
+                        PrimaryIncumbent = root.CanCertifyRemainingHealing
+                            && (potionPolicyOverride ?? policy.PotionPolicy)
+                                is SolverPotionPolicy.Disabled or SolverPotionPolicy.Smart
+                            && !policy.PotionStrategy.HasForcedDirectives
+                            && selected.ExplicitPotionCount == 0
+                            && !selected.Snapshot.HasRisk
+                                ? BuildPrimarySearchIncumbent(root, policy, selected)
+                                : null,
                         ProgressCallbackOverride = progressCallback == null
                             ? null
                             : progress => progressCallback(progress with { Phase = "正在深搜能力路线" }),

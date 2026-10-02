@@ -456,6 +456,16 @@ internal static class ModRuntime
             };
         }
         bool timeBoundary = false;
+        int observedCoordinatorTimeBoundary = 0;
+        SearchDiagnosticsSink timeBoundaryDiagnostics = policy.Diagnostics;
+        policy = policy with { Diagnostics = new SearchDiagnosticsSink(message =>
+        {
+            // Capture before the bounded journal can drop a late budget event.
+            if (message.Contains("TURN_LAYER_BUDGET reason=time", StringComparison.Ordinal)
+                || message.Contains("SEARCH_TIME_BUDGET", StringComparison.Ordinal))
+                Interlocked.Exchange(ref observedCoordinatorTimeBoundary, 1);
+            timeBoundaryDiagnostics.Info(message);
+        }, timeBoundaryDiagnostics.Debug, timeBoundaryDiagnostics.PathObserver) };
         object describedPolicy = DescribePolicy(policy);
         SolverResult result;
         if (options.EnableNoGcRegion)
@@ -496,6 +506,7 @@ internal static class ModRuntime
         }
         if (options.SearchMode == "Coordinator" && policy.MeasurePhasePerformance)
             LastPhasePerformance = SolverDiagnostics.DescribeSearchPhasePerformance(result);
+        timeBoundary |= Volatile.Read(ref observedCoordinatorTimeBoundary) != 0;
         orderingObservations?.WriteSelectedPath(options.OutputDirectory, result);
         HarnessLog.Trace("solved");
         watch.Stop();
@@ -576,6 +587,8 @@ internal static class ModRuntime
             ["duplicateCardBranchesPruned"] = result.DuplicateCardBranchesPruned,
             ["shuffleBranchesPruned"] = result.ShuffleBranchesPruned,
             ["soldHpBranchesPruned"] = result.SoldHpBranchesPruned,
+            ["primaryIncumbentBranchesPruned"] = result.PrimaryIncumbentBranchesPruned,
+            ["primaryIncumbentUpdates"] = result.PrimaryIncumbentUpdates,
             ["replayCount"] = result.ReplayCount,
             ["forkCount"] = result.ForkCount,
             ["reusedNodeSnapshots"] = result.ReusedNodeSnapshots,

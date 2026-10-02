@@ -18,6 +18,8 @@ namespace CombatSolver;
 
 internal sealed partial class CombatBeamSolver
 {
+    internal bool DisableSurvivableBoundaryFallbackForTesting { get; init; }
+
     public SolverResult Solve()
     {
         SearchRequestWorkTotals? requestWorkTotals = policy.RequestWorkTotals;
@@ -1144,6 +1146,7 @@ internal sealed partial class CombatBeamSolver
         double potionFreeBoundaryFallbackScore = double.NegativeInfinity;
         SearchNode? potionBoundaryFallback = null;
         double potionBoundaryFallbackScore = double.NegativeInfinity;
+        SearchNode? survivableBoundaryFallback = null;
         // A cheap first parent is not a safe predictor for the rest of a later play depth.
         // Retain the largest observed parent for the whole search so a new depth cannot
         // immediately rematerialize a wide wave that exceeds the No-GC allocation budget.
@@ -2081,6 +2084,25 @@ internal sealed partial class CombatBeamSolver
             // 续用戳只供最终选中路线，淘汰候选无需提前拼接字符串。
             List<SearchNode> retainedAfterRound = [.. completed, .. frontier];
             ReleaseDroppedSnapshots(ended, retainedAfterRound);
+            // Save only a genuinely retained, annotated safe boundary: raw EndTurn
+            // children have not yet received sold-HP accounting or hard-policy pruning.
+            // A later interrupted layer may replace all live candidates with deaths.
+            // Keep metadata while historical simulators still release normally.
+            foreach (SearchNode candidate in frontier)
+            {
+                if (!DisableSurvivableBoundaryFallbackForTesting
+                    && candidate.Turn > _startTurnNumber
+                    && !candidate.IsTerminal && !candidate.Snapshot.HasRisk
+                    && !candidate.Snapshot.PlayerDead && candidate.Snapshot.ProjectedPlayerHp > 0
+                    && (survivableBoundaryFallback == null
+                        || candidate.Score > survivableBoundaryFallback.Score)
+                    && ExplicitPotionUseCount(candidate) >= _minimumPotionUses
+                    && (_potionPolicy != SolverPotionPolicy.RequireAtLeastOne
+                        || ExplicitPotionUseCount(candidate) > 0)
+                    && (!_enforcePotionDirectives
+                        || _potionStrategy.EvaluateForcedUses(candidate).AllForcedUsesSatisfied))
+                    survivableBoundaryFallback = candidate;
+            }
             foreach (SearchNode candidate in retainedAfterRound)
             {
                 ConsiderCompleteVictory(candidate);
@@ -2204,6 +2226,23 @@ internal sealed partial class CombatBeamSolver
             && potionBoundaryFallback != null)
         {
             finalPool.Add(RefreshReleasedFallback(potionBoundaryFallback));
+        }
+        if (!adoptionReached && !acceptableBattleHpLossReached
+            && (timeBudgetReached
+                || _run.Expanded >= _profile.MaxExpandedNodes
+                    && (_run.NodeLimitSnapshotsReleased > 0 || _run.TurnLayerBudgetStops > 0)
+                || memoryNoProgressTruncated)
+            && survivableBoundaryFallback != null
+            && finalPool.All(node => node.Snapshot.PlayerDead
+                || node.Snapshot.ProjectedPlayerHp <= 0))
+        {
+            SearchNode restored = RefreshReleasedFallback(survivableBoundaryFallback);
+            finalPool.Add(restored);
+            policy.Diagnostics.Info(
+                $"[CombatSolver/Test] SEARCH_SURVIVAL_BOUNDARY_RESTORED " +
+                $"turn={restored.Turn} hp={restored.Snapshot.PlayerHp} " +
+                $"projected_hp={restored.Snapshot.ProjectedPlayerHp} " +
+                $"enemy_hp={restored.Snapshot.EnemyHp} score={restored.Score}");
         }
         if (acceptableBattleHpLossReached)
         {

@@ -27,6 +27,10 @@ internal sealed partial class SimulatedCombatState
     private int _cardExecutionScopeDepth;
     private bool _playerTurnEndRequested;
 
+    internal bool HasPendingReturningCards => _returnToHandNextTurn is { Count: > 0 };
+    internal IEnumerable<PredictedCard> PendingReturningCards => _returnToHandNextTurn
+        ?? (IEnumerable<PredictedCard>)Array.Empty<PredictedCard>();
+
     private sealed class CardExecutionScope(SimulatedCombatState owner) : IDisposable
     {
         private bool _disposed;

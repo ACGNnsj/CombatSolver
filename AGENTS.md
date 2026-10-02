@@ -21,6 +21,7 @@ CombatSolver 当前正式功能是《杀戮尖塔 2》的单人战斗路线求�
 
 - 多人开发按 [多人适配实施规划](docs/MULTIPLAYER_PLAN.md) 的 2～4 人、本地动作搜索、有限回合及完整原版内容目标推进，由同一开发者完成全部建模与脚手架。现有单人行为保持；正式多人入口在对应实施与验收完成后开放。
 - 使用仓库内嵌模拟引擎；不要重新引入 RandomForeseer 运行时依赖。
+- 主项目的开发与社区任务面向原版游戏内容，不主动实现修改游戏内容的第三方 Mod 适配。第三方角色、卡牌、Power、遗物、怪物和战斗逻辑的支持请求单独留档；开放原版故障任务前取得原版内容证据。
 - 后台搜索不得读取会随实机推进而变化的 live 值，也不得修改真实战斗。分支可变值必须属于根快照、影子状态、克隆 Model 或 `PredictionStateStore`。
 - 未知语义必须显式失败或形成明确搜索边界。禁止用宽泛异常捕获、默认值、跳过候选或伪造相等掩盖错误。
 - 正确性优先于搜索质量与性能；不要用扩大 Beam、节点、时间或 No-GC 预算掩盖模拟偏差。
@@ -35,6 +36,7 @@ CombatSolver 当前正式功能是《杀戮尖塔 2》的单人战斗路线求�
 
 ## 2. 任务路由
 
+- 0.47.x 日志静态根因归并、每批五主题/每主题一至两包发布，以及已发布包和重复主题包清理：`.agents/skills/combatsolver-community-tasks/SKILL.md`。
 - 玩家 ZIP、日志包、存档和复现包：`.agents/skills/issue-bundle-triage/SKILL.md`。
 - 批量回放“找到更优世界线”报告、筛选有效策略缺口并做小批次策略迭代：`.agents/skills/strategy-replay-iteration/SKILL.md`。
 - 卡牌、Power、遗物、药水、球、怪物、死亡/召唤、选牌、RNG、Fork 或跨回合语义：`.agents/skills/combat-semantic-change/SKILL.md`。

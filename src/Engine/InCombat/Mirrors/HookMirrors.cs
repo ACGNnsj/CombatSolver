@@ -669,7 +669,8 @@ internal static partial class HookMirrors
     {
         if (simulator.IsCapturingExecutionContinuation)
         {
-            ResumeAfterPlayExecution(simulator, card, cardPlay, 0, CaptureUnfilteredExecutionHookListeners(simulator), 0);
+            ResumeAfterPlayExecution(simulator, card, cardPlay, 0,
+                CaptureAfterPlayExecutionHookListeners(simulator, late: false), 0);
             return;
         }
         var context = new AfterCardPlayedMirrorContext
@@ -1475,6 +1476,12 @@ internal static partial class HookMirrors
         string hookName,
         Func<AbstractModel, bool> wouldActOnUnfilteredPath)
     {
+        if (listeners is ISegmentedModelList segmented)
+        {
+            VerifyMaskedListenersAreNoOps(segmented.Prefix, mask, hookName, wouldActOnUnfilteredPath);
+            VerifyMaskedListenersAreNoOps(segmented.Suffix, mask, hookName, wouldActOnUnfilteredPath);
+            return;
+        }
         if (listeners is not MirroredHookListenerSnapshot snapshot)
             return;
 

@@ -1,0 +1,23 @@
+name: 更优世界线线索
+description: 提交可改善的路线与战损对照
+title: "[路线线索] "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: comparison
+    attributes:
+      label: 路线与战损对照
+      description: 求解器和人工数字、比较起点、预测或实际结果、药水差异
+    validations:
+      required: true
+  - type: input
+    id: versions
+    attributes:
+      label: 游戏、CombatSolver 与 RitsuLib 版本
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: 问题包或报告 ID
+      description: 原路线、操作记录与备注；上传前检查个人信息

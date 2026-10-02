@@ -18,7 +18,7 @@ internal readonly record struct StrategicHpRecoveryBoundAssessment(
 /// The supported native enemy effects only add harmful status cards; revisit this proof if an enemy
 /// starts granting a healing card, potion, relic or player power.
 /// </summary>
-internal static class StrategicHpRecoveryBound
+internal static partial class StrategicHpRecoveryBound
 {
     internal static bool HasOnlyPostCombatHealing(CombatPredictionSimulator simulator, Player player)
         => Assess(simulator, player).IsCertified;

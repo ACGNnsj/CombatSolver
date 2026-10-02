@@ -4,6 +4,8 @@ Combat Solver 是一个面向《杀戮尖塔 2》单人模式的战斗路线求�
 
 玩家可以只查看建议，也可以让求解器执行当前回合，或连续接管整场战斗。搜索不会修改游戏 RNG，也不会在后台操作真实战斗状态。
 
+**参与开发：** [社区任务入口](https://github.com/Torch1230/CombatSolver/issues/171)按每批五个主题发布故障修复与路线优化任务，每主题一至两个 0.47.x 代表包。[贡献指南](CONTRIBUTING.md)说明整批认领与 PR 流程，[夹具与脚手架指南](docs/community/testing-guide.md)说明差分、包回放与策略实验入口。
+
 当前版本为 **0.47.2**：改善跨回合路线，修复战前预报和第三方模组兼容问题，并统一内存条显示口径。详见 [更新日志](docs/releases/0.47.2-RELEASE_NOTES.md)。
 
 **English UI:** Set the game language to English and restart the game. CombatSolver provides a recommended route; use **Play turn** for one turn or **Auto: On** for continuous play. Configure potions, growth and search budgets in the overlay. **Settings > Reports > Upload report** submits a bug report. Logs, raw errors and some detailed diagnostics retain their original text. Single-player only.
@@ -65,6 +67,8 @@ if (PreCombatForecastApi.IsAvailable)
 确定预测的 `ForceRefresh=true` 同时绕过已完成结果缓存与正在运行的同参数任务；是否取消 worker 仍由 `CancelWorkerWhenCallerCancels` 独立控制。正在运行的请求仅在关闭标志与空闲期限一致时共享任务。已完成结果仍可跨生命周期选项复用，但缓存命中也会落实本次关闭/空闲设置；需要等待其他请求释放 worker 时，在安全空闲边界处理，不取消其他调用方的搜索。
 
 ## 第三方角色适配
+
+主项目开发与社区任务面向原版游戏内容，不主动实现修改游戏内容的第三方 Mod 适配。已有登记入口供第三方作者维护自己的适配层。
 
 `0.31.3` 合入 PR #50–#55，提供第三方 Power 战略估值、药水玩家选择与牌堆可选弃牌入口，并补充未镜像可打出条件的覆盖提示。使用这些入口的适配 Mod 应将 CombatSolver 最低依赖设为 `0.31.3`。
 

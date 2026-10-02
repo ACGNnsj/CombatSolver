@@ -1,6 +1,7 @@
 # CombatSolver 测试清单
 
 ## 生命界认证与边际剪枝日志（2026-10-02）
+与上游合并后，primary incumbent 使用上游逐分支剩余治疗估计作为基线；仅当本分支的固定战后治疗证书更紧时，再取两者较小值。`primary_incumbent_certified_healing_bound_pruned` 只统计固定战后上界相对该基线新增剪掉的候选；根没有上游动态证书时，基线为完整缺血余量。因此总剪枝数仍包含上游已认证动态上界的收益，而该边际字段不把它们归到本分支。
 
 此轮只增加诊断数据，不改变认证门禁、搜索候选、剪枝条件或预算。`COMBAT_ROOT_CAPTURE` 与自动搜索入口的 `TURN_SETUP_ROOT_CAPTURE` 均记录 `strategic_hp_recovery_bound`（根认证是否通过）、`strategic_hp_recovery_bound_reason`（认证顺序中首个不满足的稳定原因码）、`strategic_hp_recovery_bound_source`（如首因来自特定角色、敌人、遭遇 Modifier、药水、遗物、Power 或卡牌，则记录其 ID；URI 转义；无单一来源时为 `-`）和 `strategic_hp_recovery_bound_postcombat_heal_hp`（已认证根允许计入的固定战后治疗量；未认证时为 `unbounded`）。原因码包括 `unsupported_character`、`non_native_enemy`、`encounter_modifier`、`run_mod_subscriber`、`combat_mod_subscriber`、`base_lib_card_modifier`、`adapted_on_play`、`potion_present`、`unsupported_relic`、`unsupported_player_power`、`card_enchantment`、`card_affliction`、`unsupported_card` 和 `certified`。
 
@@ -11,6 +12,12 @@
 新进程 `52388-9f74d33df71a4a2ab7303229aad4bb09` 加载了带来源字段的本地 0.47.3：24 份战斗 JSONL 均有 Begin/End，23 次保留事件，无截断或 Error；33 次根捕获均有来源字段，但全部因 `encounter_modifier` 旁路且 source 为 `-`。138 条搜索结果均含边际剪枝字段且计数为0。94 条 ETC 成员共展开457,043节点、累计59.805秒、17条 `selected=true`；EndTurn的10条成员耗时11.183秒／76,642节点，有1条严格采用。日志证明来源字段接线完整，但暴露 Modifier 类别尚未记录身份。本次进一步把首个遭遇 Modifier 的 `Id.Entry` 写入来源字段；新改动的构建、部署和未执行项接续记录在本段末尾。
 
 该续接改动 Release 构建 0 警告／0 错误，五文件再次精确覆盖至本地 Mod 目录。未运行战斗测试或可见游戏；上面的新进程早于本次续接，因此还没有 Modifier ID 字段的实机验证。
+## 部分重战斗场景搜索优化（2026-10-02，上游合并后回归）
+上游 `96ee2669` 合并后 Release 构建通过（0 警告／0 错误），PowerShell 结构门禁 `REFACTOR_BOUNDARIES_OK search_files=239` 通过。最小原生合同 `REMAINING-HEALING-BOUND`（run `40560a794030405686c40d2bcf088373`）Passed：动态剩余治疗估计、Bundle of Joy 未知未来牌回退、再生药水与Power上界、未知分支的保守回退、incumbent剪枝、原生七次再生差分和摄政 strict incremental 搜索均通过；最终 63 HP、零战损、一回合胜利。无头实例 `F:\rider\CombatSolver\.local\headless-instances\wt-e01189cc8f079ad9` 已由脚本清理。该检查覆盖上游动态界及 incumbent 接线；本分支固定战后治疗边际计数仍缺少正命中实机日志，完整 29 根质量／内存回归沿用合并前已记录的证据，不将其称为本次重跑。 另有 `HEAL-BOUND-SAFE-ROOT`（run `01bde09fc40c4a29890936d39bb2be1c`）Passed：Ironclad 固定战后上界根认证、根捕获线程隔离与 incumbent 过滤合同通过；实例已清理。
+
+本 PR 在上游 `88298ae5` 上保留 AfterCardPlayed 捕获参与过滤、安全边界保留、已证明无额外治疗路线的战损下界、组合成员共享无药完整胜利、开局完整路线，以及原生感染棱柱／灵魂枢纽／摄政虱虫场景的受限治疗闭包。未纳入伤害目标过滤原型或已撤回实验。
+
+既有阶段原生证据包括 `MIRRORED-HOOK-FILTER`、`CARD-EXECUTION-CONTINUATION`、`EXECUTION-CHOICE-INCREMENTAL`、`SURVIVABLE-BOUNDARY-CONTRACT`、`REFINEMENT-INCUMBENT-CONTRACT` 和治疗闭包合同；历史通过不等同于合并上游后重新通过。四场阶段 ABBA 的战损与内核峰值门槛通过，保守提速 2.336～5.544 倍。合并后的 Release／结构门禁和受影响原生合同，以及 29 根完整极高／DOP16 的质量／内存回归另行记录。详见[范围与证据](performance/veryhigh-dop16-20261001.md)。
 
 ## 0.47.3 版本与发布登记（2026-10-01）
 
