@@ -73,6 +73,12 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 每批由一名 Assignee 负责全部五个主题。首因、最小夹具和实际验证放 issue/PR，按主题登记验收；五主题全部完成后关闭批次。交接时整理已完成/未解决主题及证据，维护者调整 Assignee。
 
+入口表格的“认领者”列以各批次 Issue 的 Assignee 为准：空缺显示“未认领”，已指派显示 `[用户名](https://github.com/用户名)`。在批次回复 `认领` 或 `认领 B012 整批` 自动认领本人，回复 `取消认领` 自动释放本人；每人同时一批，已有负责人时保持当前指派。具体规则见[贡献指南](../../CONTRIBUTING.md)。
+
+[community-claims.yml](../../.github/workflows/community-claims.yml) 监听新回复、指派及批次开关，调用 [sync-community-claims.py](../../tools/sync-community-claims.py)。新增批次账本推送也触发同步。每次处理尚未消费的回复，进度保存在入口正文的隐藏 `combatsolver-community-claims` 标记，队列合并或重试时保留认领顺序。表格之外的正文及用户设置的入口标题由维护者管理；发布时保留隐藏标记，仅更新正文。
+
+维护者可以用 `python tools/sync-community-claims.py --dry-run` 预览，或手动运行 GitHub Actions 的 **Community batch claims** 工作流恢复同步。脚本使用已登录的 `gh` 或 Actions 的 `GITHUB_TOKEN`，权限为读取仓库与写入 Issue；不需要日志后台凭据。
+
 发布流程固化在 [combatsolver-community-tasks skill](../../.agents/skills/combatsolver-community-tasks/SKILL.md)。清理有两个时点：GitHub 发布成功后清理实际代表包，或者分发检索确认已有主题时直接丢弃重复包。删除固定 ID 对应磁盘/COS ZIP 和后台报告记录，原因与 GitHub 去向保存在发布账本。此前仅清理 ZIP 的 465 条报告已全部补删后台记录，其中含 342 条 0.47.x 重复主题报告。
 
 B016 发布后已删除五个代表及 17 条已有主题重复报告，共 22 条后台记录和 22 个服务器 ZIP；累计已清理 487 条后台记录。发布及重复清理不表示已修复，主题验收证据仍由 issue/PR 保存。

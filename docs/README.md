@@ -1,6 +1,6 @@
 # CombatSolver 文档导航
 
-- [社区贡献指南](../CONTRIBUTING.md)：认领、环境与 PR 验收。
+- [社区贡献指南](../CONTRIBUTING.md)：整批自动认领、环境与 PR 验收。
 - [夹具与开发脚手架](community/testing-guide.md)：最小差分、问题包回放、生成场景、策略脚本与离线宿主。
 - [社区任务资料](community/task-data.md)：报告范围、分类去重、公开材料与后续批次。
 - [社区任务发布 skill](../.agents/skills/combatsolver-community-tasks/SKILL.md)：0.47.x 静态根因归并、五主题组批与重复主题包清理；[主题登记](community/theme-registry.json)与[发布账本](community/publication-ledger.json)记录匹配规则和去向。
