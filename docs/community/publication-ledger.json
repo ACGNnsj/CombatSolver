@@ -512,6 +512,79 @@
           ]
         }
       ]
+    },
+    {
+      "batchId": "B016",
+      "title": "[故障批次 B016] 5 个机制主题：根捕获、球 Hook、附魔来源、克隆身份、回合结束顺序",
+      "themeIds": [
+        "T021",
+        "T022",
+        "T023",
+        "T024",
+        "T025"
+      ],
+      "claimUnit": "batch",
+      "themesPerBatch": 5,
+      "representativeCount": 5,
+      "verification": "static_only",
+      "archive": "B016.zip",
+      "issueNumber": 182,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182",
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "themes": [
+        {
+          "themeId": "T021",
+          "title": "战斗根捕获：可变集合的枚举与稳定时点",
+          "mechanismKey": "combat-root-collection-capture-lifecycle",
+          "representativeIds": [
+            "18ad4e5656d64efbbbc5747e31dd7138"
+          ],
+          "evidenceLevel": "shared_mechanism",
+          "legacyTaskIds": []
+        },
+        {
+          "themeId": "T022",
+          "title": "球数值评估：原生 Hook 与预测枚举器合同",
+          "mechanismKey": "orb-value-hook-enumerator-contract",
+          "representativeIds": [
+            "3e32722d7cfc459bbabae757e5cb4f2a"
+          ],
+          "evidenceLevel": "shared_mechanism",
+          "legacyTaskIds": []
+        },
+        {
+          "themeId": "T023",
+          "title": "生成牌附魔：Power 来源与一次性遗物触发",
+          "mechanismKey": "generated-enchantment-power-source-and-relic-trigger",
+          "representativeIds": [
+            "21980d83adf740879ddf16d466f8c499"
+          ],
+          "evidenceLevel": "shared_mechanism",
+          "legacyTaskIds": []
+        },
+        {
+          "themeId": "T024",
+          "title": "卡牌克隆：永久牌组身份与战斗副本生命周期",
+          "mechanismKey": "card-deck-version-clone-lifecycle",
+          "representativeIds": [
+            "9eb40fd9fa854fc696f1a9f7eccf8ee4"
+          ],
+          "evidenceLevel": "shared_mechanism",
+          "legacyTaskIds": []
+        },
+        {
+          "themeId": "T025",
+          "title": "回合结束 Power：临时属性恢复与球激发顺序",
+          "mechanismKey": "end-turn-temporary-stat-and-orb-hook-order",
+          "representativeIds": [
+            "7137a64cd411453f86d8dd90700f4118"
+          ],
+          "evidenceLevel": "shared_mechanism",
+          "legacyTaskIds": []
+        }
+      ]
     }
   ],
   "retiredArchives": {
@@ -7485,5 +7558,230 @@
     "reportsDeleted": 465,
     "completedAt": "2026-10-02T08:15:56.038752+00:00",
     "scope": "previously_published_and_duplicate_theme_archive_receipts"
+  },
+  "pendingReportCleanup": {
+    "at": "2026-10-02T08:49:02.316308+00:00",
+    "entries": [
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t005",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "dcd387bccbbb40dcbbce9204383c9881",
+        "themeId": "T005",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "b276886a99c14746b6583a2748ec366e",
+        "themeId": "T002",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "10c5df93e92b403cb90494f0beaf4fba",
+        "themeId": "T002",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "1ef8f006eb9046d1ba9e8c8d27ecbb1a",
+        "themeId": "T002",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "e2547e09c74045bdbf4911b4f3ca22cb",
+        "themeId": "T002",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "60354d5dd88a408e925f521ee5f43437",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t004",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "a1e7b7fb695a43539383e31ac76b1a5f",
+        "themeId": "T004",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t007",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "01e59bf88e8241c3a21d24d53b8c34a8",
+        "themeId": "T007",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t007",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "e5377afd2fa14c90b6304e6dd78d6770",
+        "themeId": "T007",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "6aa9a320492449479d5b218d2dc721c3",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B015",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/174#t016",
+        "assetId": 605106766,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B015.zip",
+        "assetSizeBytes": 839580,
+        "reportId": "33f2eee4eb96428b95b89a253c4708f0",
+        "themeId": "T016",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "d208123adc9f4225ac26b4623b01d420",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "77b786b9afc64f35bcb06d9856804f31",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "b8b2bf6ff2c4464a895e24284e385a55",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B013",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
+        "assetId": 605106783,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
+        "assetSizeBytes": 1826545,
+        "reportId": "af9d8c9a3f224d0991d92c5e15681009",
+        "themeId": "T008",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t001",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "60c2c79acd0a4e6ab04f046f922ebcb7",
+        "themeId": "T001",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B012",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
+        "assetId": 605106772,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
+        "assetSizeBytes": 2136576,
+        "reportId": "da741f5f82af4005ac54e76aedd00e7b",
+        "themeId": "T002",
+        "reason": "duplicate_theme"
+      },
+      {
+        "batchId": "B016",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t021",
+        "assetId": 605195867,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+        "assetSizeBytes": 1348143,
+        "reportId": "18ad4e5656d64efbbbc5747e31dd7138",
+        "themeId": "T021",
+        "reason": "published"
+      },
+      {
+        "batchId": "B016",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t022",
+        "assetId": 605195867,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+        "assetSizeBytes": 1348143,
+        "reportId": "3e32722d7cfc459bbabae757e5cb4f2a",
+        "themeId": "T022",
+        "reason": "published"
+      },
+      {
+        "batchId": "B016",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t023",
+        "assetId": 605195867,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+        "assetSizeBytes": 1348143,
+        "reportId": "21980d83adf740879ddf16d466f8c499",
+        "themeId": "T023",
+        "reason": "published"
+      },
+      {
+        "batchId": "B016",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t024",
+        "assetId": 605195867,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+        "assetSizeBytes": 1348143,
+        "reportId": "9eb40fd9fa854fc696f1a9f7eccf8ee4",
+        "themeId": "T024",
+        "reason": "published"
+      },
+      {
+        "batchId": "B016",
+        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t025",
+        "assetId": 605195867,
+        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+        "assetSizeBytes": 1348143,
+        "reportId": "7137a64cd411453f86d8dd90700f4118",
+        "themeId": "T025",
+        "reason": "published"
+      }
+    ]
   }
 }

@@ -1472,6 +1472,296 @@
       "assetId": 605106767,
       "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/Q002.zip",
       "assetSizeBytes": 1887041
+    },
+    {
+      "themeId": "T021",
+      "title": "战斗根捕获：可变集合的枚举与稳定时点",
+      "mechanismKey": "combat-root-collection-capture-lifecycle",
+      "representativeIds": [
+        "18ad4e5656d64efbbbc5747e31dd7138"
+      ],
+      "sourcePaths": [
+        "src/Runtime/CombatRootSnapshot.cs",
+        "src/Search/SimulatedCombatState.cs"
+      ],
+      "sourceSymbols": [
+        "CombatRootSnapshot.Capture",
+        "SimulatedCombatState..ctor"
+      ],
+      "signaturePatterns": [
+        "Collection was modified"
+      ],
+      "requiresSourceSymbolForMatch": true,
+      "staticCause": "0.47.2 报告在 stage=combat_root_snapshot 失败。最早栈是 ListWhereIterator.MoveNext → HashSet.UnionWith → SimulatedCombatState 构造 → CombatRootSnapshot.Capture；当前构造器仍会把实机 Creatures/Players 等集合投影成 HashSet。失败发生在搜索根构造阶段。",
+      "unresolved": "确定最早被改动的集合和写入者，再核对 Capture 的主线程及生命周期稳定条件；现有栈不能证明是某一个后台线程，也不能确定具体是哪处 ToHashSet。",
+      "acceptance": [
+        "用原版战斗的召唤/死亡或回合转换构造最小根捕获场景，定位枚举失效的具体集合和首个写入。",
+        "根捕获成功时完整 live/predicted 状态一致；无法稳定捕获时明确拒绝，保持实机状态。",
+        "修复附相同输入的失败与通过证据；若只在外部内容修改下成立，记录边界并按不计划处理。"
+      ],
+      "logEvidence": [
+        {
+          "reportId": "18ad4e5656d64efbbbc5747e31dd7138",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 106
+        }
+      ],
+      "relation": "T011 调查预测召唤中的本地化格式池；这里的栈落在战斗根构造的集合枚举，调用链不同。",
+      "kind": "diagnostic",
+      "batchId": "B016",
+      "evidenceLevel": "shared_mechanism",
+      "verification": "static_only",
+      "rootCauseVerifiedByExecution": false,
+      "legacyTaskIds": [],
+      "legacyItemCount": 0,
+      "archive": "B016.zip",
+      "groupIds": [
+        "D-685b7f29668e"
+      ],
+      "issueNumber": 182,
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t021"
+    },
+    {
+      "themeId": "T022",
+      "title": "球数值评估：原生 Hook 与预测枚举器合同",
+      "mechanismKey": "orb-value-hook-enumerator-contract",
+      "representativeIds": [
+        "3e32722d7cfc459bbabae757e5cb4f2a"
+      ],
+      "sourcePaths": [
+        "src/Engine/InCombat/Mirrors/Orbs/OrbMirrors.cs",
+        "src/Search/CombatBeamSolver.StateEvaluation.cs",
+        "src/Search/SimulatedCombatState.cs"
+      ],
+      "sourceSymbols": [
+        "OrbMirrors.ModifyValue",
+        "CombatBeamSolver.OrbRetentionValue",
+        "Hook.ModifyOrbValue"
+      ],
+      "signaturePatterns": [
+        "EntryPointNotFoundException"
+      ],
+      "requiresSourceSymbolForMatch": true,
+      "staticCause": "0.47.2 的两次搜索在 BUFFER/SPINNER 动作后的 Snapshot 中失败，首栈均为 IEnumerator<T>.get_Current → 原生 Hook.ModifyOrbValue → OrbRetentionValue。当前 OrbMirrors.ModifyValue 仍将预测 ICombatState 交给原生 Hook。卡牌名是触发样本，共同入口是球数值评估。",
+      "unresolved": "追查 Hook 的监听器枚举、返回值与生成/镜像方法的接口合同，定位缺失的具体入口；EntryPointNotFound 不足以单独证明是游戏版本不兼容。",
+      "acceptance": [
+        "在原版球、集中及相关 Power 下构造最小 Snapshot/球数值评估，不运行百回合整场。",
+        "后台评估使用根或分支状态，球被动/激发数值与实际单效果差分一致。",
+        "覆盖报告中的枚举器失败边界；记录历史版本与当前 main 是否仍存在。"
+      ],
+      "logEvidence": [
+        {
+          "reportId": "3e32722d7cfc459bbabae757e5cb4f2a",
+          "file": "diagnostics/logs/combat/001.jsonl",
+          "line": 180
+        },
+        {
+          "reportId": "3e32722d7cfc459bbabae757e5cb4f2a",
+          "file": "diagnostics/logs/combat/003.jsonl",
+          "line": 81
+        }
+      ],
+      "relation": "T010 是格挡 Decimal 溢出；这里是球 Hook 枚举器入口，异常与调用方独立。",
+      "kind": "diagnostic",
+      "batchId": "B016",
+      "evidenceLevel": "shared_mechanism",
+      "verification": "static_only",
+      "rootCauseVerifiedByExecution": false,
+      "legacyTaskIds": [],
+      "legacyItemCount": 0,
+      "archive": "B016.zip",
+      "groupIds": [
+        "D-5ebc5fe0d33a"
+      ],
+      "issueNumber": 182,
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t022"
+    },
+    {
+      "themeId": "T023",
+      "title": "生成牌附魔：Power 来源与一次性遗物触发",
+      "mechanismKey": "generated-enchantment-power-source-and-relic-trigger",
+      "representativeIds": [
+        "21980d83adf740879ddf16d466f8c499"
+      ],
+      "sourcePaths": [
+        "src/Prediction/CardPileOnPlaySupport.cs",
+        "src/Engine/InCombat/Mirrors/Enchantments/OnPlay/EnchantmentOnPlayMirrors.cs",
+        "src/Search/SimulatedCombatState.PowerRelics.cs"
+      ],
+      "sourceSymbols": [
+        "GenerateInkyShivs",
+        "EnchantmentOnPlayMirrors.HandleInky",
+        "ObserveUnsettlingLamp",
+        "CompleteCardPowerApplication"
+      ],
+      "signaturePatterns": [
+        "field=relicCounters.*UNSETTLING_LAMP"
+      ],
+      "requiresSourceSymbolForMatch": false,
+      "staticCause": "0.47.0 原版小啃兽遭遇中，部署墨刃生成墨染小刀并使用一张后，下一回合遗物计数预计 UNSETTLING_LAMP/0/0、实际 /1/0，另有敌人 Power 差异。原版墨染在 OnPlay 以生成卡实例为 cardSource 施加虚弱；当前镜像通过 ApplyPowerFromSource 进入来源栈，再由灯的触发卡及完成状态跟踪消费。",
+      "unresolved": "在生成、附魔登记、OnPlay 和 Power 来源作用域之间找到首个差异；须区分附魔未执行、来源身份丢失和遗物消费时点。当前源码已有来源处理，历史问题是否仍存在未验证。",
+      "acceptance": [
+        "最小原版夹具包含墨刃、墨染小刀和该遗物；按同一目标核对虚弱量、来源身份及首次消费状态。",
+        "生成后的附魔监听器与 Fork 后的附魔/卡实例绑定一致，后续小刀按原版规则消费遗物。",
+        "保留修改前失败/修改后通过的完整状态证据，不能只比较下一回合总 HP。"
+      ],
+      "logEvidence": [
+        {
+          "reportId": "21980d83adf740879ddf16d466f8c499",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 181
+        },
+        {
+          "reportId": "21980d83adf740879ddf16d466f8c499",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 186
+        },
+        {
+          "reportId": "21980d83adf740879ddf16d466f8c499",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 197
+        }
+      ],
+      "relation": "T006 是续用对账入口；本主题限定生成附魔 → Power cardSource → 一次性遗物的上游生命周期，不重新派发泛化的状态不一致。",
+      "kind": "diagnostic",
+      "batchId": "B016",
+      "evidenceLevel": "shared_mechanism",
+      "verification": "static_only",
+      "rootCauseVerifiedByExecution": false,
+      "legacyTaskIds": [],
+      "legacyItemCount": 0,
+      "archive": "B016.zip",
+      "groupIds": [
+        "D-7af4a2c92bca"
+      ],
+      "issueNumber": 182,
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t023"
+    },
+    {
+      "themeId": "T024",
+      "title": "卡牌克隆：永久牌组身份与战斗副本生命周期",
+      "mechanismKey": "card-deck-version-clone-lifecycle",
+      "representativeIds": [
+        "9eb40fd9fa854fc696f1a9f7eccf8ee4"
+      ],
+      "sourcePaths": [
+        "src/Engine/Common/PredictionUtils.cs",
+        "src/Engine/Common/PredictedCard.cs",
+        "src/Engine/InCombat/Simulation/CombatPredictedCardExtensions.cs",
+        "src/Runtime/ContinuationStamp.cs"
+      ],
+      "sourceSymbols": [
+        "PredictionUtils.CloneCardStateForSimulation",
+        "PredictedCard.MutablePreview",
+        "CombatPredictedCardExtensions.CreateClone",
+        "ContinuationStamp.AppendCard"
+      ],
+      "signaturePatterns": [
+        "CardDeckVersionMismatch"
+      ],
+      "requiresSourceSymbolForMatch": false,
+      "diagnosticNormalization": "先按 ContinuationStamp.AppendCard 的字段顺序解码完整 expected/actual 卡状态；只有首个不同布尔字段为 DeckVersion != null，才登记 CardDeckVersionMismatch。卡名不作为主题键。",
+      "staticCause": "0.47.1 的第 7 回合只有一处差异：抽牌堆 MAKE_IT_SO 的 DeckVersion 标记预计 False、实际 True。按当前 AppendCard 字段顺序已静态解码该位置。原版 CardModel.AfterCloned 会清空 DeckVersion；预测 COW 通过 CloneCardStateForSimulation 重新保存，而玩法副本 CreateClone 明确清空，两类克隆的合同不同。",
+      "unresolved": "追到该实例第一次从永久牌变成战斗副本的位置，检查监听器克隆、COW 和回手/转换路径；不能从末端差异直接认定 MutablePreview 是写错点，也不能删掉整个身份字段掩盖差异。",
+      "acceptance": [
+        "最小场景分别覆盖原牌 COW/Fork 与真正玩法复制：前者保留永久牌组关联，后者按原版清空。",
+        "身份、附魔和有序牌堆状态与实际一致；验证跨回合回手/转换后仍保留正确关联。",
+        "报告输入的单字段差异得到修改前/后的证据；若当前已修复，明确记录已有提交及实际验证。"
+      ],
+      "logEvidence": [
+        {
+          "reportId": "9eb40fd9fa854fc696f1a9f7eccf8ee4",
+          "file": "diagnostics/logs/combat/004.jsonl",
+          "line": 58
+        }
+      ],
+      "relation": "T001/T003 是选择 token，T002 是最终路线材料化；本主题只处理 DeckVersion 的克隆身份合同，与它们共享卡牌样本并不代表同根因。",
+      "kind": "diagnostic",
+      "batchId": "B016",
+      "evidenceLevel": "shared_mechanism",
+      "verification": "static_only",
+      "rootCauseVerifiedByExecution": false,
+      "legacyTaskIds": [],
+      "legacyItemCount": 0,
+      "archive": "B016.zip",
+      "groupIds": [
+        "D-2d08fb147994"
+      ],
+      "issueNumber": 182,
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t024"
+    },
+    {
+      "themeId": "T025",
+      "title": "回合结束 Power：临时属性恢复与球激发顺序",
+      "mechanismKey": "end-turn-temporary-stat-and-orb-hook-order",
+      "representativeIds": [
+        "7137a64cd411453f86d8dd90700f4118"
+      ],
+      "sourcePaths": [
+        "src/Prediction/CorePowerSupport.cs",
+        "src/Prediction/EndTurnPowerSupport.cs",
+        "src/Prediction/PlayerTurnEndLifecycle.cs",
+        "src/Search/SimulatedCombatState.cs"
+      ],
+      "sourceSymbols": [
+        "CorePowerSupport.TriggerPlayerRegularSideTurnEndEffects",
+        "RestoreTemporaryFocus",
+        "EndTurnPowerSupport.TriggerRegular",
+        "EvokeLastOrbs"
+      ],
+      "signaturePatterns": [
+        "TemporaryFocusEndTurnOrderMismatch"
+      ],
+      "requiresSourceSymbolForMatch": false,
+      "diagnosticNormalization": "读取回合结束前临时集中及 ConsumingShadow 的状态、施加顺序与首个敌人 HP 差异，再对照原版 AfterSideTurnEnd 监听器顺序。仅 HP 差异不能匹配此主题。",
+      "staticCause": "0.47.0 报告先部署 ConsumingShadow、LightningRod、Hotfix、BallLightning；实机回合结束前 Focus=2、Hotfix=2、ConsumingShadow=1。下一回合只有敌人 HP 差异：预计 136、实际 134。原版临时集中恢复和末球激发同属 AfterSideTurnEnd；当前模拟器先集中恢复临时 Strength/Dexterity/Focus，再调用包含末球激发的 TriggerRegular，这个固定顺序与原版逐监听器合同存在差异。",
+      "unresolved": "2 HP 差异与临时集中量吻合，仍需最小差分确认是否由该顺序解释；同时核对原版监听器顺序、被动/激发两阶段及目标 RNG。不能把所有球伤害或跨回合 HP 差异归入此主题。",
+      "acceptance": [
+        "用原版临时集中和末球激发构造两种 Power 施加顺序，逐阶段比较 Focus、球队列、敌人 HP 及 RNG。",
+        "模拟保持原版 AfterSideTurnEnd 顺序与监听器生命周期，覆盖激发后移除和临时属性恢复。",
+        "修改前失败/修改后通过；再以普通球回合结束作为最小哨兵，单请求最多 120 秒。"
+      ],
+      "logEvidence": [
+        {
+          "reportId": "7137a64cd411453f86d8dd90700f4118",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 106
+        },
+        {
+          "reportId": "7137a64cd411453f86d8dd90700f4118",
+          "file": "diagnostics/logs/combat/000.jsonl",
+          "line": 114
+        }
+      ],
+      "relation": "T022 调查枚举器执行失败；这里调查正常执行中的 Power 时序与球伤害，验收状态及源码边界不同。",
+      "kind": "diagnostic",
+      "batchId": "B016",
+      "evidenceLevel": "shared_mechanism",
+      "verification": "static_only",
+      "rootCauseVerifiedByExecution": false,
+      "legacyTaskIds": [],
+      "legacyItemCount": 0,
+      "archive": "B016.zip",
+      "groupIds": [
+        "D-04cf3aa2aa1e"
+      ],
+      "issueNumber": 182,
+      "assetId": 605195867,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
+      "assetSizeBytes": 1348143,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t025"
     }
   ]
 }
