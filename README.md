@@ -4,7 +4,7 @@ Combat Solver 是一个面向《杀戮尖塔 2》单人模式的战斗路线求�
 
 玩家可以只查看建议，也可以让求解器执行当前回合，或连续接管整场战斗。搜索不会修改游戏 RNG，也不会在后台操作真实战斗状态。
 
-**参与开发：** [社区任务入口](https://github.com/Torch1230/CombatSolver/issues/171)按每批 10 项发布故障修复与路线优化任务，附批次问题包。[贡献指南](CONTRIBUTING.md)说明整批认领与 PR 流程，[夹具与脚手架指南](docs/community/testing-guide.md)说明差分、包回放与策略实验入口。
+**参与开发：** [社区任务入口](https://github.com/Torch1230/CombatSolver/issues/171)按每批五个主题发布故障修复与路线优化任务，每主题一至两个 0.47.x 代表包。[贡献指南](CONTRIBUTING.md)说明整批认领与 PR 流程，[夹具与脚手架指南](docs/community/testing-guide.md)说明差分、包回放与策略实验入口。
 
 当前版本为 **0.47.2**：改善跨回合路线，修复战前预报和第三方模组兼容问题，并统一内存条显示口径。详见 [更新日志](docs/releases/0.47.2-RELEASE_NOTES.md)。
 

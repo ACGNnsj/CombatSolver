@@ -3,7 +3,7 @@
 - [社区贡献指南](../CONTRIBUTING.md)：认领、环境与 PR 验收。
 - [夹具与开发脚手架](community/testing-guide.md)：最小差分、问题包回放、生成场景、策略脚本与离线宿主。
 - [社区任务资料](community/task-data.md)：报告范围、分类去重、公开材料与后续批次。
-- [社区任务发布 skill](../.agents/skills/combatsolver-community-tasks/SKILL.md)：原版内容筛选、十项组批、发布回执与包清理；[发布账本](community/publication-ledger.json)记录任务和清理去向。
+- [社区任务发布 skill](../.agents/skills/combatsolver-community-tasks/SKILL.md)：0.47.x 静态根因归并、五主题组批与重复主题包清理；[主题登记](community/theme-registry.json)与[发布账本](community/publication-ledger.json)记录匹配规则和去向。
 
 - [手动释放后自动执行内存回涨](performance/manual-memory-release-20261001.md)：PR #147 本轮审计证据、页面回载根因及释放后生成路线部署验证。
 

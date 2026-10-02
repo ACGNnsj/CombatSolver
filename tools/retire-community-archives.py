@@ -33,6 +33,11 @@ def validate_receipt(receipt):
             raise ValueError('Asset does not belong to batch')
         if entry['assetId'] <= 0 or entry['assetSizeBytes'] <= 0:
             raise ValueError('Incomplete asset receipt')
+        reason = entry.get('reason', 'published')
+        if reason not in {'published', 'duplicate_theme'}:
+            raise ValueError('Invalid retirement reason')
+        if reason == 'duplicate_theme' and not re.fullmatch(r'[TO]\d{3}', entry['themeId']):
+            raise ValueError('Duplicate retirement requires a published theme ID')
     return entries
 
 
@@ -42,10 +47,12 @@ def retire(conn, storage_root, receipt, delete_remote, dry_run=False):
     selected = []
     # Validate every selected path before removing any archive.
     for entry in entries:
-        row = conn.execute('SELECT file_path,cos_key,note,resolved FROM reports WHERE id=?',
+        row = conn.execute('SELECT file_path,cos_key,note,resolved,mod_version FROM reports WHERE id=?',
                            (entry['reportId'],)).fetchone()
         if row is None:
             raise ValueError('Report row missing: ' + entry['reportId'])
+        if entry.get('reason') == 'duplicate_theme' and not (row[4] or '').startswith('0.47.'):
+            raise ValueError('Duplicate archive outside current 0.47.x window: ' + entry['reportId'])
         file_path = Path(row[0]).resolve()
         if not file_path.is_relative_to(root) or file_path == root or file_path.suffix != '.zip':
             raise ValueError('Archive path outside storage or not a ZIP: ' + entry['reportId'])
@@ -65,21 +72,25 @@ def retire(conn, storage_root, receipt, delete_remote, dry_run=False):
                                    (report_id,)).fetchone()
             if current is None or Path(current[0]).resolve() != file_path:
                 raise ValueError('Report archive changed: ' + report_id)
-            remote_key, note, resolved = current[1:]
+            remote_key, note, resolved = current[1:4]
             if remote_key:
                 delete_remote(remote_key)
             existed = file_path.exists()
             if existed:
                 file_path.unlink()
-            marker = '[Community archive retired: ' + entry['batchId'] + ']'
+            reason = entry.get('reason', 'published')
+            marker = ('[Community duplicate theme retired: ' + entry['themeId'] + ']' if reason == 'duplicate_theme'
+                      else '[Community archive retired: ' + entry['batchId'] + ']')
             if marker not in note:
                 addition = (marker + '\n' + entry['issueUrl'] + '\n' + entry['assetUrl'] +
-                            '\nPublished diagnostic material; repair state unchanged.')
+                            ('\nDuplicate theme discarded; use published representative material. Repair state unchanged.'
+                             if reason == 'duplicate_theme' else '\nPublished diagnostic material; repair state unchanged.'))
                 note = note + ('\n\n' if note else '') + addition
             conn.execute('UPDATE reports SET cos_key=NULL,note=? WHERE id=?', (note, report_id))
             results.append({'reportId': report_id, 'batchId': entry['batchId'],
                             'localDeleted': existed, 'cosDeleted': bool(remote_key),
-                            'reportRetained': True, 'resolved': bool(resolved)})
+                            'reportRetained': True, 'resolved': bool(resolved), 'reason': reason,
+                            'themeId': entry.get('themeId')})
     return results
 
 

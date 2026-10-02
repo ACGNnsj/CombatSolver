@@ -36,7 +36,7 @@ CombatSolver 当前正式功能是《杀戮尖塔 2》的单人战斗路线求�
 
 ## 2. 任务路由
 
-- 日志后台静态分类去重、十项组批发布社区任务及已发布代表包清理：`.agents/skills/combatsolver-community-tasks/SKILL.md`。
+- 0.47.x 日志静态根因归并、每批五主题/每主题一至两包发布，以及已发布包和重复主题包清理：`.agents/skills/combatsolver-community-tasks/SKILL.md`。
 - 玩家 ZIP、日志包、存档和复现包：`.agents/skills/issue-bundle-triage/SKILL.md`。
 - 批量回放“找到更优世界线”报告、筛选有效策略缺口并做小批次策略迭代：`.agents/skills/strategy-replay-iteration/SKILL.md`。
 - 卡牌、Power、遗物、药水、球、怪物、死亡/召唤、选牌、RNG、Fork 或跨回合语义：`.agents/skills/combat-semantic-change/SKILL.md`。

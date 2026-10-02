@@ -29,9 +29,9 @@ def publication_signature(value):
     return value
 
 
-def collect(index):
+def collect(index, version_prefix='0.47.'):
     by_id = {r['reportId']: r for r in index['reports']}
-    previous_tasks = index['tasks'] + index.get('excludedTasks', [])
+    previous_tasks = index['tasks'] + index.get('excludedTasks', []) + index.get('historicalTasks', [])
     published = {g for t in previous_tasks for g in t.get('groupIds', [])}
     published_keys = {publication_signature(g['signature']) for g in index['diagnosticGroups'] if g['id'] in published}
     published_representatives = {i for t in previous_tasks for i in t['representativeIds']}
@@ -53,7 +53,7 @@ def collect(index):
         return tuple(map(int, value.split('.')))
     for bucket in buckets.values():
         bucket['excludedCharacterReportIds'] = sorted(i for i in bucket['reportIds'] if by_id[i]['characterId'] not in BASE_CHARACTERS)
-        bucket['reportIds'] = sorted(i for i in bucket['reportIds'] if by_id[i]['characterId'] in BASE_CHARACTERS)
+        bucket['reportIds'] = sorted(i for i in bucket['reportIds'] if by_id[i]['characterId'] in BASE_CHARACTERS and by_id[i]['version'].startswith(version_prefix))
         bucket['kinds'] = sorted(bucket['kinds'])
         if not bucket['reportIds']:
             bucket['versions'] = []
@@ -71,14 +71,70 @@ def collect(index):
     return sorted(buckets.values(), key=lambda b: (version(b['versions'][-1]) if b['versions'] else (), b['sessionCount'], b['publicationSignature']), reverse=True)
 
 
+def match_theme(signature, registry, source_frames=()):
+    for theme in registry['themes']:
+        if theme['kind'] != 'diagnostic':
+            continue
+        if theme.get('requiresSourceSymbolForMatch') and not any(symbol in frame for symbol in theme['sourceSymbols'] for frame in source_frames):
+            continue
+        if any(re.search(pattern, signature) for pattern in theme['signaturePatterns']):
+            return theme
+    return None
+
+
+def duplicate_theme_reports(index, registry, version_prefix='0.47.'):
+    by_id = {r['reportId']: r for r in index['reports']}
+    matched = {}
+    def receipt(report_id, theme):
+        return {'reportId': report_id, 'themeId': theme['themeId'], 'reason': 'duplicate_theme',
+                'action': 'delete_archive_and_skip', 'batchId': theme['batchId'],
+                'issueUrl': theme['issueUrl'], 'assetUrl': theme['assetUrl'],
+                'assetId': theme['assetId'], 'assetSizeBytes': theme['assetSizeBytes']}
+    for group in index['diagnosticGroups']:
+        theme = match_theme(group['signature'], registry, group.get('firstProjectFrames', []))
+        if theme is None:
+            continue
+        for report_id in group['reportIds']:
+            report = by_id[report_id]
+            if not report['version'].startswith(version_prefix) or report['characterId'] not in BASE_CHARACTERS:
+                continue
+            if report.get('archiveRetiredAfterPublication'):
+                continue
+            matched.setdefault(report_id, receipt(report_id, theme))
+    encounter_themes = {t['encounterId']: t for t in registry['themes'] if t['kind'] == 'optimization'}
+    for case in index.get('optimizationCases', []):
+        representative = by_id.get(case['representativeId'])
+        if representative is None:
+            continue
+        theme = encounter_themes.get(representative['encounterId'])
+        if theme is None:
+            continue
+        for report_id in case['reportIds']:
+            report = by_id.get(report_id)
+            if report is None or not report['version'].startswith(version_prefix) or report.get('archiveRetiredAfterPublication') or report['characterId'] not in BASE_CHARACTERS:
+                continue
+            matched.setdefault(report_id, receipt(report_id, theme))
+    return sorted(matched.values(), key=lambda r: r['reportId'])
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--index', type=Path, required=True)
     parser.add_argument('--output', type=Path, required=True)
+    parser.add_argument('--theme-registry', type=Path, required=True)
+    parser.add_argument('--version-prefix', default='0.47.')
     args = parser.parse_args()
-    groups = collect(json.loads(args.index.read_text(encoding='utf-8-sig')))
-    args.output.write_text(json.dumps(groups, ensure_ascii=False, indent=2), encoding='utf-8')
-    print(json.dumps({'candidates': len(groups), 'faultInvestigations': sum(g['category'] == 'fault_investigation' for g in groups)}))
+    index = json.loads(args.index.read_text(encoding='utf-8-sig'))
+    registry = json.loads(args.theme_registry.read_text(encoding='utf-8-sig'))
+    duplicates = duplicate_theme_reports(index, registry, args.version_prefix)
+    discarded_ids = {r['reportId'] for r in duplicates}
+    groups = [g for g in collect(index, args.version_prefix)
+              if g['representativeId'] and g['representativeId'] not in discarded_ids
+              and match_theme(g['publicationSignature'], registry) is None]
+    result = {'schemaVersion': 2, 'versionPrefix': args.version_prefix,
+              'duplicateThemeReports': duplicates, 'newCandidates': groups}
+    args.output.write_text(json.dumps(result, ensure_ascii=False, indent=2), encoding='utf-8')
+    print(json.dumps({'newCandidates': len(groups), 'duplicateThemeArchivesToDelete': len(duplicates)}))
 
 
 if __name__ == '__main__':
