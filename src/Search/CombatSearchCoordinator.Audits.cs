@@ -631,6 +631,7 @@ internal static partial class CombatSearchCoordinator
                 || gradient.ResultScope != SolverResultScope.SearchCompletion
                 || policy.PotionStrategy.HasForcedDirectives
                 || battleDamage.PotionsUsedSoFar != 0
+                || CanFinishNativeLouseZeroDamageRoute(root, policy, gradient)
                 || (gradient.ExplicitPotionCount <= 1
                     && HasReachedProvablePrimaryQualityLowerBound(root, policy, gradient)))
                 return gradient;

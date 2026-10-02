@@ -201,6 +201,7 @@ internal static class Program
                 payload["peakManagedHeapBytes"] = memory.PeakManagedHeapBytes;
                 payload["peakManagedLiveBytes"] = memory.PeakManagedLiveBytes;
                 payload["peakWorkingSetBytes"] = memory.PeakWorkingSetBytes;
+                payload["peakProcessWorkingSetBytes"] = memory.PeakProcessWorkingSetBytes;
                 payload["memorySamples"] = memory.Samples;
                 payload["totalAllocatedBytes"] = GC.GetTotalAllocatedBytes(precise: false);
 
@@ -262,6 +263,7 @@ internal static class Program
                 ["peakManagedHeapBytes"] = payload.GetValueOrDefault("peakManagedHeapBytes"),
                 ["peakManagedLiveBytes"] = payload.GetValueOrDefault("peakManagedLiveBytes"),
                 ["peakWorkingSetBytes"] = payload.GetValueOrDefault("peakWorkingSetBytes"),
+                ["peakProcessWorkingSetBytes"] = payload.GetValueOrDefault("peakProcessWorkingSetBytes"),
                 ["totalAllocatedBytes"] = payload.GetValueOrDefault("totalAllocatedBytes"),
                 ["rootContinuationStamp"] = payload.GetValueOrDefault("search") is Dictionary<string, object?> s
                     ? s.GetValueOrDefault("rootContinuationStamp")

@@ -24,4 +24,5 @@ internal sealed record SearchPassContext(
 internal sealed class SearchPlanDiscoveryState
 {
     internal int? OpeningPlanCount { get; set; }
+    internal SolverSearchProfile? EarlyOpeningPlanProfile { get; set; }
 }

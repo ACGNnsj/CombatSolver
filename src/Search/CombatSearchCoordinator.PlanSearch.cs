@@ -15,7 +15,8 @@ internal static partial class CombatSearchCoordinator
 
     private static SolverResult RunPlanSearchPass(SearchPassContext context, SolverResult baseline)
     {
-        if (baseline.ResultScope != SolverResultScope.SearchCompletion
+        if (ReferenceEquals(context.PlanDiscovery.EarlyOpeningPlanProfile, context.Profile)
+            || baseline.ResultScope != SolverResultScope.SearchCompletion
             || context.Policy.PotionStrategy.HasForcedDirectives
             || IsProvenZeroDamageRoute(context.Root, context.Policy, baseline)
             || IsCompleteVictory(baseline)
@@ -27,8 +28,42 @@ internal static partial class CombatSearchCoordinator
         if (plans.Count == 0)
             return baseline;
 
+        return RunOpeningPlans(context, baseline, plans)!;
+    }
+
+    private static SolverResult? TryRunOpeningPlanIncumbent(
+        SearchPassContext context, SolverPotionPolicy? potionPolicyOverride)
+    {
         SearchPolicySnapshot policy = context.Policy;
-        SolverResult selected = baseline;
+        if (!context.Root.CanCertifyRemainingHealing || !policy.UseBeamWidthPortfolio
+            || policy.UseNoveltyPortfolio || policy.IncludeTurnSetup
+            || policy.PortfolioExperiment != null || policy.DevelopmentStrategy != null
+            || policy.DisableRefinementIncumbentForTesting || policy.DisableOpeningPlanIncumbentForTesting
+            || policy.EffectiveHasGrowthTargets || policy.RelicTargets.Count != 0
+            || policy.PotionStrategy.HasForcedDirectives
+            || (potionPolicyOverride ?? policy.PotionPolicy)
+                is not (SolverPotionPolicy.Disabled or SolverPotionPolicy.Smart))
+            return null;
+        IReadOnlyList<PlanCommitment> plans = DiscoverOpeningPlanCommitments(context);
+        if (plans.Count == 0 || plans.Any(plan => plan.UsesPotion))
+            return null;
+        policy.Diagnostics.Info("[CombatSolver/Test] EARLY_OPENING_PLAN_INCUMBENT start");
+        SolverResult? result = RunOpeningPlans(context, null, plans);
+        if (result != null && (result.ResultScope != SolverResultScope.SearchCompletion
+            || BuildRefinementPrimarySearchIncumbent(context.Root, policy, potionPolicyOverride, result) != null))
+        {
+            context.PlanDiscovery.OpeningPlanCount = plans.Count;
+            context.PlanDiscovery.EarlyOpeningPlanProfile = context.Profile;
+            return result;
+        }
+        return null;
+    }
+
+    private static SolverResult? RunOpeningPlans(
+        SearchPassContext context, SolverResult? baseline, IReadOnlyList<PlanCommitment> plans)
+    {
+        SearchPolicySnapshot policy = context.Policy;
+        SolverResult? selected = baseline;
         FrontierContinuationScheduler scheduler = new(context);
         int attempted = 0;
         List<PlanCommitment> scheduled = [];
@@ -73,8 +108,12 @@ internal static partial class CombatSearchCoordinator
                 continue;
             if (candidate.ResultScope != SolverResultScope.SearchCompletion)
                 return candidate;
+            if (baseline == null && BuildRefinementPrimarySearchIncumbent(context.Root, policy,
+                    SolverPotionPolicy.Disabled, candidate) == null)
+                continue;
             PopulateSingleSessionTotals(candidate);
-            bool improved = IsBetterPotionPolicyResult(context.Root, policy, candidate, selected);
+            bool improved = selected == null
+                || IsBetterPotionPolicyResult(context.Root, policy, candidate, selected);
             if (improved)
                 selected = candidate;
             policy.Diagnostics.Info(
@@ -93,12 +132,12 @@ internal static partial class CombatSearchCoordinator
                         : action.Kind == PlanActionKind.PlayCard ? $"C:{action.CardId}" : "E"))} " +
                 $"won={IsCompleteVictory(candidate)} hp_lost={candidate.ProjectedBattleHpLost} " +
                 $"expanded={candidate.ExpandedNodes} selected={improved}");
-            if (IsProvenZeroDamageRoute(context.Root, policy, selected))
+            if (selected != null && IsProvenZeroDamageRoute(context.Root, policy, selected))
                 break;
         }
         policy.Diagnostics.Info(
             $"[CombatSolver/Test] PLAN_SEARCH result candidates={plans.Count} " +
-            $"attempted={attempted} selected_hp_lost={selected.ProjectedBattleHpLost}");
+            $"attempted={attempted} selected_hp_lost={selected?.ProjectedBattleHpLost.ToString() ?? "-"}");
         return selected;
     }
 
