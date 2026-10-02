@@ -88,13 +88,18 @@ class ClaimTests(unittest.TestCase):
         self.assertEqual(api.issues[149]['assignees'], [user('MaintainerAssigned')])
         self.assertEqual(result['actions'][0]['reason'], 'closed_or_assigned')
 
-    def test_one_active_batch_and_global_comment_order(self):
+    def test_same_person_can_claim_two_batches_and_release_one(self):
         api = FakeGitHub()
         api.comments[149] = [comment(9, 'Person', '认领')]
         api.comments[183] = [comment(2, 'Person', '认领')]
-        claims.synchronize(api, BATCHES)
+        result = claims.synchronize(api, BATCHES)
         self.assertEqual(api.issues[183]['assignees'], [user('Person')])
+        self.assertEqual(api.issues[149]['assignees'], [user('Person')])
+        self.assertEqual([a['batchId'] for a in result['actions']], ['Q003', 'B012'])
+        api.comments[149].append(comment(10, 'Person', '/unclaim'))
+        claims.synchronize(api, BATCHES)
         self.assertEqual(api.issues[149]['assignees'], [])
+        self.assertEqual(api.issues[183]['assignees'], [user('Person')])
 
     def test_closed_batch_quotes_wrong_batch_and_bot_cannot_claim(self):
         api = FakeGitHub()

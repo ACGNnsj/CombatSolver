@@ -162,11 +162,6 @@ def synchronize(api, batches, dry_run=False):
             if issue['state'] != 'open' or owners:
                 actions.append({'commentId': comment['id'], 'action': 'claim_ignored', 'reason': 'closed_or_assigned'})
                 continue
-            other_batches = [n for n, value in issues.items() if n != number and value['state'] == 'open'
-                             and login.lower() in {a['login'].lower() for a in value['assignees']}]
-            if other_batches:
-                actions.append({'commentId': comment['id'], 'action': 'claim_ignored', 'reason': 'already_owns_open_batch'})
-                continue
             if dry_run:
                 issue['assignees'] = [author]
             else:
