@@ -18,6 +18,31 @@ internal sealed partial class UnattendedTestRunner
         public async Task RunBeforeExecutionAsync(ScenarioContext scenario)
         {
             UnattendedTestRequest request = runner._request;
+            if (request.ScenarioId == "REMAINING-HEALING-LOUSE")
+            {
+                runner.SetStage("remaining_healing_louse");
+                await runner.AssertRemainingHealingLouseAsync(scenario.CombatState, scenario.Player);
+            }
+            if (request.ScenarioId == "REMAINING-HEALING-POISON")
+            {
+                runner.SetStage("remaining_healing_poison");
+                await runner.AssertRemainingHealingPoisonAsync(scenario.CombatState, scenario.Player);
+            }
+            if (request.ScenarioId == "REMAINING-HEALING-TAINTED")
+            {
+                runner.SetStage("remaining_healing_tainted");
+                await runner.AssertRemainingHealingTaintedAsync(scenario.CombatState, scenario.Player);
+            }
+            if (request.ScenarioId == "REMAINING-HEALING-BOUND")
+            {
+                runner.SetStage("remaining_healing_bound");
+                await runner.AssertRemainingHealingBoundAsync(scenario.CombatState, scenario.Player);
+            }
+            if (request.ScenarioId == "REMAINING-HEALING-SILENT")
+            {
+                runner.SetStage("remaining_healing_silent");
+                await runner.AssertRemainingHealingSilentAsync(scenario.CombatState, scenario.Player);
+            }
             if (request.ScenarioId == "MEMORY-DISPLAY-CONTRACT")
             {
                 runner.SetStage("memory_display_contract");
@@ -238,6 +263,11 @@ internal sealed partial class UnattendedTestRunner
                 runner.SetStage("early_end_turn");
                 await AssertEarlyEndTurnAsync(scenario.CombatState);
                 runner._completedChecks.Add("EarlyEndTurn");
+            }
+            if (request.ScenarioId == "SURVIVABLE-SEARCH-BOUNDARY")
+            {
+                runner.SetStage("survivable_search_boundary");
+                await runner.AssertSurvivableBoundaryAsync(scenario.CombatState);
             }
             if (request.ScenarioId == "STAND-PAT-MEMORY-BOUNDARY")
             {

@@ -90,6 +90,7 @@ internal sealed partial class UnattendedTestRunner
             throw new InvalidOperationException("A generated callback card did not invalidate filtered receivers.");
         AssertListenerSegmentFork(child, generated, player);
         AssertListenerWithoutPrefixAnchor(combat, player);
+        AssertAfterPlayCaptureMatchesFacade(combat, player);
         if (ContinuationStamp.CaptureLive(combat).StateText != liveBefore)
             throw new InvalidOperationException("Listener filtering changed the live root.");
 
@@ -104,6 +105,7 @@ internal sealed partial class UnattendedTestRunner
             AbstractModel[] source = [noOp];
             if (!ReferenceEquals(source, MirroredHookListenerFilter.Capture().Filter(source)))
                 throw new InvalidOperationException("A newly patched base callback was filtered.");
+            AssertAfterPlayCaptureMatchesFacade(combat, player);
         }
         finally
         {

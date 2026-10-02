@@ -1354,6 +1354,18 @@ $beamRetentionFacadePath = Join-Path $searchRoot "CombatBeamSolver.Retention.cs"
 if (Select-String -LiteralPath $beamRetentionFacadePath -SimpleMatch "private List<SearchNode> RankBest(" -Quiet) {
     $violations.Add("${beamRetentionFacadePath}: RankBest returned outside BeamRetentionPolicy")
 }
+$remainingHealingBoundPath = Join-Path $searchRoot "StrategicHpRecoveryBound.Remaining.cs"
+foreach ($closureComponent in @("PendingReturningCards", "AllCards", "EffectivePowers()", "GetPotionSlotCount(player)", "HasCertifiedRemainingAttachments", "typeof(InfestedPrism)", "typeof(FuzzyWurmCrawler)")) {
+    if (-not (Select-String -LiteralPath $remainingHealingBoundPath -SimpleMatch $closureComponent -Quiet)) {
+        $violations.Add("${remainingHealingBoundPath}: remaining-healing proof lost a closure component: $closureComponent")
+    }
+}
+if (-not (Select-String -LiteralPath (Join-Path $repositoryRoot "src/Runtime/CombatRootSnapshot.cs") -SimpleMatch "CanCertifyRemainingHealingEnvironment(" -Quiet)) {
+    $violations.Add("CombatRootSnapshot.cs: remaining-healing environment proof is not frozen at the root")
+}
+if (-not (Select-String -LiteralPath $beamRetentionFacadePath -SimpleMatch "root.CanCertifyRemainingHealing ? RemainingHealingPotential : null" -Quiet)) {
+    $violations.Add("${beamRetentionFacadePath}: remaining-healing pruning bypasses its root certificate")
+}
 $beamPhasesPath = Join-Path $searchRoot "CombatBeamSolver.Phases.cs"
 if (-not (Select-String -LiteralPath $beamPhasesPath -SimpleMatch "TightenPrimarySearchIncumbentAtTurnLayer(" -Quiet)) {
     $violations.Add("${beamPhasesPath}: turn-layer incumbent is no longer tightened before coordinator pruning")

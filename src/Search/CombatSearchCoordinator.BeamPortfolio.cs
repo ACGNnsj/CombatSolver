@@ -6,15 +6,30 @@ namespace CombatSolver;
 
 internal static partial class CombatSearchCoordinator
 {
+    internal static PrimarySearchIncumbent? BuildRefinementPrimarySearchIncumbent(
+        CombatRootSnapshot root, SearchPolicySnapshot policy,
+        SolverPotionPolicy? memberPotionPolicyOverride, SolverResult incumbent)
+        => !policy.DisableRefinementIncumbentForTesting
+            && root.CanCertifyRemainingHealing
+            && (memberPotionPolicyOverride ?? policy.PotionPolicy)
+                is SolverPotionPolicy.Disabled or SolverPotionPolicy.Smart
+            && !policy.PotionStrategy.HasForcedDirectives
+            && incumbent.ResultScope == SolverResultScope.SearchCompletion
+            && incumbent.BoundaryReason == SearchBoundaryReason.None
+            && incumbent.ExplicitPotionCount == 0
+            && !incumbent.Snapshot.HasRisk
+                ? BuildPrimarySearchIncumbent(root, policy, incumbent)
+                : null;
+
     /// <summary>
     /// 主搜索的宽度组合接线，开关开关两种情况都走这里，所以逐成员诊断和
     /// <see cref="BeamWidthPortfolioTelemetry" /> 在关闭时同样存在（单成员一行）。
     /// </summary>
     /// <remarks>
     /// <para>
-    /// **基线成员逐位不变**：关闭时用请求自己的 <paramref name="profile" /> 实例直接求解；打开时
-    /// 组合器把全部共享预算给首个成员，宽度就是基线宽度，其余 Profile 维度照抄。成员只有 Beam
-    /// 宽度、成员排序策略、分到的节点上限，以及（仅精炼成员）收紧到剩余时间的软时间预算不同。
+    /// 没有提前计划胜利时，首个成员沿用原 profile。提前计划已消费的节点计入请求账本，
+    /// 首个成员获得剩余节点与时间，并使用该完整胜利的既有 incumbent 界；宽度和排名不变。
+    /// 其余成员仍使用组合器的宽度、排名策略及共享余量。
     /// </para>
     /// <para>
     /// 界面的中途路线走 <c>SolverProgress</c> 回调：搜索发布进度，运行时把进度里的
@@ -30,8 +45,10 @@ internal static partial class CombatSearchCoordinator
     /// </remarks>
     private static SolverResult RunBeamWidthPortfolioPass(
         SearchPassContext context,
-        Func<SolverSearchProfile, bool, SolverResult> solveMember,
-        Action<SolverResult>? publishBaseline)
+        Func<SolverSearchProfile, bool, PrimarySearchIncumbent?, SolverResult> solveMember,
+        Action<SolverResult>? publishBaseline,
+        SolverPotionPolicy? memberPotionPolicyOverride,
+        SolverResult? initialPlanIncumbent)
     {
         CombatRootSnapshot root = context.Root;
         SearchPolicySnapshot policy = context.Policy;
@@ -47,7 +64,7 @@ internal static partial class CombatSearchCoordinator
         long expandedByMembers = 0;
         BeamPortfolioExperiment? experiment = policy.PortfolioExperiment;
         SolverResult? baselineResult = null;
-        SolverResult? incumbent = null;
+        SolverResult? incumbent = initialPlanIncumbent;
         double[]? pendingFeatures = null;
         string pendingDecision = "Observe";
         string solverAssemblyId = typeof(CombatSearchCoordinator).Module.ModuleVersionId.ToString();
@@ -112,7 +129,12 @@ internal static partial class CombatSearchCoordinator
                     $"nodes={effectiveProfile.MaxExpandedNodes} " +
                     $"time_ms={effectiveProfile.SoftTimeBudgetMilliseconds}");
             }
-            SolverResult memberResult = solveMember(effectiveProfile, baselineObserved);
+            PrimarySearchIncumbent? primaryIncumbent = incumbent == null ? null
+                : BuildRefinementPrimarySearchIncumbent(root, policy, memberPotionPolicyOverride, incumbent);
+            if (primaryIncumbent is { } bound)
+                policy.Diagnostics.Info($"[CombatSolver/Test] BEAM_REFINEMENT_INCUMBENT "
+                    + $"member={costs.Count} deficit={bound.StrategicHpDeficit} turn={bound.CombatEndedTurn}");
+            SolverResult memberResult = solveMember(effectiveProfile, baselineObserved, primaryIncumbent);
             long memberElapsed = Math.Max(0, passClock.ElapsedMilliseconds - startedMilliseconds);
             long memberAllocated = Math.Max(
                 0, GC.GetTotalAllocatedBytes(precise: false) - allocatedBefore);
@@ -140,7 +162,7 @@ internal static partial class CombatSearchCoordinator
                     memberElapsed, memberResult.BoundaryReason.ToString()));
                 pendingFeatures = null;
             }
-            if ((experiment != null || profile.StopPortfolioAtHpTarget) && comparable && (incumbent == null
+            if (comparable && (incumbent == null
                 || IsBetterPotionPolicyResult(root, policy, memberResult, incumbent)))
                 incumbent = memberResult;
             if (!baselineObserved)
@@ -256,7 +278,9 @@ internal static partial class CombatSearchCoordinator
         // 的组合跑批拿不到逐阶段耗时/分配归属。
         if (policy.MeasurePhasePerformance)
             policy.Diagnostics.Info(SolverDiagnostics.DescribeSearchPhasePerformance(outcome.Selected));
-        return outcome.Selected;
+        return initialPlanIncumbent != null
+            && IsBetterPotionPolicyResult(root, policy, initialPlanIncumbent, outcome.Selected)
+                ? initialPlanIncumbent : outcome.Selected;
     }
 
     /// <summary>

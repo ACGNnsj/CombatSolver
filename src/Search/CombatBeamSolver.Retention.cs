@@ -292,7 +292,8 @@ internal sealed partial class CombatBeamSolver
             retained,
             incumbent,
             out int pruned,
-            _strategicBossHpRelief);
+            _strategicBossHpRelief,
+            root.CanCertifyRemainingHealing ? RemainingHealingPotential : null);
         _run.PrimaryIncumbentBranchesPruned += pruned;
         return bounded;
     }
@@ -301,7 +302,8 @@ internal sealed partial class CombatBeamSolver
         List<SearchNode> retained,
         PrimarySearchIncumbent incumbent,
         out int pruned,
-        BossHpRelief bossHpRelief = BossHpRelief.None)
+        BossHpRelief bossHpRelief = BossHpRelief.None,
+        Func<SimulationSnapshot, int>? remainingHealingPotential = null)
     {
         pruned = 0;
         List<SearchNode>? bounded = null;
@@ -309,7 +311,8 @@ internal sealed partial class CombatBeamSolver
         {
             SearchNode node = retained[index];
             if (ShouldPruneByPrimaryIncumbent(
-                    StrategicHpLowerBound(node.Snapshot, bossHpRelief),
+                    StrategicHpLowerBound(node.Snapshot, bossHpRelief,
+                        remainingHealingPotential?.Invoke(node.Snapshot)),
                     node.Turn,
                     incumbent))
             {
@@ -339,7 +342,17 @@ internal sealed partial class CombatBeamSolver
     /// A root with a certified closed set of non-healing actions only credits its fixed post-combat relic heal.
     /// Every other root retains the full HP headroom, including future card generation and repeated healing.
     /// </remarks>
-    private static int StrategicHpLowerBound(SimulationSnapshot snapshot, BossHpRelief bossHpRelief)
+    private int RemainingHealingPotential(SimulationSnapshot snapshot)
+    {
+        if (snapshot.FutureHealPotential != int.MaxValue || !snapshot.HasSimulator || snapshot.HasRisk)
+            return snapshot.FutureHealPotential;
+        return StrategicHpRecoveryBound.RemainingHealingUpperBound(
+            (CombatPredictionSimulator)snapshot.Simulator, _player,
+            root.PostCombatRelicHeal.UnconditionalHeal);
+    }
+
+    private static int StrategicHpLowerBound(SimulationSnapshot snapshot, BossHpRelief bossHpRelief,
+        int? remainingHealingPotential = null)
         => ActEndingBossPolicy.StrategicHpDeficit(
             snapshot.CumulativePlayerHpLost,
             maxHpDeficit: 0,
@@ -347,7 +360,7 @@ internal sealed partial class CombatBeamSolver
                 snapshot.RecoveredPlayerHp,
                 snapshot.PlayerHp,
                 snapshot.PlayerMaxHp,
-                snapshot.FutureHealPotential),
+                remainingHealingPotential ?? snapshot.FutureHealPotential),
             bossHpRelief,
             snapshot.DeathSaveHpRestored);
 

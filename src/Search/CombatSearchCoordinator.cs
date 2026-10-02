@@ -166,7 +166,7 @@ internal static partial class CombatSearchCoordinator
                 cancellationToken,
                 enrichedProgressCallback,
                 interaction == null ? null : PublishAdoptableResult,
-                firstTurnAnchors.Add,
+                firstTurnAnchors,
                 RunPostSearch);
             SolverResult selected = result;
             if (policy.IncludeTurnSetup)
@@ -231,7 +231,7 @@ internal static partial class CombatSearchCoordinator
         CancellationToken cancellationToken,
         Action<SolverProgress>? progressCallback,
         Action<SolverResult>? interimResultCallback,
-        Action<PlanAction[]> firstTurnAnchorObserver,
+        List<PlanAction[]> firstTurnAnchors,
         Func<SolverResult, SolverResult> postSearch)
     {
         Stopwatch requestClock = Stopwatch.StartNew();
@@ -306,8 +306,17 @@ internal static partial class CombatSearchCoordinator
             SearchPolicySnapshot passPolicy = forcedBaselinePolicy;
             SearchPolicySnapshot beamPolicy = passPolicy.NoveltySearch == null
                 ? passPolicy : passPolicy with { NoveltySearch = null };
-            SolverResult SolveMember(SolverSearchProfile memberProfile, bool refinement)
+            SolverResult? initialPlanIncumbent = TryRunOpeningPlanIncumbent(
+                passContext with { Policy = beamPolicy }, initialPotionPolicyOverride);
+            SolverResult SolveMember(SolverSearchProfile memberProfile, bool refinement,
+                PrimarySearchIncumbent? primaryIncumbent)
             {
+                if (initialPlanIncumbent != null && !refinement)
+                    memberProfile = memberProfile with
+                    {
+                        SoftTimeBudgetMilliseconds = (int)Math.Clamp(passContext.RemainingMilliseconds,
+                            1L, memberProfile.SoftTimeBudgetMilliseconds),
+                    };
                 Action<SolverProgress>? memberProgressCallback = refinement && progressCallback != null
                     ? progress => progressCallback(progress with { Phase = "正在精炼路线" })
                     : progressCallback;
@@ -320,6 +329,7 @@ internal static partial class CombatSearchCoordinator
                     memberProgressCallback,
                     memberProfile,
                     potionPolicyOverride: initialPotionPolicyOverride,
+                    primaryIncumbent: primaryIncumbent,
                     directSearchPurpose: refinement
                         ? DirectSearchPurpose.RefinementBeam
                         : DirectSearchPurpose.PrimaryBeam).Solve();
@@ -327,12 +337,11 @@ internal static partial class CombatSearchCoordinator
                     .TakeWhile(action => action.Turn == root.StartTurnNumber)
                     .ToArray();
                 if (firstTurn.LastOrDefault()?.Kind == PlanActionKind.EndTurn)
-                    firstTurnAnchorObserver(firstTurn);
+                    firstTurnAnchors.Add(firstTurn);
                 return memberResult;
             }
-            // 基线成员一跑完就按今天的方式把完整结果发布给覆盖层（覆盖层的中途路线走
-            // SolverProgress，见 RunBeamWidthPortfolioPass 的注释）；精炼成员只有更优时才会
-            // 在本轮末尾再发布一次，所以同一份结果不会发布两遍。
+            // 提前计划的完整胜利可立即发布。首个成员随后只能替换为更优结果，
+            // 精炼成员仍在本轮末尾发布；同一结果对象不重复发布。
             SolverResult? publishedBaseline = null;
             Action<SolverResult>? publishBaseline =
                 (policy.UseBeamWidthPortfolio
@@ -340,18 +349,39 @@ internal static partial class CombatSearchCoordinator
                 && interimResultCallback != null
                     ? baseline =>
                     {
-                        publishedBaseline = baseline;
-                        interimResultCallback(baseline);
+                        SolverResult published = initialPlanIncumbent != null
+                            && IsBetterPotionPolicyResult(root, policy, initialPlanIncumbent, baseline)
+                                ? initialPlanIncumbent : baseline;
+                        if (!ReferenceEquals(published, publishedBaseline))
+                        {
+                            publishedBaseline = published;
+                            interimResultCallback(published);
+                        }
                     }
                     : null;
+            if (initialPlanIncumbent is { ResultScope: SolverResultScope.SearchCompletion })
+            {
+                policy.PortfolioTelemetry?.RecordFirstRoutePublished(passClock.Elapsed.TotalMilliseconds);
+                publishBaseline?.Invoke(initialPlanIncumbent);
+            }
             SolverResult RunBaseline(SolverSearchProfile baselineProfile)
-                => RunBeamWidthPortfolioPass(passContext with
+            {
+                if (initialPlanIncumbent is { ResultScope: not SolverResultScope.SearchCompletion })
+                    return initialPlanIncumbent;
+                SearchBudgetWindow baselineWindow = passContext.Budget.ProfileWindow(baselineProfile);
+                if (initialPlanIncumbent != null && baselineWindow.RemainingNodes <= 0)
+                    return initialPlanIncumbent;
+                SolverSearchProfile effectiveBaseline = initialPlanIncumbent == null ? baselineProfile
+                    : baselineWindow.Limit(baselineProfile, baselineProfile.MaxExpandedNodes,
+                        baselineProfile.SoftTimeBudgetMilliseconds, reserveMilliseconds: 0);
+                return RunBeamWidthPortfolioPass(passContext with
                     {
                         Policy = beamPolicy,
-                        Profile = baselineProfile,
+                        Profile = effectiveBaseline,
                         Clock = ReferenceEquals(baselineProfile, passProfile)
                             ? passClock : Stopwatch.StartNew(),
-                    }, SolveMember, publishBaseline);
+                    }, SolveMember, publishBaseline, initialPotionPolicyOverride, initialPlanIncumbent);
+            }
             SolverResult RunPrimary()
                 => policy.UseNoveltyPortfolio
                     ? RunNoveltyPortfolioPass(passContext with { Policy = passPolicy },
@@ -381,6 +411,26 @@ internal static partial class CombatSearchCoordinator
                     passContext with { Policy = beamPolicy },
                     initialPotionPolicyOverride,
                     passResult);
+            }
+            // The native closed Regent / Louse environment can establish a zero-loss
+            // potion-free route before the optional potion audits. Reuse the existing
+            // continuation and quality rules; every member consumes the shared ledger.
+            if (root.CanCertifyRemainingHealing
+                && root.PlayerIdentity.Character.GetType() == typeof(MegaCrit.Sts2.Core.Models.Characters.Regent)
+                && root.Enemies.Count > 0
+                && root.Enemies.All(enemy => enemy.Monster?.GetType()
+                    == typeof(MegaCrit.Sts2.Core.Models.Monsters.LouseProgenitor))
+                && !policy.EffectiveHasGrowthTargets && policy.RelicTargets.Count == 0
+                && !policy.PotionStrategy.HasForcedDirectives
+                && passResult.ResultScope == SolverResultScope.SearchCompletion
+                && IsCompleteVictory(passResult) && !passResult.Snapshot.HasRisk
+                && passResult.Snapshot.ProjectedDeathSaveUseCount == 0
+                && passResult.ExplicitPotionCount == 0
+                && passResult.ProjectedBattleHpLost is > 0 and <= SolverWeights.PotionMinimumHpSaved
+                && TheftEncounterStrategy.RecoverySatisfied(policy.TheftPolicy,
+                    passResult.OutstandingStolenResource))
+            {
+                passResult = RunTurnBoundaryRescue(passContext, passResult, firstTurnAnchors);
             }
             if (passResult.ResultScope == SolverResultScope.SearchCompletion
                 && IsCompleteVictory(passResult)
@@ -651,6 +701,24 @@ internal static partial class CombatSearchCoordinator
         };
         return new SearchRequestPipeline(requestContext, RunSearchPass, postSearch).Run();
     }
+
+    private static bool CanFinishNativeLouseZeroDamageRoute(
+        CombatRootSnapshot root, SearchPolicySnapshot policy, SolverResult result)
+        => !policy.FixedBudget
+            && root.CanCertifyRemainingHealing
+            && root.PlayerIdentity.Character.GetType() == typeof(MegaCrit.Sts2.Core.Models.Characters.Regent)
+            && root.Enemies.Count > 0
+            && root.Enemies.All(enemy => enemy.Monster?.GetType()
+                == typeof(MegaCrit.Sts2.Core.Models.Monsters.LouseProgenitor))
+            // Unknown cards, powers and potions, or any remaining regeneration,
+            // must prevent this health-floor certificate.
+            && root.InitialRemainingHealingUpperBound == 0
+            && policy.RelicTargets.Count == 0
+            && !policy.PotionStrategy.HasForcedDirectives
+            && !result.Snapshot.HasRisk
+            && result.Snapshot.ProjectedDeathSaveUseCount == 0
+            && TheftEncounterStrategy.RecoverySatisfied(policy.TheftPolicy, result.OutstandingStolenResource)
+            && IsProvenZeroDamageRoute(root, policy, result);
 
     private static bool IsProvenZeroDamageRoute(
         CombatRootSnapshot root,

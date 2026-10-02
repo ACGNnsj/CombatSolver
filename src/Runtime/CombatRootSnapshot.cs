@@ -53,6 +53,9 @@ internal sealed class CombatRootSnapshot
     /// <summary>Conservative recovery metadata for portfolio stopping, not a bound on all future healing.</summary>
     public bool HasVisibleHealingSource { get; }
     public bool HasOnlyPostCombatHealing { get; }
+    public bool CanCertifyRemainingHealing { get; }
+    /// <summary>Root card/power/potion healing bound, excluding fixed post-combat healing.</summary>
+    public int InitialRemainingHealingUpperBound { get; }
     public CombatHistoryDependencies HistoryDependencies { get; }
     public int CapturedPowerCount { get; }
     public int CapturedHookListenerCount { get; }
@@ -132,6 +135,11 @@ internal sealed class CombatRootSnapshot
         PlayerCardIds = playerCardIds;
         HasVisibleHealingSource = hasVisibleHealingSource;
         HasOnlyPostCombatHealing = hasOnlyPostCombatHealing;
+        CanCertifyRemainingHealing = StrategicHpRecoveryBound.CanCertifyRemainingHealingEnvironment(
+            rootSimulator, playerIdentity);
+        InitialRemainingHealingUpperBound = CanCertifyRemainingHealing
+            ? StrategicHpRecoveryBound.RemainingHealingUpperBound(rootSimulator, playerIdentity, postCombatHeal: 0)
+            : int.MaxValue;
         HistoryDependencies = historyDependencies;
         CapturedPowerCount = capturedPowerCount;
         CapturedHookListenerCount = capturedHookListenerCount;

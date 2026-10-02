@@ -28,7 +28,7 @@ Search 目录中登记表外的大写 ID 字面量以 P4 当前 645 处为结构
 
 `IExpansionExecutor` 统一父节点子节点接收与完成合同；`AdmittedJobScheduler` 从共享 `AdmittedParent` 状态选择准备、动作、挂起选择、药水与 Tail 作业。串行执行器消费 `Expand` 的即时迭代结果，并行执行器消费固定 lane 批次并在提交前调用原顺序检查；串行分阶段停在卡牌候选交付及逐药水分支，保留最后预算槽行为。`Phases` 保留内存准入、波次容量和未进入 worker 的父节点清理，子节点不越过原提交顺序。
 
-`PlanCommitment` 保存从固定根可回放的前缀及类型化阶段／收益证据；节点上的 `PowerCommitment` 继续负责能力牌估值与短期保路，不作为全部计划类型的共同状态。当前复制计划用下一回合实际出牌、能力启动计划用实际打出能力牌、生成药水链用免费药实际使用作证据；已登记能力的因果收益类型可表达，但本批没有生产提名者。`PlanMechanismRegistry` 保存内部不可变的延后复制效果规则，`CombatSearchCoordinator.PlanSearch` 从规则对应的模拟选牌效果和能力承诺描述提名复制与能力过牌，不按复制牌 ID 识别，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。Smart 药水梯度先完成，计划候选再按既有终局质量与用药政策选优。计划发现可按目标效果的模拟可达性筛选药水和过牌分支，不改变普通开局候选上限。
+`PlanCommitment` 保存从固定根可回放的前缀及类型化阶段／收益证据；节点上的 `PowerCommitment` 继续负责能力牌估值与短期保路，不作为全部计划类型的共同状态。当前复制计划用下一回合实际出牌、能力启动计划用实际打出能力牌、生成药水链用免费药实际使用作证据；已登记能力的因果收益类型可表达，但本批没有生产提名者。`PlanMechanismRegistry` 保存内部不可变的延后复制效果规则，`CombatSearchCoordinator.PlanSearch` 从规则对应的模拟选牌效果和能力承诺描述提名复制与能力过牌，不按复制牌 ID 识别，经 `FrontierContinuationScheduler` 与请求账本派发最多四条完整续搜。通常由 Smart 药水梯度先完成，再运行计划；C17符合闭合治疗及无药资格的根可提前运行纯无药计划并为首成员提供完整胜利界，候选始终按既有终局质量与用药政策选优。计划发现可按目标效果的模拟可达性筛选药水和过牌分支，不改变普通开局候选上限。
 
 生成药水链成员从已选路线的早期前缀模拟混沌药，也允许在已选首张牌后插入合法的进攻跟进，再接原首回合余下动作。它读取分支药水槽已有的零成本来源标记，提名最多两条连续用药前缀，并以首次实际使用免费药作为 `PlanCommitment` 的收益证据；`FrontierContinuationScheduler` 按原请求剩余额度完整续搜。该成员只扩展合法候选，药水来源、费用与战斗结算仍由 `SimulatedCombatState` 负责，最终结果仍走既有路线质量和用药政策。
 
@@ -353,6 +353,7 @@ Smart 层间使用 `SmartLayerMemoryForecast` 的同窗分配和转移高水位�
 | `CombatBeamSolver.PathDiagnostics.cs` | 可选路径观察的值复制与边界配对；分别记录生成、两类转置、实际展开、动作准入、完整保留及回合注释，不写搜索策略或账本 |
 | `CombatBeamSolver.Retention.cs` | prune/retention 调用边界与相关小型辅助 |
 | `StrategicHpRecoveryBound.cs` | 主结果战损下界的无治疗来源证明与乐观回复量；未知来源保留完整缺血余量 |
+| `StrategicHpRecoveryBound.Remaining.cs` | 原生摄政／静默及已审查敌人的剩余治疗闭包、捕获药水槽与计划返回检查、有限再生上界；根一次冻结环境证据，未知来源保留完整缺血余量 |
 | `CombatBeamSolver.BeamRetentionPolicy.cs` | 保路主构造与字段、既有合同类型、RankFinal/RankBest协调、状态去重、多样性通道及路由分组；初始化顺序保持在此文件 |
 | `CombatBeamSolver.BeamRetentionPolicy.OrderedMutation.cs` | 有序变异组合的统一准入、服务额度与续接群组结算 |
 | `CombatBeamSolver.BeamRetentionPolicy.OrderedMutationScheduling.cs` | 有序变异代表质量、包/声明公平调度、迟到初始项节奏、租约交接与确定性键 |
@@ -677,3 +678,19 @@ NativeReplayDriver 保存开战/结束观察器抛出的原始异常，由 Advan
 ### 默认搜索组合的预算再分配
 
 `CombatSearchCoordinator.RunBeamWidthPortfolioPass` 通过不可变 `SolverSearchProfile.ReallocatedRefinementPortfolio` 选择默认成员布局：省去普通基线成员，其余既有成员之后追加 `BoundedRefinement`。`BeamWidthPortfolio` 仍独占成员预算/终局选优，追加成员最多消费此前组合实际展开的1/8和共享余量；该局部额度不是请求级硬上限。显式布局、关闭组合及其他可选算法/排序实验保持原入口；旧布局的学习选择器不裁决新布局。没有新增模拟状态或修改最终政策，独有旧好解仍可能损失。实际质量取舍与内存尾部见[组合再分配报告](strategy/contextual-ordering-20260922.md)。
+
+`CombatBeamSolver.Phases` 在卖血计账与策略剪枝之后，从实际保留前沿为真正预算中断保存一个可存活的回合边界元数据引用；它按现有基础分选择，不保活 Simulator。仅当最终池全为死亡／投影死亡时重新回放该前缀，交回原终局政策排序；最少显式用药、RequireAtLeastOne 和强制药水指令须已满足。节点预算须达到全局上限，且确实释放过未展开节点或曾因回合配额强制收尾；仅计数刚好达到上限而未发生任何截断时不补路。采用／战损达标结果绕过此补路。测试专用关闭开关只恢复旧最终池行为。原生合同由 `UnattendedTestRunner.SurvivableBoundary.cs` 拥有，不由离线宿主构造战斗语义。
+
+第八候选在当前分支重新验证剩余治疗闭包：只对单玩家原生摄政／静默、无扩展回调／BaseLib修改器、已审查的InfestedPrism／FuzzyWurmCrawler招式及封闭牌／遗物集合冻结环境证据。逐分支检查全部牌（含未知耗尽牌）、Power、捕获的可用药水槽和计划返回牌；原生Tainted、VitalSparkPower及TaintedPower仅增伤／附加污染／敌方回合末移除，不放宽其他附件。保留原严格战损／回合 incumbent 判定，普通能力前缀只继承已选无药完整胜利：实际政策须Disabled或Smart，无强制指令、无预测风险；成长、遗物目标和保命资源沿用原禁用条件。候选始终由Coordinator与原已选路线比较。新合同由`UnattendedTestRunner.RemainingHealing.cs`拥有，不改变游戏结算、状态键、评分或预算。仅原生程序集归属不是敌人治疗闭包的证据。
+
+C14精炼继承由`CombatSearchCoordinator.BeamPortfolio`拥有：只传递PrimarySearchIncumbent两项标量，仍保留组合器原已选结果，第一成员不注入。明确完整无药无风险／无预算中断、实际成员Disabled或Smart且无强制指令、根闭合治疗环境及既有成长／遗物／保命资格。`CombatBeamSolver`继续使用原损失界，预算与终局比较不变；未知根不启用。测试开关仅供原生同根开／关合同，由`UnattendedTestRunner.RefinementIncumbent`验证DOP2严格增量及资格。
+
+
+C17提前计划由`CombatSearchCoordinator.PlanSearch`拥有，原集合与最多四个计划通过既有调度器执行；只有现有闭合治疗及政策资格的完整无药无风险胜利可进入普通组合。`SearchPlanDiscoveryState.EarlyOpeningPlanProfile`只保存配置实例，用于同轮后置去重，不保存模拟器；改变profile的后续轮次不旁路。请求账本与预算窗口扣除已消费工作，首个成员也可使用该完整胜利界；未知根、强制药水、成长／遗物及策略扩展保留原路径。`Expansion.Opening.ReplayOpeningPowerProbe`独占能力探针的真实前缀计数与完整独立回放核对，不构造缺失历史的伪root节点。原生合同仍由`UnattendedTestRunner.RefinementIncumbent`拥有。
+
+C18在`StrategicHpRecoveryBound.Remaining`的既有封闭集合新增18张原版静默毒／抽弃牌／固定Shiv来源，及BlockNextTurn、PiercingWail、ToolsOfTheTrade；附件只增加原版Slither与Inky的无治疗证明。未知来源仍为无限上界，原角色／敌人／遗物／药水门保持。没有新增评分缓存或模拟路径；原生测试由`UnattendedTestRunner.RemainingHealing.Poison`拥有，经Assertions的独立ScenarioId调用，逐次核对完整原生状态与生命周期入口。
+
+C19仅把逐项审计的精确SoulNexus类型加入`StrategicHpRecoveryBound.Remaining`敌人环境门。其三个原版行动只有攻击、Weak及Vulnerable，生命周期回调不产生玩家治疗或生成来源；其他闭包门保持。原生测试复用Poison根夹具并通过既有MonsterMoveChecks追加三种行动差分，没有新增模拟权威或外部证书注册入口。
+
+
+原生摄政巨虱零战损提前结束：`CombatRootSnapshot.InitialRemainingHealingUpperBound`在根捕获时读取封闭证明，保存不含固定战后治疗的只读上界；未知来源为无限。协调器复用现有回合边界续接与共享预算提前找路线，仅在初始零治疗、完整无风险满血零损无药、无成长／遗物目标且资源／强制用药条件满足时退出可选药水后验。模拟器、分叉所有权和原生效果实现不变；特殊闭包与BurningSticks消耗复制边界见第三方手册第6节。

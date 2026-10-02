@@ -1218,6 +1218,12 @@ beam_entry_path="$search_root/CombatBeamSolver.cs"
 forbid_fixed "$beam_entry_path" 'public SolverResult Solve()' 'Solve returned to the entry/field declaration file:'
 beam_retention_facade_path="$search_root/CombatBeamSolver.Retention.cs"
 forbid_fixed "$beam_retention_facade_path" 'private List<SearchNode> RankBest(' 'RankBest returned outside BeamRetentionPolicy:'
+remaining_healing_bound_path="$search_root/StrategicHpRecoveryBound.Remaining.cs"
+require_fixed "$repository_root/src/Runtime/CombatRootSnapshot.cs" 'CanCertifyRemainingHealingEnvironment(' 'remaining-healing environment proof is not frozen at the root:'
+require_fixed "$beam_retention_facade_path" 'root.CanCertifyRemainingHealing ? RemainingHealingPotential : null' 'remaining-healing pruning bypasses its root certificate:'
+for closure_component in 'PendingReturningCards' 'AllCards' 'EffectivePowers()' 'GetPotionSlotCount(player)' 'HasCertifiedRemainingAttachments' 'typeof(InfestedPrism)' 'typeof(FuzzyWurmCrawler)'; do
+    require_fixed "$remaining_healing_bound_path" "$closure_component" 'remaining-healing proof lost a closure component:'
+done
 beam_phases_path="$search_root/CombatBeamSolver.Phases.cs"
 require_fixed \
     "$beam_phases_path" \

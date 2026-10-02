@@ -16,13 +16,13 @@ internal sealed partial class UnattendedTestRunner
         var history = new CombatPredictionHistory(trace);
         var retained = new List<(CombatPredictionHistory History, PredictionTrace Trace)> { (history, trace) };
         var random = new Random(20260912);
-        void Check(CombatPredictionHistory current)
+        void Check(CombatPredictionHistory current, params PredictedCard[] extra)
         {
             CombatPredictionHistoryEntry[] before = current.Entries.ToArray();
             if (!ReferenceEquals(current.OfType<CombatPredictionCardGenerationOptionsEntry>().LastOrDefault(),
                     current.FindLatestCardGenerationOptions()))
                 throw new InvalidOperationException("Unfiltered latest generation lookup changed publication identity.");
-            foreach (PredictedCard card in cards)
+            foreach (PredictedCard card in cards.Concat(extra))
             {
                 CombatPredictionCardGenerationOptionsEntry? expected = current
                     .OfType<CombatPredictionCardGenerationOptionsEntry>()
@@ -64,5 +64,52 @@ internal sealed partial class UnattendedTestRunner
             Check(history);
         }
         foreach (var branch in retained) Check(branch.History);
+
+        // Continuations copy their mutable suffix instead of sealing it. A query must
+        // return the copied event with its copied trace/options, never a parent-tail event.
+        var continuationTrace = new PredictionTrace();
+        var continuation = new CombatPredictionHistory(continuationTrace);
+        using (continuationTrace.Push(cards[0].Original,
+            PredictionInvocation.ForAction(PredictionActionKind.CardPlay)))
+            continuation.CardGenerationOptions([cards[2]]);
+        int start = continuation.PrepareManualCardChoice();
+        using (continuationTrace.Push(cards[1].Original,
+            PredictionInvocation.ForAction(PredictionActionKind.CardPlay)))
+        {
+            continuation.CardGenerationOptions([cards[3]]);
+            continuation.CardCostsRandomized([]);
+            using (continuationTrace.Push(cards[1].Preview,
+                PredictionInvocation.ForAction(PredictionActionKind.CardPlay)))
+                continuation.CardGenerationOptions([cards[4]]);
+        }
+        var manualTrace = new PredictionTrace();
+        using var manualContext = new PredictionForkContext();
+        var manual = continuation.ForkManualCardChoice(manualTrace, manualContext, start);
+        Check(manual);
+        if (ReferenceEquals(manual.FindLatestCardGenerationOptions(), continuation.FindLatestCardGenerationOptions()))
+            throw new InvalidOperationException("Manual continuation query returned the parent's copied suffix.");
+
+        var executionTrace = new PredictionTrace();
+        using var executionContext = new PredictionForkContext();
+        var execution = continuation.ForkExecutionContinuation(executionTrace, executionContext, start);
+        Check(execution);
+        var copiedGeneration = execution.FindLatestCardGenerationOptions(cards[1])!;
+        var parentGeneration = continuation.FindLatestCardGenerationOptions(cards[1])!;
+        if (ReferenceEquals(copiedGeneration, parentGeneration)
+            || ReferenceEquals(copiedGeneration.Trace, parentGeneration.Trace)
+            || !ReferenceEquals(copiedGeneration.Trace!.Source, parentGeneration.Trace!.Source)
+            || !ReferenceEquals(copiedGeneration.Options[0], executionContext.RequireRemap(cards[4])))
+            throw new InvalidOperationException("Execution continuation query lost copied trace/options or stable source identity.");
+        var descendant = execution.Fork(new PredictionTrace());
+        using (continuationTrace.Push(cards[1].Original,
+            PredictionInvocation.ForAction(PredictionActionKind.CardPlay)))
+            continuation.CardGenerationOptions([]);
+        using (executionTrace.Push(cards[1].Preview,
+            PredictionInvocation.ForAction(PredictionActionKind.CardPlay)))
+            execution.CardGenerationOptions([]);
+        Check(continuation);
+        Check(manual);
+        Check(execution);
+        Check(descendant);
     }
 }
