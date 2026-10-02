@@ -688,12 +688,22 @@ $settingsPath = Join-Path $dataDir "default\1\settings.save"
 if (-not (Test-Path -LiteralPath $settingsPath -PathType Leaf)) {
     throw "Headless settings save not found after profile initialization: $settingsPath"
 }
-$headlessSettings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json
+$headlessSettings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json -AsHashtable
 $headlessSettings.mod_settings = [ordered]@{
     mods_enabled = $true
     mod_list = @()
 }
+$headlessVolumeKeys = @('volume_master', 'volume_bgm', 'volume_sfx', 'volume_ambience')
+foreach ($key in $headlessVolumeKeys) {
+    $headlessSettings[$key] = 0
+}
 $headlessSettings | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $settingsPath -Encoding UTF8
+$savedHeadlessSettings = Get-Content -LiteralPath $settingsPath -Raw | ConvertFrom-Json -AsHashtable
+foreach ($key in $headlessVolumeKeys) {
+    if ($savedHeadlessSettings[$key] -ne 0) {
+        throw "Isolated headless audio settings could not be muted: $key"
+    }
+}
 $resolvedProgressSnapshotPath = if ([string]::IsNullOrWhiteSpace($ProgressSnapshotPath)) {
     $null
 } else {
