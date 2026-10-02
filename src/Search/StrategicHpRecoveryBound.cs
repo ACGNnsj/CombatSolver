@@ -34,7 +34,7 @@ internal static class StrategicHpRecoveryBound
         if (nonNativeEnemy is not null)
             return new(false, "non_native_enemy", nonNativeEnemy.Monster?.Id.Entry);
         if (combat.Modifiers.Count != 0)
-            return new(false, "encounter_modifier");
+            return new(false, "encounter_modifier", combat.Modifiers[0].Id.Entry);
         if (combat.RootRunModSubscriberCount != 0)
             return new(false, "run_mod_subscriber");
         if (combat.RootCombatModSubscriberCount != 0)

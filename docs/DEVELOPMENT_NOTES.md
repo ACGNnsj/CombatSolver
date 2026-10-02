@@ -40,6 +40,8 @@
 
 本轮构建命令 `dotnet build CombatSolver.csproj -c Release -p:CopyModOnBuild=false -p:SteamRoot=D:/SteamLibrary` 成功，0 警告／0 错误；五个部署文件已覆盖至 `D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\CombatSolver`。未运行战斗测试或可见游戏，新来源字段待后续日志验证。
 
+下一局 Necrobinder 实机共有24份完整战斗日志、33个根捕获；来源字段已覆盖33/33，但认证均先被 `encounter_modifier` 拦截，故值为 `-`。94个 ETC 成员合计457,043节点／59.805秒，17次严格采用，其中 EndTurn 前缀10次有1次严格改进；治疗界边际剪枝仍为0。本轮日志表明来源诊断需包含 Modifier 身份，因此另补首个遭遇 Modifier 的 `Id.Entry`；这是诊断完善，不放宽界或改搜索预算。此次 Release 编译0警告／0错误，并将五文件部署至本地 Mod；未运行战斗测试或可见游戏，新 Modifier 来源 ID 待下一批日志核验。
+
 ## 0.47.2（2026-09-28）
 
 按用户本次小版本指令从 0.47.1 更新至 0.47.2，同步项目版本、manifest 与 [中英玩家更新日志](releases/0.47.2-RELEASE_NOTES.md)。本版以 v0.47.1 为基线，包含已合入的 P0–P6 重构及现存策略改进、PR #138/#139/#140/#142/#143 和内存条修复；玩家日志仅列能感知的最终变化，保留贡献者与 PR 链接。#144 未合入，不计入本版；P7/P8 停止继续开发，未达到阶段退出标准。用户随后明确“全平台发版”，本版定稿并按统一脚本发布至创意工坊、GitHub Release 和夸克网盘；各渠道完成状态记录在忽略的发布状态文件中。
