@@ -77,6 +77,6 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 B016 发布后已删除五个代表及 17 条已有主题重复报告，共 22 条后台记录和 22 个服务器 ZIP；累计已清理 487 条后台记录。发布及重复清理不表示已修复，主题验收证据仍由 issue/PR 保存。
 
-Q003～Q007 已发布 25 个代表包，并固定 59 份同主题重复报告的去向。共 84 条报告的后台记录及服务器 ZIP 待按发布回执清理，已在索引与账本登记。
+Q003～Q007 发布后已删除 25 个代表报告及 59 份同主题重复报告，共 84 条后台记录和 84 个服务器 ZIP；累计已清理 571 条后台记录及服务器 ZIP。本轮本地暂存的 65 个 ZIP 与私人快照、临时发布文件也已删除。公开资料保留在 GitHub，清理回执已写入索引与账本。
 
 [publication-ledger.json](publication-ledger.json) 保存当前主题批次、历史迁移和清理回执。清理工具 [retire-community-archives.py](../../tools/retire-community-archives.py) 在日志服务容器读取固定清单，支持 dry-run；`published` 表示已发布代表清理，`duplicate_theme` 表示重复主题删除跳过，后者还校验真实报告版本属于 0.47.x。
