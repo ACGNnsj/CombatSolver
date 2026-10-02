@@ -87,7 +87,7 @@ def duplicate_theme_reports(index, registry, version_prefix='0.47.'):
     matched = {}
     def receipt(report_id, theme):
         return {'reportId': report_id, 'themeId': theme['themeId'], 'reason': 'duplicate_theme',
-                'action': 'delete_archive_and_skip', 'batchId': theme['batchId'],
+                'action': 'delete_report_and_archive_and_skip', 'batchId': theme['batchId'],
                 'issueUrl': theme['issueUrl'], 'assetUrl': theme['assetUrl'],
                 'assetId': theme['assetId'], 'assetSizeBytes': theme['assetSizeBytes']}
     for group in index['diagnosticGroups']:

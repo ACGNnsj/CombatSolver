@@ -1,4 +1,4 @@
-"""Retire published representative ZIPs while retaining report rows and repair state.
+"""Delete published/duplicate community reports and their server archives.
 
 Run inside the report-service container. Read a publication receipt from stdin.
 """
@@ -47,11 +47,12 @@ def retire(conn, storage_root, receipt, delete_remote, dry_run=False):
     selected = []
     # Validate every selected path before removing any archive.
     for entry in entries:
-        row = conn.execute('SELECT file_path,cos_key,note,resolved,mod_version FROM reports WHERE id=?',
+        row = conn.execute('SELECT file_path,cos_key,resolved,mod_version FROM reports WHERE id=?',
                            (entry['reportId'],)).fetchone()
         if row is None:
-            raise ValueError('Report row missing: ' + entry['reportId'])
-        if entry.get('reason') == 'duplicate_theme' and not (row[4] or '').startswith('0.47.'):
+            selected.append((entry, None))
+            continue
+        if entry.get('reason') == 'duplicate_theme' and not (row[3] or '').startswith('0.47.'):
             raise ValueError('Duplicate archive outside current 0.47.x window: ' + entry['reportId'])
         file_path = Path(row[0]).resolve()
         if not file_path.is_relative_to(root) or file_path == root or file_path.suffix != '.zip':
@@ -62,34 +63,34 @@ def retire(conn, storage_root, receipt, delete_remote, dry_run=False):
     results = []
     for entry, file_path in selected:
         report_id = entry['reportId']
+        if file_path is None:
+            results.append({'reportId': report_id, 'action': 'already_absent',
+                            'reportRetained': False, 'reportDeleted': False})
+            continue
         if dry_run:
             results.append({'reportId': report_id, 'action': 'would_retire',
                             'localExists': file_path.exists()})
             continue
         with conn:
             conn.execute('BEGIN IMMEDIATE')
-            current = conn.execute('SELECT file_path,cos_key,note,resolved FROM reports WHERE id=?',
+            current = conn.execute('SELECT file_path,cos_key,resolved FROM reports WHERE id=?',
                                    (report_id,)).fetchone()
             if current is None or Path(current[0]).resolve() != file_path:
                 raise ValueError('Report archive changed: ' + report_id)
-            remote_key, note, resolved = current[1:4]
+            remote_key, resolved = current[1:3]
             if remote_key:
                 delete_remote(remote_key)
             existed = file_path.exists()
             if existed:
                 file_path.unlink()
             reason = entry.get('reason', 'published')
-            marker = ('[Community duplicate theme retired: ' + entry['themeId'] + ']' if reason == 'duplicate_theme'
-                      else '[Community archive retired: ' + entry['batchId'] + ']')
-            if marker not in note:
-                addition = (marker + '\n' + entry['issueUrl'] + '\n' + entry['assetUrl'] +
-                            ('\nDuplicate theme discarded; use published representative material. Repair state unchanged.'
-                             if reason == 'duplicate_theme' else '\nPublished diagnostic material; repair state unchanged.'))
-                note = note + ('\n\n' if note else '') + addition
-            conn.execute('UPDATE reports SET cos_key=NULL,note=? WHERE id=?', (note, report_id))
+            conn.execute('DELETE FROM reports WHERE id=?', (report_id,))
+            conn.execute("INSERT INTO meta (key,value) VALUES ('deleted_count',1) "
+                         "ON CONFLICT(key) DO UPDATE SET value=CAST(value AS INTEGER)+1")
             results.append({'reportId': report_id, 'batchId': entry['batchId'],
                             'localDeleted': existed, 'cosDeleted': bool(remote_key),
-                            'reportRetained': True, 'resolved': bool(resolved), 'reason': reason,
+                            'reportRetained': False, 'reportDeleted': True,
+                            'resolvedBeforeDeletion': bool(resolved), 'reason': reason,
                             'themeId': entry.get('themeId')})
     return results
 

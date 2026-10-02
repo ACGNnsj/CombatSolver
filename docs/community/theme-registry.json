@@ -8,7 +8,7 @@
     2
   ],
   "claimUnit": "batch",
-  "duplicateThemeAction": "delete_archive_and_skip",
+  "duplicateThemeAction": "delete_report_and_archive_and_skip",
   "themes": [
     {
       "title": "模拟选牌：计划 token 与选择来源不一致",

@@ -1,4 +1,4 @@
 interface:
   display_name: "CombatSolver 社区任务发布"
-  short_description: "归并 0.47.x 日志，每批五主题、每主题一至两包，重复主题清理跳过"
-  default_prompt: "使用 $combatsolver-community-tasks 按五个主题整理 0.47.x 社区批次，每主题一至两包，并清理已有主题重复包。"
+  short_description: "归并 0.47.x 日志，每批五主题，发布及重复主题清理后台记录与包"
+  default_prompt: "使用 $combatsolver-community-tasks 按五个主题整理 0.47.x 社区批次，每主题一至两包，并清理已发布及已有主题重复报告的后台记录与包。"
