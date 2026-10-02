@@ -64,4 +64,6 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 发布流程固化在 [combatsolver-community-tasks skill](../../.agents/skills/combatsolver-community-tasks/SKILL.md)。清理有两个时点：GitHub 发布成功后清理实际代表包，或者分发检索确认已有主题时直接丢弃重复包。删除固定 ID 对应磁盘/COS ZIP 和后台报告记录，原因与 GitHub 去向保存在发布账本。此前仅清理 ZIP 的 465 条报告已全部补删后台记录，其中含 342 条 0.47.x 重复主题报告。
 
+B016 发布后已删除五个代表及 17 条已有主题重复报告，共 22 条后台记录和 22 个服务器 ZIP；累计已清理 487 条后台记录。发布及重复清理不表示已修复，主题验收证据仍由 issue/PR 保存。
+
 [publication-ledger.json](publication-ledger.json) 保存当前主题批次、历史迁移和清理回执。清理工具 [retire-community-archives.py](../../tools/retire-community-archives.py) 在日志服务容器读取固定清单，支持 dry-run；`published` 表示已发布代表清理，`duplicate_theme` 表示重复主题删除跳过，后者还校验真实报告版本属于 0.47.x。

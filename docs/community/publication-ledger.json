@@ -5921,6 +5921,270 @@
       "themeId": "T008",
       "reportDeleted": true,
       "reportDeletedAt": "2026-10-02T08:15:56.038752+00:00"
+    },
+    "dcd387bccbbb40dcbbce9204383c9881": {
+      "reportId": "dcd387bccbbb40dcbbce9204383c9881",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T005",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "b276886a99c14746b6583a2748ec366e": {
+      "reportId": "b276886a99c14746b6583a2748ec366e",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T002",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "10c5df93e92b403cb90494f0beaf4fba": {
+      "reportId": "10c5df93e92b403cb90494f0beaf4fba",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T002",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "1ef8f006eb9046d1ba9e8c8d27ecbb1a": {
+      "reportId": "1ef8f006eb9046d1ba9e8c8d27ecbb1a",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T002",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "e2547e09c74045bdbf4911b4f3ca22cb": {
+      "reportId": "e2547e09c74045bdbf4911b4f3ca22cb",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T002",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "60354d5dd88a408e925f521ee5f43437": {
+      "reportId": "60354d5dd88a408e925f521ee5f43437",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "a1e7b7fb695a43539383e31ac76b1a5f": {
+      "reportId": "a1e7b7fb695a43539383e31ac76b1a5f",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T004",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "01e59bf88e8241c3a21d24d53b8c34a8": {
+      "reportId": "01e59bf88e8241c3a21d24d53b8c34a8",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T007",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "e5377afd2fa14c90b6304e6dd78d6770": {
+      "reportId": "e5377afd2fa14c90b6304e6dd78d6770",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T007",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "6aa9a320492449479d5b218d2dc721c3": {
+      "reportId": "6aa9a320492449479d5b218d2dc721c3",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "33f2eee4eb96428b95b89a253c4708f0": {
+      "reportId": "33f2eee4eb96428b95b89a253c4708f0",
+      "batchId": "B015",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T016",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "d208123adc9f4225ac26b4623b01d420": {
+      "reportId": "d208123adc9f4225ac26b4623b01d420",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "77b786b9afc64f35bcb06d9856804f31": {
+      "reportId": "77b786b9afc64f35bcb06d9856804f31",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "b8b2bf6ff2c4464a895e24284e385a55": {
+      "reportId": "b8b2bf6ff2c4464a895e24284e385a55",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "af9d8c9a3f224d0991d92c5e15681009": {
+      "reportId": "af9d8c9a3f224d0991d92c5e15681009",
+      "batchId": "B013",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T008",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "60c2c79acd0a4e6ab04f046f922ebcb7": {
+      "reportId": "60c2c79acd0a4e6ab04f046f922ebcb7",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T001",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "da741f5f82af4005ac54e76aedd00e7b": {
+      "reportId": "da741f5f82af4005ac54e76aedd00e7b",
+      "batchId": "B012",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "duplicate_theme",
+      "themeId": "T002",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "18ad4e5656d64efbbbc5747e31dd7138": {
+      "reportId": "18ad4e5656d64efbbbc5747e31dd7138",
+      "batchId": "B016",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "published",
+      "themeId": "T021",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "3e32722d7cfc459bbabae757e5cb4f2a": {
+      "reportId": "3e32722d7cfc459bbabae757e5cb4f2a",
+      "batchId": "B016",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "published",
+      "themeId": "T022",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "21980d83adf740879ddf16d466f8c499": {
+      "reportId": "21980d83adf740879ddf16d466f8c499",
+      "batchId": "B016",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "published",
+      "themeId": "T023",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "9eb40fd9fa854fc696f1a9f7eccf8ee4": {
+      "reportId": "9eb40fd9fa854fc696f1a9f7eccf8ee4",
+      "batchId": "B016",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "published",
+      "themeId": "T024",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
+    },
+    "7137a64cd411453f86d8dd90700f4118": {
+      "reportId": "7137a64cd411453f86d8dd90700f4118",
+      "batchId": "B016",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": false,
+      "reportDeleted": true,
+      "resolvedBeforeDeletion": false,
+      "reason": "published",
+      "themeId": "T025",
+      "reportDeletedAt": "2026-10-02T08:50:11.711005+00:00"
     }
   },
   "contentPolicy": "base_game_content_only; no proactive third_party_gameplay_adaptation",
@@ -5963,8 +6227,8 @@
       "sourceEvidenceRequiredForGenericExceptions": "passed"
     }
   },
-  "totalRetiredArchives": 465,
-  "actualServerFilesDeleted": 465,
+  "totalRetiredArchives": 487,
+  "actualServerFilesDeleted": 487,
   "localCleanup": {
     "directory": ".local/community-tasks/20261002",
     "completed": true,
@@ -7554,234 +7818,31 @@
     "deletedZipFiles": 48
   },
   "reportDeletionCleanup": {
-    "selectedReports": 465,
-    "reportsDeleted": 465,
-    "completedAt": "2026-10-02T08:15:56.038752+00:00",
+    "selectedReports": 487,
+    "reportsDeleted": 487,
+    "completedAt": "2026-10-02T08:50:11.711005+00:00",
     "scope": "previously_published_and_duplicate_theme_archive_receipts"
   },
-  "pendingReportCleanup": {
-    "at": "2026-10-02T08:49:02.316308+00:00",
-    "entries": [
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t005",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "dcd387bccbbb40dcbbce9204383c9881",
-        "themeId": "T005",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "b276886a99c14746b6583a2748ec366e",
-        "themeId": "T002",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "10c5df93e92b403cb90494f0beaf4fba",
-        "themeId": "T002",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "1ef8f006eb9046d1ba9e8c8d27ecbb1a",
-        "themeId": "T002",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "e2547e09c74045bdbf4911b4f3ca22cb",
-        "themeId": "T002",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "60354d5dd88a408e925f521ee5f43437",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t004",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "a1e7b7fb695a43539383e31ac76b1a5f",
-        "themeId": "T004",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t007",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "01e59bf88e8241c3a21d24d53b8c34a8",
-        "themeId": "T007",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t007",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "e5377afd2fa14c90b6304e6dd78d6770",
-        "themeId": "T007",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "6aa9a320492449479d5b218d2dc721c3",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B015",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/174#t016",
-        "assetId": 605106766,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B015.zip",
-        "assetSizeBytes": 839580,
-        "reportId": "33f2eee4eb96428b95b89a253c4708f0",
-        "themeId": "T016",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "d208123adc9f4225ac26b4623b01d420",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "77b786b9afc64f35bcb06d9856804f31",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "b8b2bf6ff2c4464a895e24284e385a55",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B013",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172#t008",
-        "assetId": 605106783,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B013.zip",
-        "assetSizeBytes": 1826545,
-        "reportId": "af9d8c9a3f224d0991d92c5e15681009",
-        "themeId": "T008",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t001",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "60c2c79acd0a4e6ab04f046f922ebcb7",
-        "themeId": "T001",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B012",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149#t002",
-        "assetId": 605106772,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B012.zip",
-        "assetSizeBytes": 2136576,
-        "reportId": "da741f5f82af4005ac54e76aedd00e7b",
-        "themeId": "T002",
-        "reason": "duplicate_theme"
-      },
-      {
-        "batchId": "B016",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t021",
-        "assetId": 605195867,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
-        "assetSizeBytes": 1348143,
-        "reportId": "18ad4e5656d64efbbbc5747e31dd7138",
-        "themeId": "T021",
-        "reason": "published"
-      },
-      {
-        "batchId": "B016",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t022",
-        "assetId": 605195867,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
-        "assetSizeBytes": 1348143,
-        "reportId": "3e32722d7cfc459bbabae757e5cb4f2a",
-        "themeId": "T022",
-        "reason": "published"
-      },
-      {
-        "batchId": "B016",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t023",
-        "assetId": 605195867,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
-        "assetSizeBytes": 1348143,
-        "reportId": "21980d83adf740879ddf16d466f8c499",
-        "themeId": "T023",
-        "reason": "published"
-      },
-      {
-        "batchId": "B016",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t024",
-        "assetId": 605195867,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
-        "assetSizeBytes": 1348143,
-        "reportId": "9eb40fd9fa854fc696f1a9f7eccf8ee4",
-        "themeId": "T024",
-        "reason": "published"
-      },
-      {
-        "batchId": "B016",
-        "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/182#t025",
-        "assetId": 605195867,
-        "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B016.zip",
-        "assetSizeBytes": 1348143,
-        "reportId": "7137a64cd411453f86d8dd90700f4118",
-        "themeId": "T025",
-        "reason": "published"
-      }
-    ]
+  "latestBatchCleanup": {
+    "batchId": "B016",
+    "completedAt": "2026-10-02T08:50:11.711005+00:00",
+    "publishedReports": 5,
+    "duplicateThemeReports": 17,
+    "serverZipFilesDeleted": 22,
+    "backendReportsDeleted": 22,
+    "cosObjectsDeleted": 0
+  },
+  "latestPublicIndex": {
+    "assetId": 605201265,
+    "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/community-task-index.json",
+    "assetSizeBytes": 1505754,
+    "cleanupCompleted": true
+  },
+  "latestLocalCleanup": {
+    "run": "publish-047-20261002-b016",
+    "completedAt": "2026-10-02T08:50:58.8884137Z",
+    "deletedFiles": 55,
+    "deletedZipFiles": 17,
+    "taskScratchFilesRetained": 0
   }
 }
