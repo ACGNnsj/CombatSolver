@@ -1,0 +1,4 @@
+interface:
+  display_name: "CombatSolver 社区任务发布"
+  short_description: "静态归类日志、十项整批发布，并按发布回执清理服务器与本地代表包"
+  default_prompt: "使用 $combatsolver-community-tasks 整理并发布下一批社区任务，保留发布账本并清理已发布代表包。"

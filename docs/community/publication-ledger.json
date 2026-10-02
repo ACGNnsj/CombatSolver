@@ -1,0 +1,2519 @@
+{
+  "schemaVersion": 1,
+  "repository": "Torch1230/CombatSolver",
+  "releaseTag": "community-tasks-2026-10-02",
+  "claimUnit": "batch",
+  "itemsPerBatch": 10,
+  "batches": [
+    {
+      "batchId": "B001",
+      "issueNumber": 149,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/149",
+      "assetId": 605064419,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B001.zip",
+      "assetSizeBytes": 2752929,
+      "tasks": [
+        {
+          "taskId": "B01",
+          "title": "搜索边界状态继续 Fork 导致计算失败",
+          "groupIds": [
+            "D-70837eeeb239"
+          ],
+          "representativeIds": [
+            "4d7e883a7ff144a79879a6a886e5a62b"
+          ]
+        },
+        {
+          "taskId": "B02",
+          "title": "结束回合卡 VOID_FORM 的固定搜索前缀无效",
+          "groupIds": [
+            "D-aa3cd7f81940"
+          ],
+          "representativeIds": [
+            "ac1bf450a4574ed09870b37ebdc8ce28"
+          ]
+        },
+        {
+          "taskId": "B03",
+          "title": "回放包含战斗终局之后的动作",
+          "groupIds": [
+            "D-b5678b88a095"
+          ],
+          "representativeIds": [
+            "c0d7e681055942c1b0c1211c4fc89038"
+          ]
+        },
+        {
+          "taskId": "B04",
+          "title": "最终路线标注回放与选中状态不同",
+          "groupIds": [
+            "D-3286f578d7bc",
+            "D-5caf4fa13d02",
+            "D-1cd97e6a77a3",
+            "D-4786ecae2946",
+            "D-ee251e5f8c96",
+            "D-3b4c5af892a6",
+            "D-78bae20bda55",
+            "D-4491cdb6337f",
+            "D-dc5623b0ac48",
+            "D-5d16c8d9b943"
+          ],
+          "representativeIds": [
+            "c400add395a246289276db7b90746574",
+            "759c559be3b6429099d409f8462c9268",
+            "99774390c81140058228982934477ea8"
+          ]
+        },
+        {
+          "taskId": "B05",
+          "title": "STRATAGEM_POWER 回合开始计划选牌未触发",
+          "groupIds": [
+            "D-e6fdcef4a0dd",
+            "D-45832b6126b5",
+            "D-3cc71fdb7a05",
+            "D-25fb3cb7dfc5"
+          ],
+          "representativeIds": [
+            "6a86102e036e49b890372754f3d71634"
+          ]
+        },
+        {
+          "taskId": "B06",
+          "title": "显示名称读取 sneaky 时 KeyNotFoundException 中断搜索",
+          "groupIds": [
+            "D-cc1e7a34b30b"
+          ],
+          "representativeIds": [
+            "f217b3c39c4b4cb4b77f08b353c4c146"
+          ]
+        },
+        {
+          "taskId": "B07",
+          "title": "随机目标攻击 source 为空：从 VOLLEY 代表栈定位计算失败",
+          "groupIds": [
+            "D-02ca95729ca4"
+          ],
+          "representativeIds": [
+            "9caf1cd8a36c4a7ab2a3765c16ceaa8b"
+          ]
+        },
+        {
+          "taskId": "B08",
+          "title": "回合开始手牌状态偏差引发重算",
+          "groupIds": [
+            "D-ca9b996832e1"
+          ],
+          "representativeIds": [
+            "02fe03dff65645d8bd0e64f6b5c2d8d7"
+          ]
+        },
+        {
+          "taskId": "B09",
+          "title": "DASH 的计划选择与模拟候选不一致",
+          "groupIds": [
+            "D-04ff21ce28ff"
+          ],
+          "representativeIds": [
+            "719fce245c7a4efa9e1cc62c103cb6e3"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DASH"
+        },
+        {
+          "taskId": "B10",
+          "title": "原生手牌选择在计划确认前结束",
+          "groupIds": [
+            "D-404964c50c83"
+          ],
+          "representativeIds": [
+            "c7704870778b47f59e49a85ca5f73912"
+          ]
+        }
+      ]
+    },
+    {
+      "batchId": "Q001",
+      "issueNumber": 150,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/150",
+      "assetId": 605030056,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/Q001.zip",
+      "assetSizeBytes": 3666781,
+      "tasks": [
+        {
+          "taskId": "Q01",
+          "title": "无厌沙虫",
+          "representativeIds": [
+            "be3cf3410d4444188ca98ef79b2052f6"
+          ]
+        },
+        {
+          "taskId": "Q02",
+          "title": "女王",
+          "representativeIds": [
+            "8fbb4f7f7d1b4e30832296d73e7a114d"
+          ]
+        },
+        {
+          "taskId": "Q03",
+          "title": "永世沙漏",
+          "representativeIds": [
+            "c5e305b95ff444fea1949a58c0b17b04"
+          ]
+        },
+        {
+          "taskId": "Q04",
+          "title": "乐加维林族母",
+          "representativeIds": [
+            "b76f10234d8b435286083ae1e614646d"
+          ]
+        },
+        {
+          "taskId": "Q05",
+          "title": "实验体",
+          "representativeIds": [
+            "93133dcfdb114695b08aec08c36716c4"
+          ]
+        },
+        {
+          "taskId": "Q06",
+          "title": "永世沙漏",
+          "representativeIds": [
+            "d56fc7d749304554a1cc193cff6a4d6b"
+          ]
+        },
+        {
+          "taskId": "Q07",
+          "title": "永世沙漏",
+          "representativeIds": [
+            "b7efa7bd6dd247e097a07ae1cde2de3d"
+          ]
+        },
+        {
+          "taskId": "Q08",
+          "title": "Ovicopter",
+          "representativeIds": [
+            "ca56e9d39e514a44ab3bb0dd2c8296e6"
+          ]
+        },
+        {
+          "taskId": "Q09",
+          "title": "知识恶魔",
+          "representativeIds": [
+            "2d9ae9a2094840f3a7a38505235710d4"
+          ]
+        },
+        {
+          "taskId": "Q10",
+          "title": "骑士团伙",
+          "representativeIds": [
+            "d3351a24df2e4031a0764be55e9be7e8"
+          ]
+        }
+      ]
+    },
+    {
+      "batchId": "B002",
+      "issueNumber": 172,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/172",
+      "assetId": 605064325,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B002.zip",
+      "assetSizeBytes": 1895919,
+      "tasks": [
+        {
+          "taskId": "B11",
+          "title": "搜索或回合准备发生内存耗尽",
+          "groupIds": [
+            "D-f56d93059307"
+          ],
+          "representativeIds": [
+            "e3e83e0eed0346329933d76e50b01812"
+          ],
+          "publicationSignature": "OutOfMemoryException：Exception of type 'System.OutOfMemoryException' was thrown."
+        },
+        {
+          "taskId": "B12",
+          "title": "读取 MOCK_GATED_TURN_START_POWER 时缺少本地化（含测试模型）",
+          "groupIds": [
+            "D-83c47d6e342a"
+          ],
+          "representativeIds": [
+            "e0a32db68a0e432d9fc121340043a9f6"
+          ],
+          "publicationSignature": "LocException：Key=MOCK_GATED_TURN_START_POWER.title not found in table=powers"
+        },
+        {
+          "taskId": "B13",
+          "title": "运行时入口点缺失",
+          "groupIds": [
+            "D-f937664f7d69"
+          ],
+          "representativeIds": [
+            "917200068a8644d5b40e2d38004e33ef"
+          ],
+          "publicationSignature": "EntryPointNotFoundException：Entry point was not found."
+        },
+        {
+          "taskId": "B14",
+          "title": "动态变量字典缺少 Repeat",
+          "groupIds": [
+            "D-18cb9677424b"
+          ],
+          "representativeIds": [
+            "e7f1cf14e6ad4a60be7f4f3724929b81"
+          ],
+          "publicationSignature": "KeyNotFoundException：The given key 'Repeat' was not present in the dictionary."
+        },
+        {
+          "taskId": "B15",
+          "title": "搜索并发修改非并发集合",
+          "groupIds": [
+            "D-856626ad696f"
+          ],
+          "representativeIds": [
+            "dde1660175e94698893bc0ce5048f566"
+          ],
+          "publicationSignature": "InvalidOperationException：Operations that change non-concurrent collections must have exclusive access. A concurrent update was performed on this collection and corrupted its state. The collection's state is no longer correct."
+        },
+        {
+          "taskId": "B16",
+          "title": "访问已释放的 Godot.PackedScene",
+          "groupIds": [
+            "D-9c67f6de4702"
+          ],
+          "representativeIds": [
+            "ba5c54e93c67488fb28b0045ec27b2ae"
+          ],
+          "publicationSignature": "ObjectDisposedException：Cannot access a disposed object. Object name: 'Godot.PackedScene'."
+        },
+        {
+          "taskId": "B17",
+          "title": "Smart 搜索的强制用药起点不符合约束",
+          "groupIds": [
+            "D-c35278929c8c"
+          ],
+          "representativeIds": [
+            "ba79d87499a4455bbba4a51baf381eea"
+          ],
+          "publicationSignature": "InvalidOperationException：Smart 梯度搜索必须从仅满足强制用药的结果开始。"
+        },
+        {
+          "taskId": "B18",
+          "title": "出牌动作缺少目标",
+          "groupIds": [
+            "D-607bcebc95a4"
+          ],
+          "representativeIds": [
+            "e63cd12543994bb08b9497e45839005c"
+          ],
+          "publicationSignature": "InvalidOperationException：CardPlay has no target creature."
+        },
+        {
+          "taskId": "B19",
+          "title": "搜索查询找不到匹配元素",
+          "groupIds": [
+            "D-284914e147de"
+          ],
+          "representativeIds": [
+            "fc5a35417db14e428143e8df72750a3e"
+          ],
+          "publicationSignature": "InvalidOperationException：Sequence contains no matching element"
+        },
+        {
+          "taskId": "B20",
+          "title": "搜索使用了不符合当前阶段的对象状态",
+          "groupIds": [
+            "D-21ea98755e13"
+          ],
+          "representativeIds": [
+            "498b16b0f31f4832ba734726464afb49"
+          ],
+          "publicationSignature": "InvalidOperationException：Operation is not valid due to the current state of the object."
+        }
+      ]
+    },
+    {
+      "batchId": "B003",
+      "issueNumber": 173,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/173",
+      "assetId": 605064322,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B003.zip",
+      "assetSizeBytes": 1607653,
+      "tasks": [
+        {
+          "taskId": "B21",
+          "title": "Decimal 运算溢出",
+          "groupIds": [
+            "D-acacda20aebd"
+          ],
+          "representativeIds": [
+            "574f28d17281460399b7e7bc55442042"
+          ],
+          "publicationSignature": "OverflowException：Value was either too large or too small for a Decimal."
+        },
+        {
+          "taskId": "B22",
+          "title": "搜索中的空引用异常",
+          "groupIds": [
+            "D-7ef1db9808ab"
+          ],
+          "representativeIds": [
+            "0fc7a3d92767410ba6fb3c1cafe90354"
+          ],
+          "publicationSignature": "NullReferenceException：Object reference not set to an instance of an object."
+        },
+        {
+          "taskId": "B23",
+          "title": "搜索枚举期间集合被修改",
+          "groupIds": [
+            "D-8ca269ad57d1"
+          ],
+          "representativeIds": [
+            "2e4ad49835c3478f82ac3506c96b4a00"
+          ],
+          "publicationSignature": "InvalidOperationException：Collection was modified; enumeration operation may not execute."
+        },
+        {
+          "taskId": "B24",
+          "title": "游戏构建缺少 DynamicVarSet._vars 的兼容处理",
+          "groupIds": [
+            "D-006eeea19a49"
+          ],
+          "representativeIds": [
+            "6c1ba67da27943518ffe3c4d164cf5bf"
+          ],
+          "publicationSignature": "MissingFieldException：CrossVersionCompat: MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVarSet._vars is not on this game build and could not be bridged (MegaCrit.Sts2.Core.Localization.DynamicVars.DynamicVarSet._vars: no safe field bridge is registered). CombatSolver.dll reached it anyway; everything in this mod t…"
+        },
+        {
+          "taskId": "B25",
+          "title": "未分类的字符串状态字段：MegaCrit.Sts2.Core.Models.Cards.SovereignBlade.SeekingEdgeSuffix。",
+          "groupIds": [
+            "D-787f397d4db4"
+          ],
+          "representativeIds": [
+            "17d363178b9b4a58a478c6ab41d453a5"
+          ],
+          "publicationSignature": "InvalidOperationException：未分类的字符串状态字段：MegaCrit.Sts2.Core.Models.Cards.SovereignBlade.SeekingEdgeSuffix。"
+        },
+        {
+          "taskId": "B26",
+          "title": "跑局统计队列容量耗尽",
+          "groupIds": [
+            "D-1dec244458be"
+          ],
+          "representativeIds": [
+            "ad752303ab53403faf085c2f7e4b1c83"
+          ],
+          "publicationSignature": "InvalidOperationException：Run statistics queue capacity exceeded."
+        },
+        {
+          "taskId": "B27",
+          "title": "回合结束请求尚未处理时进入 Fork",
+          "groupIds": [
+            "D-208717512998"
+          ],
+          "representativeIds": [
+            "b240700e03f44a5aa19395328d75246f"
+          ],
+          "publicationSignature": "InvalidOperationException：Cannot fork before a requested player turn end is resolved."
+        },
+        {
+          "taskId": "B28",
+          "title": "TinkerTimeType=None 引发越界异常",
+          "groupIds": [
+            "D-d2c09e9c3e16"
+          ],
+          "representativeIds": [
+            "3f4c6b58670143308359a048b0d4899e"
+          ],
+          "publicationSignature": "ArgumentOutOfRangeException：Specified argument was out of the range of valid values. (Parameter 'TinkerTimeType') Actual value was None."
+        },
+        {
+          "taskId": "B29",
+          "title": "VOID_FORM 结束后知识诅咒的计划未被请求",
+          "groupIds": [
+            "D-de947b3365af",
+            "D-f9e780e08843",
+            "D-7f2482459759",
+            "D-d5cf04c70497",
+            "D-1ca157767370",
+            "D-06b5b9b3fd81",
+            "D-7d9ed6665e08",
+            "D-1a4d1410d75c",
+            "D-d23f5a9c24ca"
+          ],
+          "representativeIds": [
+            "fd41bd8081bd4eb3ba36b382a142b0ad"
+          ],
+          "publicationSignature": "NativeChoicePlanNotRequestedException：原生选牌会话 deployment:<turn>:<action>:VOID_FORM 仍有 N 个计划没有被游戏请求；下一个=KNOWLEDGE_DEMON:<instance>/ApplyKnowledgeCurse/。"
+        },
+        {
+          "taskId": "B30",
+          "title": "原生选牌页面与计划的选择数量不匹配。",
+          "groupIds": [
+            "D-2160f656b16e",
+            "D-3c5d7ca61a50",
+            "D-970bdcde19fb"
+          ],
+          "representativeIds": [
+            "90deefbd323846c8b561e88155c0bf0d"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面与计划的选择数量不匹配。"
+        }
+      ]
+    },
+    {
+      "batchId": "B004",
+      "issueNumber": 174,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/174",
+      "assetId": 605064321,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B004.zip",
+      "assetSizeBytes": 2519520,
+      "tasks": [
+        {
+          "taskId": "B31",
+          "title": "原生选牌页面找不到 SURVIVOR",
+          "groupIds": [
+            "D-47c166037a87"
+          ],
+          "representativeIds": [
+            "f1c832eb2d3647c7aa37c4d2038e09be"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 SURVIVOR"
+        },
+        {
+          "taskId": "B32",
+          "title": "原生选牌页面找不到 STRIKE_REGENT",
+          "groupIds": [
+            "D-585daa99e379"
+          ],
+          "representativeIds": [
+            "851c188bc3ae4d0b83319a76bae4384d"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 STRIKE_REGENT"
+        },
+        {
+          "taskId": "B33",
+          "title": "原生选牌页面找不到 NEUROSURGE",
+          "groupIds": [
+            "D-68f60b5759cf"
+          ],
+          "representativeIds": [
+            "cda63d439f264deb9507280c6498b070"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 NEUROSURGE"
+        },
+        {
+          "taskId": "B34",
+          "title": "原生手牌选择完成后确认按钮在 30 秒内仍不可用。",
+          "groupIds": [
+            "D-07d1ec1d35de"
+          ],
+          "representativeIds": [
+            "fc46c597fba14aa4abf9ff81a2ca0581"
+          ],
+          "publicationSignature": "NativeChoiceSurfaceTimeoutException：原生手牌选择完成后确认按钮在 30 秒内仍不可用。"
+        },
+        {
+          "taskId": "B35",
+          "title": "原生选牌会话 deployment:<turn>:<action>:SURVIVOR 仍有 N 个计划没有被游戏请求；下一个=/Discard/。",
+          "groupIds": [
+            "D-0692d2c0d55f",
+            "D-2060bdc66151",
+            "D-3103efccc268"
+          ],
+          "representativeIds": [
+            "68264c7fd86b49398eea230bcc5541e3"
+          ],
+          "publicationSignature": "NativeChoicePlanNotRequestedException：原生选牌会话 deployment:<turn>:<action>:SURVIVOR 仍有 N 个计划没有被游戏请求；下一个=/Discard/。"
+        },
+        {
+          "taskId": "B36",
+          "title": "原生选牌页面找不到 SPOILS_OF_BATTLE",
+          "groupIds": [
+            "D-777e7f540662"
+          ],
+          "representativeIds": [
+            "e97fdf33210743fc955ad350400f205e"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 SPOILS_OF_BATTLE"
+        },
+        {
+          "taskId": "B37",
+          "title": "原生选牌页面找不到 PIERCING_WAIL",
+          "groupIds": [
+            "D-34c22c610bc3"
+          ],
+          "representativeIds": [
+            "d4b99507645b4ebabe486975ecd7186b"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 PIERCING_WAIL"
+        },
+        {
+          "taskId": "B38",
+          "title": "原生选牌页面找不到 DEFEND_REGENT",
+          "groupIds": [
+            "D-ac0d79cd742f"
+          ],
+          "representativeIds": [
+            "aee802f4d8344dc9838ddf85d898bab3"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 DEFEND_REGENT"
+        },
+        {
+          "taskId": "B39",
+          "title": "原生选牌页面找不到 BULLET_TIME",
+          "groupIds": [
+            "D-7edc11fc9755"
+          ],
+          "representativeIds": [
+            "f00880e97e7144c897c38fde18949492"
+          ],
+          "publicationSignature": "NativeChoicePlanMismatchException：原生选牌页面找不到 BULLET_TIME"
+        },
+        {
+          "taskId": "B40",
+          "title": "回合开始未消费计划选择：TYRANNY_POWER/Exhaust/Hand/",
+          "groupIds": [
+            "D-89f75196a78c"
+          ],
+          "representativeIds": [
+            "626a083d78a449ccaf743f4b017e2d4b"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始仍有 N 个计划选牌没有触发；下一个=TYRANNY_POWER/Exhaust/Hand/。"
+        }
+      ]
+    },
+    {
+      "batchId": "B005",
+      "issueNumber": 175,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/175",
+      "assetId": 605064318,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B005.zip",
+      "assetSizeBytes": 2421886,
+      "tasks": [
+        {
+          "taskId": "B41",
+          "title": "回合准备状态不一致：P[]",
+          "groupIds": [
+            "D-79a5c864ab20"
+          ],
+          "representativeIds": [
+            "765e002fda814f99b8036bc1cfed95d4"
+          ],
+          "publicationSignature": "TurnSetupStateMismatch: field=P[]"
+        },
+        {
+          "taskId": "B42",
+          "title": "回合开始未消费计划选择：TOOLS_OF_THE_TRADE_POWER/Discard/Hand/",
+          "groupIds": [
+            "D-d67c8a753f28"
+          ],
+          "representativeIds": [
+            "478d8c8fd22742d29e02ba7a54d9cb1f"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始仍有 N 个计划选牌没有触发；下一个=TOOLS_OF_THE_TRADE_POWER/Discard/Hand/。"
+        },
+        {
+          "taskId": "B43",
+          "title": "回合准备页面完成后 30 秒内没有进入可复用状态。",
+          "groupIds": [
+            "D-4e7dba895c1c"
+          ],
+          "representativeIds": [
+            "bb354ef99c084a68823278535fe34177"
+          ],
+          "publicationSignature": "TimeoutException：回合准备页面完成后 30 秒内没有进入可复用状态。"
+        },
+        {
+          "taskId": "B44",
+          "title": "回合准备状态不一致：hp",
+          "groupIds": [
+            "D-a18e8ec8293c"
+          ],
+          "representativeIds": [
+            "8558301471ba4377860706b9ae00be0e"
+          ],
+          "publicationSignature": "TurnSetupStateMismatch: field=hp"
+        },
+        {
+          "taskId": "B45",
+          "title": "回合开始未消费计划选择：TOASTY_MITTENS/Exhaust/Hand/",
+          "groupIds": [
+            "D-9d3488d1b094"
+          ],
+          "representativeIds": [
+            "717978db6a7b43e8bdd4dcad7f5ba1f2"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始仍有 N 个计划选牌没有触发；下一个=TOASTY_MITTENS/Exhaust/Hand/。"
+        },
+        {
+          "taskId": "B46",
+          "title": "回合开始选牌时找不到 NORMALITY",
+          "groupIds": [
+            "D-f479f6a56f9e"
+          ],
+          "representativeIds": [
+            "79b766e1deef4107987f0b09f7fb080c"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始选牌时找不到 NORMALITY"
+        },
+        {
+          "taskId": "B47",
+          "title": "回合开始未消费计划选择：ENTROPY_POWER/Transform/Hand/",
+          "groupIds": [
+            "D-591e106a07cc"
+          ],
+          "representativeIds": [
+            "c97fe6bb67184f66afb82b366e3fd7ef"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始仍有 N 个计划选牌没有触发；下一个=ENTROPY_POWER/Transform/Hand/。"
+        },
+        {
+          "taskId": "B48",
+          "title": "回合准备状态不一致：O.orbs",
+          "groupIds": [
+            "D-1383073e736b"
+          ],
+          "representativeIds": [
+            "1d3fed52ca4a429385fca28db4998f0d"
+          ],
+          "publicationSignature": "TurnSetupStateMismatch: field=O.orbs"
+        },
+        {
+          "taskId": "B49",
+          "title": "回合准备状态不一致：block",
+          "groupIds": [
+            "D-8328c7c35724"
+          ],
+          "representativeIds": [
+            "c55bf3b08d474e20bcea007a155b1ded"
+          ],
+          "publicationSignature": "TurnSetupStateMismatch: field=block"
+        },
+        {
+          "taskId": "B50",
+          "title": "回合开始未消费计划选择：FOREGONE_CONCLUSION_POWER/MoveToHand/Draw/",
+          "groupIds": [
+            "D-95b40245dadf"
+          ],
+          "representativeIds": [
+            "47e44ee107d64dc1ad7c6a4cb3069ed0"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始仍有 N 个计划选牌没有触发；下一个=FOREGONE_CONCLUSION_POWER/MoveToHand/Draw/。"
+        }
+      ]
+    },
+    {
+      "batchId": "B006",
+      "issueNumber": 176,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/176",
+      "assetId": 605064324,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B006.zip",
+      "assetSizeBytes": 1659781,
+      "tasks": [
+        {
+          "taskId": "B51",
+          "title": "固定搜索前缀与全部回合准备选牌分支都不相容",
+          "groupIds": [
+            "D-7fff63017543",
+            "D-69e9408dea87",
+            "D-3b2dcc548a96",
+            "D-f67f00583829",
+            "D-d61175c44ee9",
+            "D-d145694b4377",
+            "D-ce91f3d94c06",
+            "D-4058397e41cb",
+            "D-f7b0bd58547e",
+            "D-ec26d6b34eb7",
+            "D-e08dfa9aaf8e",
+            "D-d19203de8532",
+            "D-b1e1fddb7882",
+            "D-b13bdef626d2",
+            "D-b134ebf78e1f",
+            "D-a0dce513ec21",
+            "D-a0c8f0bec5ca",
+            "D-5a47f122a6c5",
+            "D-47936041bbf8",
+            "D-43de828387f1",
+            "D-3b282acae744",
+            "D-35b9e274eb15",
+            "D-34c2076721be",
+            "D-1f2f4fccf353",
+            "D-1de75a0aea4c",
+            "D-12cdc2ceb816"
+          ],
+          "representativeIds": [
+            "fd0f0b6de0aa438883c3fc0ec90d9df8"
+          ],
+          "publicationSignature": "InvalidOperationException：固定搜索前缀与全部回合准备选牌分支都不相容"
+        },
+        {
+          "taskId": "B52",
+          "title": "回合开始选牌时找不到 WISP",
+          "groupIds": [
+            "D-c6e0f679ecea"
+          ],
+          "representativeIds": [
+            "e643422524a7437cbdc909a331c31369"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：回合开始选牌时找不到 WISP"
+        },
+        {
+          "taskId": "B53",
+          "title": "选牌回放时找不到 ESCAPE_PLAN",
+          "groupIds": [
+            "D-ca889704e17a"
+          ],
+          "representativeIds": [
+            "e8ebfb3de7c54617b860e17b59b6db51"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 ESCAPE_PLAN"
+        },
+        {
+          "taskId": "B54",
+          "title": "选牌回放时找不到 SURVIVOR",
+          "groupIds": [
+            "D-4310cbdbc55a"
+          ],
+          "representativeIds": [
+            "98be67527a524553b4b201e15c90ea2e"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SURVIVOR"
+        },
+        {
+          "taskId": "B55",
+          "title": "选牌回放时找不到 SPOILS_MAP",
+          "groupIds": [
+            "D-addee96ceecf"
+          ],
+          "representativeIds": [
+            "0045c7bd0c10468aa2ddacb5aed4db8d"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SPOILS_MAP"
+        },
+        {
+          "taskId": "B56",
+          "title": "选牌回放时找不到 ORBIT",
+          "groupIds": [
+            "D-c3acc2e962f7"
+          ],
+          "representativeIds": [
+            "9cb0460c7fac401fb8c98a9aed754b2f"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 ORBIT"
+        },
+        {
+          "taskId": "B57",
+          "title": "选牌回放时找不到 LEADING_STRIKE",
+          "groupIds": [
+            "D-311fa6643abb"
+          ],
+          "representativeIds": [
+            "a0dbe7afcea0419fb9102cb82f29a478"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 LEADING_STRIKE"
+        },
+        {
+          "taskId": "B58",
+          "title": "选牌回放时找不到 HAUNT",
+          "groupIds": [
+            "D-63b06aa1b02b"
+          ],
+          "representativeIds": [
+            "b556738c9b6c46d692379445e9604713"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 HAUNT"
+        },
+        {
+          "taskId": "B59",
+          "title": "选牌回放时找不到 DEFEND_DEFECT",
+          "groupIds": [
+            "D-44077372c576"
+          ],
+          "representativeIds": [
+            "40f0d7965bd1409da0e2de3fd0dd7fac"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DEFEND_DEFECT"
+        },
+        {
+          "taskId": "B60",
+          "title": "选牌回放时找不到 DEATHS_DOOR",
+          "groupIds": [
+            "D-f35d4d84f119"
+          ],
+          "representativeIds": [
+            "b736af766abe4a7982d12a99a77aee4e"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DEATHS_DOOR"
+        }
+      ]
+    },
+    {
+      "batchId": "B007",
+      "issueNumber": 177,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/177",
+      "assetId": 605064364,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B007.zip",
+      "assetSizeBytes": 2051413,
+      "tasks": [
+        {
+          "taskId": "B61",
+          "title": "选牌回放时找不到 DEFEND_SILENT",
+          "groupIds": [
+            "D-fff31725acec",
+            "D-e6bbd885f200",
+            "D-c4d3063c9159",
+            "D-931066996a6b",
+            "D-41318ee27ca8"
+          ],
+          "representativeIds": [
+            "e586da49e8554c4ba7a5f34f72f8abe8"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DEFEND_SILENT"
+        },
+        {
+          "taskId": "B62",
+          "title": "选牌回放时找不到 DEFEND_IRONCLAD",
+          "groupIds": [
+            "D-22eaf71d8c24",
+            "D-cca440fe232a",
+            "D-89a63a2caf8e",
+            "D-87319e2c36e1"
+          ],
+          "representativeIds": [
+            "be87d244689341dc81c3690b7cf2e091"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DEFEND_IRONCLAD"
+        },
+        {
+          "taskId": "B63",
+          "title": "选牌回放时找不到 SPOILS_OF_BATTLE",
+          "groupIds": [
+            "D-51056de3362d"
+          ],
+          "representativeIds": [
+            "26808b8662c54c17838f39697f08eb9c"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SPOILS_OF_BATTLE"
+        },
+        {
+          "taskId": "B64",
+          "title": "选牌回放时找不到 BLUDGEON",
+          "groupIds": [
+            "D-4acdf0c172e6"
+          ],
+          "representativeIds": [
+            "b383d99e1e924bfe8ad876a84e7b8ef0"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 BLUDGEON"
+        },
+        {
+          "taskId": "B65",
+          "title": "选牌回放时找不到 PIERCING_WAIL",
+          "groupIds": [
+            "D-8854bca5e328",
+            "D-7ba631e11b1b"
+          ],
+          "representativeIds": [
+            "aee9473cd77d47d88d7930444ad529cc"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 PIERCING_WAIL"
+        },
+        {
+          "taskId": "B66",
+          "title": "选牌回放时找不到 GRAVEBLAST",
+          "groupIds": [
+            "D-f03bbd42602b",
+            "D-71ce6d7f1cc3"
+          ],
+          "representativeIds": [
+            "5529138b3f7b4095beae507fef456b8f"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 GRAVEBLAST"
+        },
+        {
+          "taskId": "B67",
+          "title": "选牌回放时找不到 GUILTY",
+          "groupIds": [
+            "D-003c351aa477"
+          ],
+          "representativeIds": [
+            "20b90e19fe004375a8aaa76afe2bec9d"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 GUILTY"
+        },
+        {
+          "taskId": "B68",
+          "title": "开局弃牌选择执行后找不到 PINPOINT+0 source=Hand action=ACROBATICS。",
+          "groupIds": [
+            "D-3e1bf813dc04"
+          ],
+          "representativeIds": [
+            "2e9963c59f27467c9ee54205325906a0"
+          ],
+          "publicationSignature": "InvalidOperationException：开局弃牌选择执行后找不到 PINPOINT+0 source=Hand action=ACROBATICS。"
+        },
+        {
+          "taskId": "B69",
+          "title": "开局弃牌选择执行后找不到 ABRASIVE+0 source=Hand action=PREPARED。",
+          "groupIds": [
+            "D-c9f4c00b54a1"
+          ],
+          "representativeIds": [
+            "bb93cee648ff4205b9942a6607812f2c"
+          ],
+          "publicationSignature": "InvalidOperationException：开局弃牌选择执行后找不到 ABRASIVE+0 source=Hand action=PREPARED。"
+        },
+        {
+          "taskId": "B70",
+          "title": "选牌回放时找不到 STRIKE_REGENT",
+          "groupIds": [
+            "D-88a9dd0cd65d",
+            "D-7a66f222b0a0",
+            "D-f42b447dceea"
+          ],
+          "representativeIds": [
+            "adee4124b2714ae7a7ce4f321c9b4119"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 STRIKE_REGENT"
+        }
+      ]
+    },
+    {
+      "batchId": "B008",
+      "issueNumber": 178,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/178",
+      "assetId": 605064370,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B008.zip",
+      "assetSizeBytes": 1554725,
+      "tasks": [
+        {
+          "taskId": "B71",
+          "title": "选牌回放时找不到 STRIKE_IRONCLAD",
+          "groupIds": [
+            "D-9581ea6a6b3c",
+            "D-559dd5738711",
+            "D-171482bbe1bf"
+          ],
+          "representativeIds": [
+            "f1d757584c9347b0a8975a76510a5ecf"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 STRIKE_IRONCLAD"
+        },
+        {
+          "taskId": "B72",
+          "title": "选牌回放时找不到 NEUTRALIZE",
+          "groupIds": [
+            "D-2fc156c79473",
+            "D-2dc59940df0f",
+            "D-2c072834fa6c"
+          ],
+          "representativeIds": [
+            "b7de2bf2ea234be1a6dec210b45b8027"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 NEUTRALIZE"
+        },
+        {
+          "taskId": "B73",
+          "title": "选牌回放时找不到 BACKFLIP",
+          "groupIds": [
+            "D-2c94b3c50b1a",
+            "D-6083c2cfb27d"
+          ],
+          "representativeIds": [
+            "fd401893674a460fafd72b1e8fe6894e"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 BACKFLIP"
+        },
+        {
+          "taskId": "B74",
+          "title": "选牌回放时找不到 ASCENDERS_BANE",
+          "groupIds": [
+            "D-c2888fd715be",
+            "D-8173b4fca944",
+            "D-94968d50c69c"
+          ],
+          "representativeIds": [
+            "fd97ba81f0db427cb7f5f4fc10f0b159"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 ASCENDERS_BANE"
+        },
+        {
+          "taskId": "B75",
+          "title": "选牌回放时找不到 STRIKE_SILENT",
+          "groupIds": [
+            "D-d011dfaaebf1",
+            "D-796bcfe38bb4"
+          ],
+          "representativeIds": [
+            "a37739f688c44bec85630e9cb52b7839"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 STRIKE_SILENT"
+        },
+        {
+          "taskId": "B76",
+          "title": "选牌回放时找不到 BACKSTAB",
+          "groupIds": [
+            "D-e8400d8309ec",
+            "D-87d39f321202"
+          ],
+          "representativeIds": [
+            "932f3cf624854741a4e5dddd3cb7cdc8"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 BACKSTAB"
+        },
+        {
+          "taskId": "B77",
+          "title": "开局弃牌选择执行后找不到 ABRASIVE+0 source=Hand action=ACROBATICS。",
+          "groupIds": [
+            "D-4f0c821c5634"
+          ],
+          "representativeIds": [
+            "cda3dbb48895416fa12738a30c571b7e"
+          ],
+          "publicationSignature": "InvalidOperationException：开局弃牌选择执行后找不到 ABRASIVE+0 source=Hand action=ACROBATICS。"
+        },
+        {
+          "taskId": "B78",
+          "title": "选牌回放时找不到 WITHER",
+          "groupIds": [
+            "D-adddccf9ec1f"
+          ],
+          "representativeIds": [
+            "56bbe4a3750c4f00ba90aae1bdf41397"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 WITHER"
+        },
+        {
+          "taskId": "B79",
+          "title": "选牌回放时找不到 WISP",
+          "groupIds": [
+            "D-c7d17508d6f6"
+          ],
+          "representativeIds": [
+            "6db72d6ed1214017bf1b9886b4d7d97e"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 WISP"
+        },
+        {
+          "taskId": "B80",
+          "title": "选牌回放时找不到 TACTICIAN",
+          "groupIds": [
+            "D-03ec8833f761"
+          ],
+          "representativeIds": [
+            "decb4c136e794a5d904f94e1dfdbb3f4"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 TACTICIAN"
+        }
+      ]
+    },
+    {
+      "batchId": "B009",
+      "issueNumber": 179,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/179",
+      "assetId": 605064374,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B009.zip",
+      "assetSizeBytes": 1280609,
+      "tasks": [
+        {
+          "taskId": "B81",
+          "title": "选牌回放时找不到 SUPPRESS",
+          "groupIds": [
+            "D-63a598bf766a"
+          ],
+          "representativeIds": [
+            "4caf4468b2ce4f8ea3a809e9c41976bc"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SUPPRESS"
+        },
+        {
+          "taskId": "B82",
+          "title": "选牌回放时找不到 STONE_ARMOR",
+          "groupIds": [
+            "D-1434eb71b898"
+          ],
+          "representativeIds": [
+            "4541b961050c4fbeb1e94705e85119eb"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 STONE_ARMOR"
+        },
+        {
+          "taskId": "B83",
+          "title": "选牌回放时找不到 SNAP",
+          "groupIds": [
+            "D-9ae1848f6d64"
+          ],
+          "representativeIds": [
+            "3619b7d967a845b6ae04fe95e6109036"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SNAP"
+        },
+        {
+          "taskId": "B84",
+          "title": "选牌回放时找不到 SCULPTING_STRIKE",
+          "groupIds": [
+            "D-5b3317a51724"
+          ],
+          "representativeIds": [
+            "75728dac83664f908dd1fd4700ab243f"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SCULPTING_STRIKE"
+        },
+        {
+          "taskId": "B85",
+          "title": "选牌回放时找不到 SCRAWL",
+          "groupIds": [
+            "D-28ebab041f3f"
+          ],
+          "representativeIds": [
+            "912b0f140ff947a39a30ec59e06e4dc7"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 SCRAWL"
+        },
+        {
+          "taskId": "B86",
+          "title": "选牌回放时找不到 PURITY",
+          "groupIds": [
+            "D-be1306b289a8"
+          ],
+          "representativeIds": [
+            "e99fe762a1424b5ab62d4b12253b9cd3"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 PURITY"
+        },
+        {
+          "taskId": "B87",
+          "title": "选牌回放时找不到 PERFECTED_STRIKE",
+          "groupIds": [
+            "D-9f9a518f67d2"
+          ],
+          "representativeIds": [
+            "0ff10674a89d44ac88ce3ddfd760b274"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 PERFECTED_STRIKE"
+        },
+        {
+          "taskId": "B88",
+          "title": "选牌回放时找不到 MURDER",
+          "groupIds": [
+            "D-b4d0af6763bc"
+          ],
+          "representativeIds": [
+            "1dfd70c9698b4013a2d1f696a4cfda89"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 MURDER"
+        },
+        {
+          "taskId": "B89",
+          "title": "选牌回放时找不到 MIND_BLAST",
+          "groupIds": [
+            "D-f25510e33184"
+          ],
+          "representativeIds": [
+            "83ffa04fbe864d47b79e3bff8a3bfc97"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 MIND_BLAST"
+        },
+        {
+          "taskId": "B90",
+          "title": "选牌回放时找不到 MAYHEM",
+          "groupIds": [
+            "D-ab2823e2d14e"
+          ],
+          "representativeIds": [
+            "a08b06344ca34635aab13f0cd32f3518"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 MAYHEM"
+        }
+      ]
+    },
+    {
+      "batchId": "B010",
+      "issueNumber": 180,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/180",
+      "assetId": 605064375,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B010.zip",
+      "assetSizeBytes": 1645156,
+      "tasks": [
+        {
+          "taskId": "B91",
+          "title": "选牌回放时找不到 JACKPOT",
+          "groupIds": [
+            "D-29e0ed15921f"
+          ],
+          "representativeIds": [
+            "c5d73bae033346e788c269f8dd2fe3db"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 JACKPOT"
+        },
+        {
+          "taskId": "B92",
+          "title": "选牌回放时找不到 GIANT_ROCK",
+          "groupIds": [
+            "D-9f53e3c64e55"
+          ],
+          "representativeIds": [
+            "1196ae05b9064254871a933f5da73070"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 GIANT_ROCK"
+        },
+        {
+          "taskId": "B93",
+          "title": "选牌回放时找不到 DEMESNE",
+          "groupIds": [
+            "D-3977b0ec4764"
+          ],
+          "representativeIds": [
+            "2197139a36c242219e57c4e8e5b19295"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DEMESNE"
+        },
+        {
+          "taskId": "B94",
+          "title": "选牌回放时找不到 DECAY",
+          "groupIds": [
+            "D-578a35ada776"
+          ],
+          "representativeIds": [
+            "1ec61db85b054ac596011984d58fca45"
+          ],
+          "publicationSignature": "InvalidPlannedChoiceBranchException：选牌回放时找不到 DECAY"
+        },
+        {
+          "taskId": "B95",
+          "title": "回放时找不到手牌 MELANCHOLY",
+          "groupIds": [
+            "D-d2ed53478bd8",
+            "D-562d4628bf20",
+            "D-2b552dfcd129",
+            "D-8985572e933d",
+            "D-88e5e0dda24a",
+            "D-2ae41388a91c"
+          ],
+          "representativeIds": [
+            "efdb9f7529914beba06f7768f867b3f4"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 MELANCHOLY"
+        },
+        {
+          "taskId": "B96",
+          "title": "回放时找不到手牌 DEFEND_SILENT",
+          "groupIds": [
+            "D-cb2ac43d1bff",
+            "D-aee5d26a8c13",
+            "D-942fde536012"
+          ],
+          "representativeIds": [
+            "e8b5ee04124b471cb1b85bdc1d5a7475"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 DEFEND_SILENT"
+        },
+        {
+          "taskId": "B97",
+          "title": "回放时找不到手牌 MASTER_OF_STRATEGY",
+          "groupIds": [
+            "D-c9957b0571c7"
+          ],
+          "representativeIds": [
+            "c5c60949682b4293b0894bbe99c1351f"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 MASTER_OF_STRATEGY"
+        },
+        {
+          "taskId": "B98",
+          "title": "回放时找不到手牌 PIERCING_WAIL",
+          "groupIds": [
+            "D-21f120f01150",
+            "D-a0a4e8b64dce",
+            "D-8cdca96b0298"
+          ],
+          "representativeIds": [
+            "3bde06c681c54f11a33441689c9eda89"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 PIERCING_WAIL"
+        },
+        {
+          "taskId": "B99",
+          "title": "回放时找不到手牌 STRIKE_SILENT",
+          "groupIds": [
+            "D-e018b622ed9f",
+            "D-ebab0b23075b"
+          ],
+          "representativeIds": [
+            "9b0c1dfd153841a68c4687ad5c20b357"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 STRIKE_SILENT"
+        },
+        {
+          "taskId": "B100",
+          "title": "回放时找不到手牌 NEUTRALIZE",
+          "groupIds": [
+            "D-117cada661e7"
+          ],
+          "representativeIds": [
+            "87c8b6ab2710446085b0bfd365787bae"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 NEUTRALIZE"
+        }
+      ]
+    },
+    {
+      "batchId": "B011",
+      "issueNumber": 181,
+      "issueUrl": "https://github.com/Torch1230/CombatSolver/issues/181",
+      "assetId": 605064383,
+      "assetUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B011.zip",
+      "assetSizeBytes": 2270484,
+      "tasks": [
+        {
+          "taskId": "B101",
+          "title": "回放时找不到手牌 KINGLY_KICK",
+          "groupIds": [
+            "D-8f25c4c8bf8b"
+          ],
+          "representativeIds": [
+            "1848ca7d8e234efe8ccf33be6810d52d"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 KINGLY_KICK"
+        },
+        {
+          "taskId": "B102",
+          "title": "回放时找不到手牌 FAN_OF_KNIVES",
+          "groupIds": [
+            "D-2acd40e2449a"
+          ],
+          "representativeIds": [
+            "372c7221cad542298f5e936ee0e8e8cd"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 FAN_OF_KNIVES"
+        },
+        {
+          "taskId": "B103",
+          "title": "回放时找不到手牌 DEFEND_IRONCLAD",
+          "groupIds": [
+            "D-e0a3c12bf842"
+          ],
+          "representativeIds": [
+            "bdd86f2ceb1044da941a49fb4b4d8d19"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 DEFEND_IRONCLAD"
+        },
+        {
+          "taskId": "B104",
+          "title": "回放时找不到手牌 SURVIVOR",
+          "groupIds": [
+            "D-b21709e6a1d1"
+          ],
+          "representativeIds": [
+            "8c8cc5f406f84c4db123aa64705dca31"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 SURVIVOR"
+        },
+        {
+          "taskId": "B105",
+          "title": "回放时找不到手牌 EXPOSE",
+          "groupIds": [
+            "D-8e4192936131"
+          ],
+          "representativeIds": [
+            "de4d6917a9fc43aebc464087573959d5"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 EXPOSE"
+        },
+        {
+          "taskId": "B106",
+          "title": "回放时找不到手牌 CORROSIVE_WAVE",
+          "groupIds": [
+            "D-2d6bada75d28"
+          ],
+          "representativeIds": [
+            "6aa92b3e12f74d2ba63ddf854ba57bd7"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 CORROSIVE_WAVE"
+        },
+        {
+          "taskId": "B107",
+          "title": "开局续用前缀失效",
+          "groupIds": [
+            "D-913711190bc6"
+          ],
+          "representativeIds": [
+            "ff28bb76d1134202ac5b7c89268a6430"
+          ],
+          "publicationSignature": "InvalidOperationException：Opening follow-up prefix is no longer applicable."
+        },
+        {
+          "taskId": "B108",
+          "title": "终结搜索节点进入展开阶段",
+          "groupIds": [
+            "D-d80fd006d45b"
+          ],
+          "representativeIds": [
+            "891849550eb14e38a4f3961f357e315a"
+          ],
+          "publicationSignature": "InvalidOperationException：终结搜索节点不应进入展开阶段。"
+        },
+        {
+          "taskId": "B109",
+          "title": "回放时找不到手牌 ULTIMATE_STRIKE",
+          "groupIds": [
+            "D-04a524a8bdf8"
+          ],
+          "representativeIds": [
+            "adde27f600684854a79c24faadf194cc"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 ULTIMATE_STRIKE"
+        },
+        {
+          "taskId": "B110",
+          "title": "回放时找不到手牌 ROCKET_PUNCH",
+          "groupIds": [
+            "D-c47d550d9439",
+            "D-0159d2482136"
+          ],
+          "representativeIds": [
+            "924596e250004ee9963a0c409805b804"
+          ],
+          "publicationSignature": "InvalidOperationException：回放时找不到手牌 ROCKET_PUNCH"
+        }
+      ]
+    }
+  ],
+  "retiredArchives": {
+    "4d7e883a7ff144a79879a6a886e5a62b": {
+      "reportId": "4d7e883a7ff144a79879a6a886e5a62b",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ac1bf450a4574ed09870b37ebdc8ce28": {
+      "reportId": "ac1bf450a4574ed09870b37ebdc8ce28",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c0d7e681055942c1b0c1211c4fc89038": {
+      "reportId": "c0d7e681055942c1b0c1211c4fc89038",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c400add395a246289276db7b90746574": {
+      "reportId": "c400add395a246289276db7b90746574",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "759c559be3b6429099d409f8462c9268": {
+      "reportId": "759c559be3b6429099d409f8462c9268",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "99774390c81140058228982934477ea8": {
+      "reportId": "99774390c81140058228982934477ea8",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "6a86102e036e49b890372754f3d71634": {
+      "reportId": "6a86102e036e49b890372754f3d71634",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "f217b3c39c4b4cb4b77f08b353c4c146": {
+      "reportId": "f217b3c39c4b4cb4b77f08b353c4c146",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "9caf1cd8a36c4a7ab2a3765c16ceaa8b": {
+      "reportId": "9caf1cd8a36c4a7ab2a3765c16ceaa8b",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "02fe03dff65645d8bd0e64f6b5c2d8d7": {
+      "reportId": "02fe03dff65645d8bd0e64f6b5c2d8d7",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1433d0801c4d40f4ae6e4d7faecea30e": {
+      "reportId": "1433d0801c4d40f4ae6e4d7faecea30e",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c7704870778b47f59e49a85ca5f73912": {
+      "reportId": "c7704870778b47f59e49a85ca5f73912",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "be3cf3410d4444188ca98ef79b2052f6": {
+      "reportId": "be3cf3410d4444188ca98ef79b2052f6",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "8fbb4f7f7d1b4e30832296d73e7a114d": {
+      "reportId": "8fbb4f7f7d1b4e30832296d73e7a114d",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c5e305b95ff444fea1949a58c0b17b04": {
+      "reportId": "c5e305b95ff444fea1949a58c0b17b04",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b76f10234d8b435286083ae1e614646d": {
+      "reportId": "b76f10234d8b435286083ae1e614646d",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "93133dcfdb114695b08aec08c36716c4": {
+      "reportId": "93133dcfdb114695b08aec08c36716c4",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "d56fc7d749304554a1cc193cff6a4d6b": {
+      "reportId": "d56fc7d749304554a1cc193cff6a4d6b",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b7efa7bd6dd247e097a07ae1cde2de3d": {
+      "reportId": "b7efa7bd6dd247e097a07ae1cde2de3d",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ca56e9d39e514a44ab3bb0dd2c8296e6": {
+      "reportId": "ca56e9d39e514a44ab3bb0dd2c8296e6",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "2d9ae9a2094840f3a7a38505235710d4": {
+      "reportId": "2d9ae9a2094840f3a7a38505235710d4",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "d3351a24df2e4031a0764be55e9be7e8": {
+      "reportId": "d3351a24df2e4031a0764be55e9be7e8",
+      "batchId": "Q001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "719fce245c7a4efa9e1cc62c103cb6e3": {
+      "reportId": "719fce245c7a4efa9e1cc62c103cb6e3",
+      "batchId": "B001",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e3e83e0eed0346329933d76e50b01812": {
+      "reportId": "e3e83e0eed0346329933d76e50b01812",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e0a32db68a0e432d9fc121340043a9f6": {
+      "reportId": "e0a32db68a0e432d9fc121340043a9f6",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "917200068a8644d5b40e2d38004e33ef": {
+      "reportId": "917200068a8644d5b40e2d38004e33ef",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e7f1cf14e6ad4a60be7f4f3724929b81": {
+      "reportId": "e7f1cf14e6ad4a60be7f4f3724929b81",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "dde1660175e94698893bc0ce5048f566": {
+      "reportId": "dde1660175e94698893bc0ce5048f566",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ba5c54e93c67488fb28b0045ec27b2ae": {
+      "reportId": "ba5c54e93c67488fb28b0045ec27b2ae",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ba79d87499a4455bbba4a51baf381eea": {
+      "reportId": "ba79d87499a4455bbba4a51baf381eea",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e63cd12543994bb08b9497e45839005c": {
+      "reportId": "e63cd12543994bb08b9497e45839005c",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fc5a35417db14e428143e8df72750a3e": {
+      "reportId": "fc5a35417db14e428143e8df72750a3e",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "498b16b0f31f4832ba734726464afb49": {
+      "reportId": "498b16b0f31f4832ba734726464afb49",
+      "batchId": "B002",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "574f28d17281460399b7e7bc55442042": {
+      "reportId": "574f28d17281460399b7e7bc55442042",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "0fc7a3d92767410ba6fb3c1cafe90354": {
+      "reportId": "0fc7a3d92767410ba6fb3c1cafe90354",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "2e4ad49835c3478f82ac3506c96b4a00": {
+      "reportId": "2e4ad49835c3478f82ac3506c96b4a00",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "6c1ba67da27943518ffe3c4d164cf5bf": {
+      "reportId": "6c1ba67da27943518ffe3c4d164cf5bf",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "17d363178b9b4a58a478c6ab41d453a5": {
+      "reportId": "17d363178b9b4a58a478c6ab41d453a5",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ad752303ab53403faf085c2f7e4b1c83": {
+      "reportId": "ad752303ab53403faf085c2f7e4b1c83",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b240700e03f44a5aa19395328d75246f": {
+      "reportId": "b240700e03f44a5aa19395328d75246f",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "3f4c6b58670143308359a048b0d4899e": {
+      "reportId": "3f4c6b58670143308359a048b0d4899e",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fd41bd8081bd4eb3ba36b382a142b0ad": {
+      "reportId": "fd41bd8081bd4eb3ba36b382a142b0ad",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "90deefbd323846c8b561e88155c0bf0d": {
+      "reportId": "90deefbd323846c8b561e88155c0bf0d",
+      "batchId": "B003",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "f1c832eb2d3647c7aa37c4d2038e09be": {
+      "reportId": "f1c832eb2d3647c7aa37c4d2038e09be",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "851c188bc3ae4d0b83319a76bae4384d": {
+      "reportId": "851c188bc3ae4d0b83319a76bae4384d",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "cda63d439f264deb9507280c6498b070": {
+      "reportId": "cda63d439f264deb9507280c6498b070",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fc46c597fba14aa4abf9ff81a2ca0581": {
+      "reportId": "fc46c597fba14aa4abf9ff81a2ca0581",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "68264c7fd86b49398eea230bcc5541e3": {
+      "reportId": "68264c7fd86b49398eea230bcc5541e3",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e97fdf33210743fc955ad350400f205e": {
+      "reportId": "e97fdf33210743fc955ad350400f205e",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "d4b99507645b4ebabe486975ecd7186b": {
+      "reportId": "d4b99507645b4ebabe486975ecd7186b",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "aee802f4d8344dc9838ddf85d898bab3": {
+      "reportId": "aee802f4d8344dc9838ddf85d898bab3",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "f00880e97e7144c897c38fde18949492": {
+      "reportId": "f00880e97e7144c897c38fde18949492",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "626a083d78a449ccaf743f4b017e2d4b": {
+      "reportId": "626a083d78a449ccaf743f4b017e2d4b",
+      "batchId": "B004",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "765e002fda814f99b8036bc1cfed95d4": {
+      "reportId": "765e002fda814f99b8036bc1cfed95d4",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "478d8c8fd22742d29e02ba7a54d9cb1f": {
+      "reportId": "478d8c8fd22742d29e02ba7a54d9cb1f",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "bb354ef99c084a68823278535fe34177": {
+      "reportId": "bb354ef99c084a68823278535fe34177",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "8558301471ba4377860706b9ae00be0e": {
+      "reportId": "8558301471ba4377860706b9ae00be0e",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "717978db6a7b43e8bdd4dcad7f5ba1f2": {
+      "reportId": "717978db6a7b43e8bdd4dcad7f5ba1f2",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "79b766e1deef4107987f0b09f7fb080c": {
+      "reportId": "79b766e1deef4107987f0b09f7fb080c",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c97fe6bb67184f66afb82b366e3fd7ef": {
+      "reportId": "c97fe6bb67184f66afb82b366e3fd7ef",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1d3fed52ca4a429385fca28db4998f0d": {
+      "reportId": "1d3fed52ca4a429385fca28db4998f0d",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c55bf3b08d474e20bcea007a155b1ded": {
+      "reportId": "c55bf3b08d474e20bcea007a155b1ded",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "47e44ee107d64dc1ad7c6a4cb3069ed0": {
+      "reportId": "47e44ee107d64dc1ad7c6a4cb3069ed0",
+      "batchId": "B005",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fd0f0b6de0aa438883c3fc0ec90d9df8": {
+      "reportId": "fd0f0b6de0aa438883c3fc0ec90d9df8",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e643422524a7437cbdc909a331c31369": {
+      "reportId": "e643422524a7437cbdc909a331c31369",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e8ebfb3de7c54617b860e17b59b6db51": {
+      "reportId": "e8ebfb3de7c54617b860e17b59b6db51",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "98be67527a524553b4b201e15c90ea2e": {
+      "reportId": "98be67527a524553b4b201e15c90ea2e",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "0045c7bd0c10468aa2ddacb5aed4db8d": {
+      "reportId": "0045c7bd0c10468aa2ddacb5aed4db8d",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "9cb0460c7fac401fb8c98a9aed754b2f": {
+      "reportId": "9cb0460c7fac401fb8c98a9aed754b2f",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "a0dbe7afcea0419fb9102cb82f29a478": {
+      "reportId": "a0dbe7afcea0419fb9102cb82f29a478",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b556738c9b6c46d692379445e9604713": {
+      "reportId": "b556738c9b6c46d692379445e9604713",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "40f0d7965bd1409da0e2de3fd0dd7fac": {
+      "reportId": "40f0d7965bd1409da0e2de3fd0dd7fac",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b736af766abe4a7982d12a99a77aee4e": {
+      "reportId": "b736af766abe4a7982d12a99a77aee4e",
+      "batchId": "B006",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e586da49e8554c4ba7a5f34f72f8abe8": {
+      "reportId": "e586da49e8554c4ba7a5f34f72f8abe8",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "be87d244689341dc81c3690b7cf2e091": {
+      "reportId": "be87d244689341dc81c3690b7cf2e091",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "26808b8662c54c17838f39697f08eb9c": {
+      "reportId": "26808b8662c54c17838f39697f08eb9c",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b383d99e1e924bfe8ad876a84e7b8ef0": {
+      "reportId": "b383d99e1e924bfe8ad876a84e7b8ef0",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "aee9473cd77d47d88d7930444ad529cc": {
+      "reportId": "aee9473cd77d47d88d7930444ad529cc",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "5529138b3f7b4095beae507fef456b8f": {
+      "reportId": "5529138b3f7b4095beae507fef456b8f",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "20b90e19fe004375a8aaa76afe2bec9d": {
+      "reportId": "20b90e19fe004375a8aaa76afe2bec9d",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "2e9963c59f27467c9ee54205325906a0": {
+      "reportId": "2e9963c59f27467c9ee54205325906a0",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "bb93cee648ff4205b9942a6607812f2c": {
+      "reportId": "bb93cee648ff4205b9942a6607812f2c",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "adee4124b2714ae7a7ce4f321c9b4119": {
+      "reportId": "adee4124b2714ae7a7ce4f321c9b4119",
+      "batchId": "B007",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "f1d757584c9347b0a8975a76510a5ecf": {
+      "reportId": "f1d757584c9347b0a8975a76510a5ecf",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "b7de2bf2ea234be1a6dec210b45b8027": {
+      "reportId": "b7de2bf2ea234be1a6dec210b45b8027",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fd401893674a460fafd72b1e8fe6894e": {
+      "reportId": "fd401893674a460fafd72b1e8fe6894e",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "fd97ba81f0db427cb7f5f4fc10f0b159": {
+      "reportId": "fd97ba81f0db427cb7f5f4fc10f0b159",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "a37739f688c44bec85630e9cb52b7839": {
+      "reportId": "a37739f688c44bec85630e9cb52b7839",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "932f3cf624854741a4e5dddd3cb7cdc8": {
+      "reportId": "932f3cf624854741a4e5dddd3cb7cdc8",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "cda3dbb48895416fa12738a30c571b7e": {
+      "reportId": "cda3dbb48895416fa12738a30c571b7e",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "56bbe4a3750c4f00ba90aae1bdf41397": {
+      "reportId": "56bbe4a3750c4f00ba90aae1bdf41397",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "6db72d6ed1214017bf1b9886b4d7d97e": {
+      "reportId": "6db72d6ed1214017bf1b9886b4d7d97e",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "decb4c136e794a5d904f94e1dfdbb3f4": {
+      "reportId": "decb4c136e794a5d904f94e1dfdbb3f4",
+      "batchId": "B008",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "4caf4468b2ce4f8ea3a809e9c41976bc": {
+      "reportId": "4caf4468b2ce4f8ea3a809e9c41976bc",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "4541b961050c4fbeb1e94705e85119eb": {
+      "reportId": "4541b961050c4fbeb1e94705e85119eb",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "3619b7d967a845b6ae04fe95e6109036": {
+      "reportId": "3619b7d967a845b6ae04fe95e6109036",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "75728dac83664f908dd1fd4700ab243f": {
+      "reportId": "75728dac83664f908dd1fd4700ab243f",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "912b0f140ff947a39a30ec59e06e4dc7": {
+      "reportId": "912b0f140ff947a39a30ec59e06e4dc7",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e99fe762a1424b5ab62d4b12253b9cd3": {
+      "reportId": "e99fe762a1424b5ab62d4b12253b9cd3",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "0ff10674a89d44ac88ce3ddfd760b274": {
+      "reportId": "0ff10674a89d44ac88ce3ddfd760b274",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1dfd70c9698b4013a2d1f696a4cfda89": {
+      "reportId": "1dfd70c9698b4013a2d1f696a4cfda89",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "83ffa04fbe864d47b79e3bff8a3bfc97": {
+      "reportId": "83ffa04fbe864d47b79e3bff8a3bfc97",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "a08b06344ca34635aab13f0cd32f3518": {
+      "reportId": "a08b06344ca34635aab13f0cd32f3518",
+      "batchId": "B009",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c5d73bae033346e788c269f8dd2fe3db": {
+      "reportId": "c5d73bae033346e788c269f8dd2fe3db",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1196ae05b9064254871a933f5da73070": {
+      "reportId": "1196ae05b9064254871a933f5da73070",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "2197139a36c242219e57c4e8e5b19295": {
+      "reportId": "2197139a36c242219e57c4e8e5b19295",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1ec61db85b054ac596011984d58fca45": {
+      "reportId": "1ec61db85b054ac596011984d58fca45",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "efdb9f7529914beba06f7768f867b3f4": {
+      "reportId": "efdb9f7529914beba06f7768f867b3f4",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "e8b5ee04124b471cb1b85bdc1d5a7475": {
+      "reportId": "e8b5ee04124b471cb1b85bdc1d5a7475",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "c5c60949682b4293b0894bbe99c1351f": {
+      "reportId": "c5c60949682b4293b0894bbe99c1351f",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "3bde06c681c54f11a33441689c9eda89": {
+      "reportId": "3bde06c681c54f11a33441689c9eda89",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "9b0c1dfd153841a68c4687ad5c20b357": {
+      "reportId": "9b0c1dfd153841a68c4687ad5c20b357",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "87c8b6ab2710446085b0bfd365787bae": {
+      "reportId": "87c8b6ab2710446085b0bfd365787bae",
+      "batchId": "B010",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "1848ca7d8e234efe8ccf33be6810d52d": {
+      "reportId": "1848ca7d8e234efe8ccf33be6810d52d",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "372c7221cad542298f5e936ee0e8e8cd": {
+      "reportId": "372c7221cad542298f5e936ee0e8e8cd",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "bdd86f2ceb1044da941a49fb4b4d8d19": {
+      "reportId": "bdd86f2ceb1044da941a49fb4b4d8d19",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "8c8cc5f406f84c4db123aa64705dca31": {
+      "reportId": "8c8cc5f406f84c4db123aa64705dca31",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "de4d6917a9fc43aebc464087573959d5": {
+      "reportId": "de4d6917a9fc43aebc464087573959d5",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "6aa92b3e12f74d2ba63ddf854ba57bd7": {
+      "reportId": "6aa92b3e12f74d2ba63ddf854ba57bd7",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "ff28bb76d1134202ac5b7c89268a6430": {
+      "reportId": "ff28bb76d1134202ac5b7c89268a6430",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "891849550eb14e38a4f3961f357e315a": {
+      "reportId": "891849550eb14e38a4f3961f357e315a",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "adde27f600684854a79c24faadf194cc": {
+      "reportId": "adde27f600684854a79c24faadf194cc",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    },
+    "924596e250004ee9963a0c409805b804": {
+      "reportId": "924596e250004ee9963a0c409805b804",
+      "batchId": "B011",
+      "localDeleted": true,
+      "cosDeleted": false,
+      "reportRetained": true,
+      "resolved": false
+    }
+  },
+  "contentPolicy": "base_game_content_only; no proactive third_party_gameplay_adaptation",
+  "verification": "static_only",
+  "excludedTasks": [
+    {
+      "taskId": "B09",
+      "title": "HextechMayhemModifier 回合开始镜像缺失",
+      "groupIds": [
+        "D-4ecb55e225a0",
+        "D-dd0ec63089cf"
+      ],
+      "representativeIds": [
+        "1433d0801c4d40f4ae6e4d7faecea30e"
+      ],
+      "status": "excluded_third_party_content",
+      "exclusionReason": "Main project does not actively adapt third-party gameplay content",
+      "historicalArchive": "B09.zip",
+      "legacyIssueUrl": "https://github.com/Torch1230/CombatSolver/issues/159",
+      "historicalArchiveUrl": "https://github.com/Torch1230/CombatSolver/releases/download/community-tasks-2026-10-02/B09.zip"
+    }
+  ],
+  "validation": {
+    "newBatches": 10,
+    "newItems": 100,
+    "uniqueDiagnosticLeads": 100,
+    "baseGameCharactersOnly": true,
+    "publicReplayBytesPreserved": true,
+    "replayNetIds": [
+      "1"
+    ],
+    "restoration": "not_run",
+    "search": "not_run",
+    "deploymentTests": "not_run",
+    "cleanupChecks": [
+      "dry_run",
+      "storage_path_boundary",
+      "COS_failure_stops",
+      "repair_state_preserved",
+      "idempotent_resume"
+    ]
+  },
+  "totalRetiredArchives": 123,
+  "actualServerFilesDeleted": 123,
+  "localCleanup": {
+    "directory": ".local/community-tasks/20261002",
+    "completed": true,
+    "method": "explicit_files_within_confirmed_task_directory",
+    "zipFilesDeleted": 290,
+    "zipBytesDeleted": 112921541,
+    "privateSnapshotsRemoved": true,
+    "emptyDirectoriesMayRemain": true
+  }
+}
