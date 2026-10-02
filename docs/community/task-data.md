@@ -75,7 +75,7 @@ python tools/export-community-bundle.py .local/raw/REPORT.zip .local/public/REPO
 
 入口表格的“认领者”列以各批次 Issue 的 Assignee 为准：空缺显示“未认领”，已指派显示 `[用户名](https://github.com/用户名)`。在批次回复 `认领` 或 `认领 B012 整批` 自动认领本人，回复 `取消认领` 自动释放该批次；同一人可以同时认领多个批次，已有负责人时保持当前指派。具体规则见[贡献指南](../../CONTRIBUTING.md)。
 
-[community-claims.yml](../../.github/workflows/community-claims.yml) 监听新回复、指派及批次开关，调用 [sync-community-claims.py](../../tools/sync-community-claims.py)。新增批次账本推送也触发同步。每次处理尚未消费的回复，进度保存在入口正文的隐藏 `combatsolver-community-claims` 标记，队列合并或重试时保留认领顺序。表格之外的正文及用户设置的入口标题由维护者管理；发布时保留隐藏标记，仅更新正文。
+[community-claims.yml](../../.github/workflows/community-claims.yml) 监听新回复、指派、标签及批次开关，调用 [sync-community-claims.py](../../tools/sync-community-claims.py)。新增批次账本推送也触发同步。批次状态标签以实际 Assignee 为准：有负责人为“已认领”，无负责人为“待认领”，移除旧“待定位”及相反的认领状态标签，保留其他标签。每次处理尚未消费的回复，进度保存在入口正文的隐藏 `combatsolver-community-claims` 标记，队列合并或重试时保留认领顺序。表格之外的正文及用户设置的入口标题由维护者管理；发布时保留隐藏标记，仅更新正文。
 
 维护者可以用 `python tools/sync-community-claims.py --dry-run` 预览，或手动运行 GitHub Actions 的 **Community batch claims** 工作流恢复同步。脚本使用已登录的 `gh` 或 Actions 的 `GITHUB_TOKEN`，权限为读取仓库与写入 Issue；不需要日志后台凭据。
 

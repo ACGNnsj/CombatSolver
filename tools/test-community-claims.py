@@ -3,6 +3,7 @@ import copy
 import importlib.util
 from pathlib import Path
 import unittest
+from urllib.parse import unquote
 
 spec = importlib.util.spec_from_file_location('claims', Path(__file__).with_name('sync-community-claims.py'))
 claims = importlib.util.module_from_spec(spec)
@@ -35,17 +36,31 @@ def comment(cid, login, body):
 class FakeGitHub:
     def __init__(self):
         self.issues = {171: {'title': '用户改过的标题', 'body': BODY, 'html_url': 'https://github.com/Torch1230/CombatSolver/issues/171'},
-                       149: {'assignees': [], 'state': 'open'}, 183: {'assignees': [], 'state': 'open'}}
+                       149: {'assignees': [], 'state': 'open', 'labels': [{'name': 'bug'}, {'name': '待定位'}]},
+                       183: {'assignees': [], 'state': 'open', 'labels': [{'name': 'enhancement'}, {'name': '待定位'}]}}
         self.comments = {149: [], 183: []}
+        self.labels = {}
         self.writes = []
 
     def request(self, route, method='GET', payload=None):
+        if route == 'labels':
+            self.writes.append((route, method, copy.deepcopy(payload)))
+            self.labels[payload['name']] = copy.deepcopy(payload)
+            return copy.deepcopy(payload)
         number = int(route.split('/')[1])
         if method == 'GET':
             return copy.deepcopy(self.issues[number])
         self.writes.append((route, method, copy.deepcopy(payload)))
         issue = self.issues[number]
-        if route.endswith('/assignees'):
+        if '/labels' in route:
+            if method == 'POST':
+                existing = {label['name'] for label in issue['labels']}
+                issue['labels'] += [{'name': name} for name in payload['labels'] if name not in existing]
+            elif method == 'DELETE':
+                name = unquote(route.rsplit('/', 1)[1])
+                issue['labels'] = [label for label in issue['labels'] if label['name'] != name]
+            return copy.deepcopy(issue['labels'])
+        elif route.endswith('/assignees'):
             if method == 'POST':
                 issue['assignees'] += [user(login) for login in payload['assignees']]
             elif method == 'DELETE':
@@ -56,6 +71,8 @@ class FakeGitHub:
         return copy.deepcopy(issue)
 
     def pages(self, route):
+        if route == 'labels':
+            return copy.deepcopy(list(self.labels.values()))
         return copy.deepcopy(self.comments[int(route.split('/')[1])])
 
 
@@ -155,6 +172,35 @@ class ClaimTests(unittest.TestCase):
         self.assertEqual(api.writes, [])
         self.assertEqual(api.issues[171]['body'], BODY)
         self.assertEqual(api.issues[149]['assignees'], [])
+
+    def test_claim_status_labels_follow_manual_assignment_and_preserve_other_labels(self):
+        api = FakeGitHub()
+        api.issues[149]['labels'] += [{'name': 'help wanted'}, {'name': '任务:故障'}]
+        api.issues[149]['assignees'] = [user('First')]
+        claims.synchronize(api, BATCHES)
+        self.assertEqual({l['name'] for l in api.issues[149]['labels']}, {'bug', 'help wanted', '任务:故障', '已认领'})
+        self.assertEqual({l['name'] for l in api.issues[183]['labels']}, {'enhancement', '待认领'})
+        self.assertEqual(set(api.labels), {'待认领', '已认领'})
+        api.issues[149]['assignees'] = []
+        claims.synchronize(api, BATCHES)
+        self.assertEqual({l['name'] for l in api.issues[149]['labels']}, {'bug', 'help wanted', '任务:故障', '待认领'})
+
+    def test_claim_and_unclaim_update_labels(self):
+        api = FakeGitHub()
+        api.comments[149] = [comment(1, 'Person', '/claim')]
+        claims.synchronize(api, BATCHES)
+        self.assertEqual({l['name'] for l in api.issues[149]['labels']}, {'bug', '已认领'})
+        api.comments[149].append(comment(2, 'Person', '/unclaim'))
+        claims.synchronize(api, BATCHES)
+        self.assertEqual({l['name'] for l in api.issues[149]['labels']}, {'bug', '待认领'})
+
+    def test_inconsistent_status_labels_are_reconciled_and_other_issues_are_untouched(self):
+        api = FakeGitHub()
+        api.issues[149]['labels'] += [{'name': '待认领'}, {'name': '已认领'}]
+        api.issues[999] = {'assignees': [], 'state': 'open', 'labels': [{'name': '待定位'}]}
+        claims.synchronize(api, BATCHES)
+        self.assertEqual({l['name'] for l in api.issues[149]['labels']}, {'bug', '待认领'})
+        self.assertEqual(api.issues[999]['labels'], [{'name': '待定位'}])
 
 
 if __name__ == '__main__':

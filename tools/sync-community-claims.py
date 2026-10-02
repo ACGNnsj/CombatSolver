@@ -1,4 +1,4 @@
-"""Claim registered community batches and update only the entry body's owner cells.
+"""Claim registered batches and sync their status labels and entry owner cells.
 
 Run through GitHub Actions, or locally with an authenticated gh CLI. Comments are
 data: only an exact first-line claim/unclaim command can change its author's assignment.
@@ -10,10 +10,16 @@ from pathlib import Path
 import re
 import subprocess
 import sys
+from urllib.parse import quote
 
 
 REPOSITORY = 'Torch1230/CombatSolver'
 ENTRY_ISSUE = 171
+CLAIM_LABELS = {
+    '待认领': {'color': 'fbca04', 'description': '等待贡献者认领的社区任务批次'},
+    '已认领': {'color': '0e8a16', 'description': '已有负责人的社区任务批次'},
+}
+CLAIM_STATUS_LABELS = {'待定位', *CLAIM_LABELS}
 STATE_PATTERN = re.compile(r'<!-- combatsolver-community-claims: (\{[^\n]*\}) -->')
 COMMAND_PATTERN = re.compile(r'(认领|取消认领|放弃认领)(?:\s*([BQ]\d{3}))?(?:\s*整批)?[。！!]?', re.IGNORECASE)
 COMMAND_INTRO_PATTERN = re.compile(r'(认领|取消认领|放弃认领)(?:\s*([BQ]\d{3}))?\s*整批(?=$|[\s（(，,。.!！：:])', re.IGNORECASE)
@@ -133,6 +139,29 @@ def update_entry_body(body, batches, issues, state):
     return updated.rstrip('\r\n') + '\n\n' + marker + '\n'
 
 
+def synchronize_labels(api, batches, issues, dry_run):
+    repository_labels = {label['name'] for label in api.pages('labels')}
+    for name, properties in CLAIM_LABELS.items():
+        if name not in repository_labels and not dry_run:
+            api.request('labels', 'POST', dict(name=name, **properties))
+    changes = []
+    for batch in batches:
+        number = batch['issueNumber']
+        desired = '已认领' if issues[number]['assignees'] else '待认领'
+        existing = {label['name'] for label in issues[number]['labels']}
+        obsolete = sorted((existing & CLAIM_STATUS_LABELS) - {desired})
+        if desired in existing and not obsolete:
+            continue
+        if not dry_run:
+            if desired not in existing:
+                api.request(f'issues/{number}/labels', 'POST', {'labels': [desired]})
+            for name in obsolete:
+                api.request(f'issues/{number}/labels/{quote(name, safe="")}', 'DELETE')
+        changes.append({'batchId': batch['batchId'], 'issueNumber': number,
+                        'label': desired, 'removed': obsolete})
+    return changes
+
+
 def synchronize(api, batches, dry_run=False):
     entry = api.request(f'issues/{ENTRY_ISSUE}')
     state = read_state(entry['body'])
@@ -185,8 +214,9 @@ def synchronize(api, batches, dry_run=False):
         cursors[number] = max(cursors.get(number, 0), cursor)
     body = update_entry_body(current['body'], batches, issues, {'schemaVersion': 1, 'lastCommentIds': cursors})
     changed = body != current['body']
+    label_changes = synchronize_labels(api, batches, issues, dry_run)
     result = {'dryRun': dry_run, 'entryTitle': current['title'], 'entryBodyChanged': changed,
-              'batches': len(batches), 'actions': actions}
+              'batches': len(batches), 'actions': actions, 'labelChanges': label_changes}
     if changed and not dry_run:
         saved = api.request(f'issues/{ENTRY_ISSUE}', 'PATCH', {'body': body})
         result['entryTitle'] = saved['title']
